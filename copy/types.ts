@@ -2,6 +2,7 @@ import type { Tier, Pocket } from '../packages/core/src/types.js';
 import type { GiveCause } from '../packages/core/src/give.js';
 import type { ChapterKey } from '../packages/core/src/missions.js';
 import type { SendSource } from '../packages/core/src/parent.js';
+import type { JobKind, RewardKind } from '../packages/core/src/jobs.js';
 
 export type CategoryTerms = Record<Pocket, string>;
 
@@ -91,6 +92,24 @@ export interface Dictionary {
     | 'amountRequired' | 'dayOutOfRange' | 'ratesNegative' | 'ratesTooHigh',
     string
   >;
+
+  addChild: Record<
+    'title' | 'name' | 'birth' | 'month' | 'year' | 'tier' | 'tierSuggested' | 'tierOverride'
+    | 'pin' | 'pinHint' | 'privacy' | 'submit' | 'starterWallets' | 'created'
+    | 'nameRequired' | 'birthMonthInvalid' | 'birthYearInvalid' | 'pinLength' | 'pinDigitsOnly',
+    string
+  >;
+
+  jobs: Record<
+    'title' | 'kind' | 'reward' | 'amount' | 'jobTitle' | 'gemsOnly' | 'whyGemsOnly' | 'add'
+    | 'prizes' | 'prizeTitle' | 'gemCost' | 'timeToEarn' | 'weeks' | 'never' | 'gemsPerWeek'
+    | 'titleRequired' | 'amountRequired' | 'moneyNotAllowed' | 'costRequired',
+    string
+  >;
+
+  jobKind: Record<JobKind, string>;
+  rewardKind: Record<RewardKind, string>;
+  tierName: Record<'little' | 'middle' | 'teen', string>;
 
   frequency: Record<'weekly' | 'biweekly' | 'monthly', string>;
   weekday: Record<'0' | '1' | '2' | '3' | '4' | '5' | '6', string>;

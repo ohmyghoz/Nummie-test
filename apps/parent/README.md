@@ -22,8 +22,9 @@ npm run parent:build
 Nav: Dashboard / Requests / Send / Settings. **Money rules sengaja TIDAK di nav** — ia setelan
 **per-anak**, dicapai dari kartu anak di Dashboard; Settings adalah setelan tingkat akun.
 
-**Belum ada:** Add a child · Missions/Jobs/Prizes builder · Insight · Transactions ·
-undang ortu kedua.
+**Add a child** · **Jobs & Prizes builder**.
+
+**Belum ada:** Insight · Transactions · undang ortu kedua · Learning tracker.
 
 ⚠️ **Hitung mundur deposito belum bisa dipercaya.** Setiap baris ledger di seed memakai
 `createdAt` placeholder yang sama (`2026-07-01`), jadi tanggal bilang "153 hari lagi" sementara
