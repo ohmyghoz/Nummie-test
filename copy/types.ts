@@ -1,5 +1,6 @@
 import type { Tier, Pocket } from '../packages/core/src/types.js';
 import type { GiveCause } from '../packages/core/src/give.js';
+import type { ChapterKey } from '../packages/core/src/missions.js';
 
 export type CategoryTerms = Record<Pocket, string>;
 
@@ -34,7 +35,32 @@ export interface Dictionary {
 
   wallets: Record<'title' | 'target' | 'reached' | 'emptyPocket' | 'lockedByGrow', string>;
 
+  move: Record<
+    'title' | 'from' | 'to' | 'howMuch' | 'preview' | 'confirm' | 'after'
+    | 'starWarning' | 'needsGrownUp' | 'nothingMovable'
+    | 'amountRequired' | 'notEnough' | 'sourceLocked' | 'sameWallet' | 'destinationNotAllowed',
+    string
+  >;
+
   requests: Record<'title' | 'empty' | 'waiting' | 'approved' | 'storyNeeded', string>;
+
+  missions: Record<
+    'title' | 'chapterOf' | 'learn' | 'practice' | 'practiceLocked'
+    | 'chapterLocked' | 'current' | 'done' | 'starsEach' | 'weeklyGate',
+    string
+  >;
+
+  /** Judul chapter — kuncinya di core (`CHAPTERS`). */
+  chapter: Record<ChapterKey, string>;
+
+  me: Record<
+    'title' | 'starsBalance' | 'starsLifetime' | 'gems' | 'badges' | 'theme' | 'avatarShop'
+    | 'owned' | 'buy' | 'cantAfford' | 'choresLocked' | 'choresOpen' | 'bigPrizesLocked'
+    | 'cosmeticOnly' | 'categoryColoursNeverChange',
+    string
+  >;
+
+  avatar: Record<string, string>;
 
   sort: Record<
     'title' | 'autoSplitHint' | 'lockedTitle' | 'lockedBody' | 'preview' | 'confirm'

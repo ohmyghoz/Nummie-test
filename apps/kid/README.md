@@ -15,12 +15,18 @@ npm run kid:dev     # http://localhost:3100
 npm run kid:build
 ```
 
-**Sudah ada:** Home (ring kantong + total + kartu "uang baru" + progres dream) · Wallets ·
-**Sort** · **Give** (+ "Where my giving went") · **Grow** (+ Harvest) · Requests.
+**Nav kanonik sudah terpasang** (handoff): Home / Wallets / **(+)** / Missions / Me —
+dengan **(+) sebagai hub aksi** di `/add`. Sort, Move, Give, Grow, dan Requests hidup di dalam
+hub itu, bukan berebut tempat di bar bawah.
 
-**Belum ada di irisan ini:** Missions · Me · flow Add/Move money · Forex "Add money" per mata uang.
-Nav sengaja **tidak** merender tombol untuk layar yang belum ada — tombol yang tidak melakukan
-apa-apa mengajari anak hal yang salah. (Requests dicapai lewat banner di Home.)
+**Sudah ada:** Home · Wallets · **Sort** · **Move money** · **Give** (+ "Where my giving went") ·
+**Grow** (+ Harvest) · Requests · **Missions** · **Me**.
+
+Di hub aksi, aksi yang belum bisa dilakukan **tidak dirender** — aturan yang sama dengan I3
+(fitur non-aktif = tidak tampil, bukan tampil-terkunci). Tombol mati mengajari anak bahwa
+app-nya bohong.
+
+**Belum ada:** isi pelajaran (kuis Learn→Practice) · Prizes/Jobs · Forex "Add money" per mata uang.
 
 **Belum persisten.** Semua flow berhenti di layar "menunggu orang tua" dan belum menulis ledger —
 penulisan menunggu S1b (Supabase). Yang sudah nyata: aturannya, validasinya, dan angkanya.

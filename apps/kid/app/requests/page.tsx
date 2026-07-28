@@ -52,7 +52,7 @@ export default async function RequestsPage({
           })
         )}
       </main>
-      <Nav active="requests" />
+      <Nav active="add" />
     </>
   );
 }

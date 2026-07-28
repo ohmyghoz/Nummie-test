@@ -80,7 +80,7 @@ export default async function SortPage({
           <a className="pill" href="/sort?mode=strict">strict</a>
         </div>
       </main>
-      <Nav active="sort" />
+      <Nav active="add" />
     </>
   );
 }

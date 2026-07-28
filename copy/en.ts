@@ -68,12 +68,76 @@ export const en: Dictionary = {
     lockedByGrow: 'Money here leaves through Harvest only',
   },
 
+  move: {
+    title: 'Move money',
+    from: 'Take it from',
+    to: 'Move it to',
+    howMuch: 'How much?',
+    preview: 'After the move',
+    confirm: 'Move it',
+    after: '{wallet} will have {amount}',
+    // Peringatan tampil SEBELUM konfirmasi — bukan hukuman diam-diam.
+    starWarning: 'This costs you {stars} stars. Moving it to another dream is free.',
+    needsGrownUp: 'A dream can only be undone with a grown-up.',
+    nothingMovable: 'Nothing can be moved right now.',
+    amountRequired: 'Pick an amount first',
+    notEnough: 'There is not that much in there',
+    sourceLocked: 'This money cannot move on its own',
+    sameWallet: 'Pick two different wallets',
+    destinationNotAllowed: 'Money cannot go there this way',
+  },
+
   requests: {
     title: 'Waiting for a grown-up',
     empty: 'Nothing waiting.',
     waiting: 'Needs OK',
     approved: 'Said yes — not done yet',
     storyNeeded: 'Your grown-up still owes you the story',
+  },
+
+  missions: {
+    title: 'Missions',
+    chapterOf: 'Chapter {n} of {total}',
+    learn: 'Learn',
+    practice: 'Practice',
+    practiceLocked: 'Finish the lessons first',
+    chapterLocked: 'Finish the chapter before this one',
+    current: 'You are here',
+    done: 'Done',
+    starsEach: '{stars} stars each',
+    // Gerbang mingguan ada di PENUKARAN, bukan perolehan (ADR-0004).
+    weeklyGate: 'Finish this week to spend your gems',
+  },
+
+  chapter: {
+    money_is_choice: 'Money is a choice',
+    four_jobs: 'Money has four jobs',
+    wants_vs_needs: 'Want it or need it?',
+    saving_takes_time: 'Saving takes time',
+    giving: 'Giving it away',
+    growing: 'Making it grow',
+  },
+
+  me: {
+    title: 'Me',
+    starsBalance: 'Stars to spend',
+    starsLifetime: 'Stars ever earned',
+    gems: 'Gems',
+    badges: 'Badges',
+    theme: 'Colour',
+    avatarShop: 'Avatars',
+    owned: 'Yours',
+    buy: '{stars} stars',
+    cantAfford: 'Not enough stars yet',
+    choresLocked: 'Earn {stars} stars ever to unlock jobs from home',
+    choresOpen: 'Jobs from home are open',
+    bigPrizesLocked: 'Finish Chapter {n} for the big prizes',
+    cosmeticOnly: 'Stars only buy looks — never money, never shortcuts.',
+    categoryColoursNeverChange: 'Pocket colours never change. They are how you read your money.',
+  },
+
+  avatar: {
+    fox: 'Fox', deer: 'Deer', cat: 'Cat', owl: 'Owl', dragon: 'Dragon',
   },
 
   sort: {

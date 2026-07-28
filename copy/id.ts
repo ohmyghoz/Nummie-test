@@ -69,12 +69,74 @@ export const id: Dictionary = {
     lockedByGrow: 'Uang di sini keluar lewat Harvest saja',
   },
 
+  move: {
+    title: 'Pindahkan uang',
+    from: 'Ambil dari',
+    to: 'Pindahkan ke',
+    howMuch: 'Berapa?',
+    preview: 'Setelah dipindahkan',
+    confirm: 'Pindahkan',
+    after: '{wallet} akan berisi {amount}',
+    starWarning: 'Ini memotong {stars} bintangmu. Memindahkannya ke impian lain gratis.',
+    needsGrownUp: 'Impian hanya bisa dibatalkan bersama orang tua.',
+    nothingMovable: 'Belum ada yang bisa dipindahkan sekarang.',
+    amountRequired: 'Pilih jumlahnya dulu',
+    notEnough: 'Isinya tidak sebanyak itu',
+    sourceLocked: 'Uang ini tidak bisa pindah sendiri',
+    sameWallet: 'Pilih dua dompet yang berbeda',
+    destinationNotAllowed: 'Uang tidak bisa ke sana lewat cara ini',
+  },
+
   requests: {
     title: 'Menunggu orang tua',
     empty: 'Tidak ada yang menunggu.',
     waiting: 'Menunggu izin',
     approved: 'Sudah diizinkan — belum dilakukan',
     storyNeeded: 'Orang tuamu masih berutang cerita',
+  },
+
+  missions: {
+    title: 'Misi',
+    chapterOf: 'Bab {n} dari {total}',
+    learn: 'Belajar',
+    practice: 'Latihan',
+    practiceLocked: 'Selesaikan pelajarannya dulu',
+    chapterLocked: 'Selesaikan bab sebelumnya dulu',
+    current: 'Kamu di sini',
+    done: 'Selesai',
+    starsEach: '{stars} bintang tiap pelajaran',
+    weeklyGate: 'Selesaikan minggu ini untuk memakai permatamu',
+  },
+
+  chapter: {
+    money_is_choice: 'Uang itu pilihan',
+    four_jobs: 'Uang punya empat tugas',
+    wants_vs_needs: 'Ingin atau butuh?',
+    saving_takes_time: 'Menabung butuh waktu',
+    giving: 'Berbagi',
+    growing: 'Menumbuhkan uang',
+  },
+
+  me: {
+    title: 'Aku',
+    starsBalance: 'Bintang untuk dibelanjakan',
+    starsLifetime: 'Bintang yang pernah didapat',
+    gems: 'Permata',
+    badges: 'Lencana',
+    theme: 'Warna',
+    avatarShop: 'Avatar',
+    owned: 'Punyamu',
+    buy: '{stars} bintang',
+    cantAfford: 'Bintangmu belum cukup',
+    choresLocked: 'Kumpulkan {stars} bintang untuk membuka kerjaan rumah',
+    choresOpen: 'Kerjaan rumah sudah terbuka',
+    bigPrizesLocked: 'Selesaikan Bab {n} untuk hadiah besar',
+    cosmeticOnly: 'Bintang hanya membeli tampilan — bukan uang, bukan jalan pintas.',
+    categoryColoursNeverChange: 'Warna kantong tidak pernah berubah. Itu cara kamu membaca uangmu.',
+  },
+
+  avatar: {
+    fox: 'Rubah', deer: 'Kancil', cat: 'Kucing', owl: 'Burung Hantu', dragon: 'Naga',
   },
 
   sort: {

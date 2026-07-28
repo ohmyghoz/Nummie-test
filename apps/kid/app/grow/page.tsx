@@ -116,7 +116,7 @@ export default async function GrowPage({
           </>
         )}
       </main>
-      <Nav active="grow" />
+      <Nav active="add" />
     </>
   );
 }

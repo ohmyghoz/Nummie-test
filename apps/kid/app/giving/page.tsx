@@ -51,7 +51,7 @@ export default async function GivingPage() {
           ))
         )}
       </main>
-      <Nav active="give" />
+      <Nav active="add" />
     </>
   );
 }

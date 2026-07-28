@@ -60,17 +60,20 @@ export function TotalRing({
   );
 }
 
-/** Nav bawah. Missions & Me belum ada di irisan ini — sengaja TIDAK dirender sebagai
- *  tombol mati, karena tombol yang tidak melakukan apa-apa mengajari anak hal yang salah. */
-export function Nav({
-  active,
-}: { active: 'home' | 'wallets' | 'sort' | 'give' | 'grow' | 'requests' }) {
+/**
+ * Nav bawah — bentuk kanonik dari handoff: Home / Wallets / (+) / Missions / Me,
+ * dengan **hub aksi di tombol tengah**. Sort, Move, Give, Grow, dan Requests hidup di
+ * dalam hub itu (`/add`), bukan berebut tempat di bar bawah.
+ */
+export type NavKey = 'home' | 'wallets' | 'add' | 'missions' | 'me';
+
+export function Nav({ active }: { active: NavKey }) {
   const items = [
     { key: 'home', href: '/', icon: '🏠', label: dict.nav.home },
     { key: 'wallets', href: '/wallets', icon: '👛', label: dict.nav.wallets },
-    { key: 'sort', href: '/sort', icon: '✨', label: dict.home.sortItNow },
-    { key: 'give', href: '/give', icon: '🎁', label: dict.give.giveItAway },
-    { key: 'grow', href: '/grow', icon: '🌱', label: dict.grow.title },
+    { key: 'add', href: '/add', icon: '➕', label: dict.nav.add },
+    { key: 'missions', href: '/missions', icon: '🎯', label: dict.nav.missions },
+    { key: 'me', href: '/me', icon: '🦊', label: dict.nav.me },
   ] as const;
   return (
     <nav className="nav">

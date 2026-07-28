@@ -101,7 +101,7 @@ export default async function GivePage({
           </div>
         )}
       </main>
-      <Nav active="give" />
+      <Nav active="add" />
     </>
   );
 }

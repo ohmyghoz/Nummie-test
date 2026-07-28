@@ -66,6 +66,8 @@ export interface KidData {
   giveBalance: number;
   givingStories: MoneyRequest[];
   prices: Prices;
+  /** saldo per wallet — dipakai flow Move untuk pratinjau */
+  balances: Record<string, number>;
 }
 
 /**
@@ -94,6 +96,7 @@ export function getKidData(mode?: RuleMode): KidData {
 
   return {
     grow,
+    balances: byWallet,
     harvestTargets: harvestDestinations(wallets),
     giveBalance: byWallet['w_give'] ?? 0,
     givingStories: closedGiving(SEED_REQUESTS),
