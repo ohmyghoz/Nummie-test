@@ -7,6 +7,7 @@ export * from './move.js';
 export * from './give.js';
 export * from './grow.js';
 export * from './requests.js';
+export * from './parent.js';
 export * from './economy.js';
 export * from './shop.js';
 export * from './missions.js';

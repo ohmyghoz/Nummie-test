@@ -7,6 +7,27 @@ adalah permukaan paling berat dan paling tidak mendesak untuk validasi — ia me
 
 Referensi visual: `legacy/parent-mobile.html`, `legacy/parent-web.html`.
 
+## Status: irisan penutup-siklus sudah dibangun
+
+```
+npm install
+npm run parent:dev     # http://localhost:3200
+npm run parent:build
+```
+
+**Sudah ada:** Dashboard (switcher + ring + strip pending **per-anak** + utang janji) ·
+**Approval inbox 5-jalur** · Send money · Take money · Money rules.
+
+**Belum ada:** Add a child · Settings (allowance, bank rates, harga harian) · Missions/Jobs/Prizes
+builder · Insight · Transactions · undang ortu kedua.
+
+**Belum persisten** — keputusan di inbox menampilkan hasilnya lewat `@nummi/core`, tapi belum
+menulis ledger. Penulisan menunggu S1b.
+
+⚠️ **Jalur cerita Give belum bisa dicoba dari seed.** Seed kanonik hanya berisi satu request
+(cash out Rp25.000), jadi cabang "Give butuh cerita" ada di kodenya dan diuji di
+`packages/core/test/give.test.ts`, tapi tidak muncul di layar sampai ada request Give sungguhan.
+
 ## Yang harus diperbaiki saat diport (mockup ortu menyimpang dari daftar kanonik)
 
 | | Item |

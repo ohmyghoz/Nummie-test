@@ -1,6 +1,7 @@
 import type { Tier, Pocket } from '../packages/core/src/types.js';
 import type { GiveCause } from '../packages/core/src/give.js';
 import type { ChapterKey } from '../packages/core/src/missions.js';
+import type { SendSource } from '../packages/core/src/parent.js';
 
 export type CategoryTerms = Record<Pocket, string>;
 
@@ -61,6 +62,24 @@ export interface Dictionary {
   >;
 
   avatar: Record<string, string>;
+
+  /** Sisi ortu (S3). Bahasa produk = Inggris, sama dengan app anak (ADR-0016). */
+  parent: Record<
+    'dashboard' | 'inbox' | 'send' | 'take' | 'rules' | 'noPending' | 'pendingCount'
+    | 'instant' | 'toDo' | 'promiseDebt' | 'promiseDebtHint'
+    | 'markDone' | 'storyRequired' | 'storyPlaceholder' | 'storyMissing'
+    | 'sendTitle' | 'sendSource' | 'sendNote' | 'landsInUnsorted' | 'sendSubmit'
+    | 'takeTitle' | 'takeReason' | 'takeSubmit' | 'notificationPreview'
+    | 'protectedShownNotHidden' | 'rulesTitle' | 'ratioTotal' | 'ratioLeftover'
+    | 'modeFlexible' | 'modeFlexibleBody' | 'modeStrict' | 'modeStrictBody' | 'enforcedOnKid'
+    | 'amountRequired' | 'sourceRequired' | 'notEnough' | 'reasonRequired' | 'protected',
+    string
+  >;
+
+  /** Sebab uang masuk — kuncinya di core (`SEND_SOURCES`). Anak melihat label ini. */
+  sendSource: Record<SendSource, string>;
+
+  takeLock: Record<'dreamProtected' | 'giveProtected' | 'growProtected', string>;
 
   sort: Record<
     'title' | 'autoSplitHint' | 'lockedTitle' | 'lockedBody' | 'preview' | 'confirm'

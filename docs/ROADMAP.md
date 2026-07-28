@@ -11,7 +11,7 @@ peta jalan yang berpura-pura sebaliknya tidak berguna.
 | **S1b** | Skema Supabase + RLS + auth anak | 2–3 akhir pekan | 🟡 migrasi, RLS, Edge Function & `seed.sql` siap — **belum dijalankan** (menunggu project Supabase) |
 | **S1c** | Console tipis di atas data nyata (C-1) | 1 akhir pekan | ✅ dibangun di atas seed kanonik; tinggal ditukar ke view saat S1b jalan |
 | **S2** | App anak, responsif HP + iPad, Fase 6 ditegakkan | 3–4 akhir pekan | 🟢 **semua permukaan berdiri**, nav kanonik (Home/Wallets/(+)/Missions/Me): Sort · Move · Give (+cerita) · Grow/Harvest · Requests · Missions · Me. Fase 6 ditegakkan. Belum: isi pelajaran (kuis), Prizes/Jobs, Forex per-mata-uang. **Belum persisten** — semua flow berhenti di "menunggu orang tua" sampai S1b jalan |
-| **S3** | App ortu **HP saja** (web ditunda) | 3–4 akhir pekan | ❌ |
+| **S3** | App ortu **HP saja** (web ditunda) | 3–4 akhir pekan | 🟡 **siklus uang bisa ditutup**: Dashboard · **approval inbox 5-jalur** · Send · Take · Money rules. Belum: Add a child · Settings · Missions/Jobs/Prizes builder · Insight · Transactions. **Belum persisten** sampai S1b |
 
 Totalnya sekitar **tiga bulan akhir pekan** sampai ketiga permukaan jalan di atas data nyata.
 
