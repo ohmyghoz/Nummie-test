@@ -2,11 +2,16 @@ node_modules/
 .next/
 out/
 dist/
-.vercel/
-.env
-.env.local
-.env*.local
-*.log
-.DS_Store
 .turbo/
-coverage/
+.vercel/
+*.tsbuildinfo
+
+# Rahasia — TIDAK PERNAH di-commit.
+.env
+.env.*
+!.env.example
+supabase/.branches/
+supabase/.temp/
+
+.DS_Store
+*.log

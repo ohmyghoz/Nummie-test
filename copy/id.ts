@@ -1,22 +1,19 @@
+/**
+ * Kamus Indonesia. Console sudah 100% Indonesia dan app ortu sudah mencampur — keduanya jadi
+ * bahan awal di sini. D1 belum diputuskan; kamus ini siap dipakai kapan pun jawabannya turun.
+ *
+ * Catatan: teks bebas yang ditulis anak (alasan cash-out, alasan Give) memang berbahasa Indonesia
+ * apa adanya dan TIDAK terpengaruh D1. Jangan disimpan di sini.
+ */
 import type { Dictionary } from './types.js';
 
-/**
- * Bahasa Indonesia.
- *
- * Istilah kategori mengikuti sumber yang sudah sepakat: lembar karakter yang disetujui +
- * brand system §5.2 + kalimat posisi resmi — SPEND/PAKAI · SAVE/SIMPAN · GIVE/BERBAGI · GROW/BERTUMBUH.
- * (Yang menyimpang hanya design system §13.1; lihat D2.)
- *
- * Per-tier saat ini sengaja identik. Kalau D2 memutuskan istilah berubah menurut tier,
- * ubah nilainya di sini — bentuknya sudah menampung.
- */
-const categories = {
+const CATEGORY_ID = {
+  unsorted: 'Uang Baru',
   spend: 'Pakai',
   save: 'Simpan',
   give: 'Berbagi',
   grow: 'Bertumbuh',
-  unsorted: 'Belum disortir',
-};
+} as const;
 
 export const id: Dictionary = {
   brand: {
@@ -25,28 +22,43 @@ export const id: Dictionary = {
     positioning:
       'Nummi adalah aplikasi Parent as Banking untuk anak belajar memakai, menyimpan, berbagi dan mengelola uangnya.',
   },
-  category: { little: categories, middle: categories, teen: categories },
+
+  category: { little: CATEGORY_ID, middle: CATEGORY_ID, teen: CATEGORY_ID },
+
   common: {
     total: 'Total',
     approve: 'Setujui',
     decline: 'Tolak',
-    /** jawaban ketiga — supaya menolak tanpa penjelasan bukan satu-satunya jalan (ADR-0002) */
     talkAboutIt: 'Bicarakan dulu',
     markAsDone: 'Tandai selesai',
     needsOk: 'Menunggu izin',
-    toDo: 'Belum dikerjakan',
+    toDo: 'Belum dilakukan',
     done: 'Selesai',
+    cancel: 'Batal',
+    waitingForGrownUp: 'Menunggu orang tua',
   },
+
+  sort: {
+    title: 'Beri tugas untuk uangmu',
+    autoSplitHint: '{spend}% Pakai / {save}% Simpan / {give}% Berbagi',
+  },
+
   rules: {
-    strictLockedTitle: 'Ini sedang dikunci',
-    /** Gembok harus menjelaskan KENAPA, bukan sekadar tombol mati (ADR-0005) */
-    strictLockedBody:
-      'Orang tuamu mengatur uang ini supaya tetap pada tugasnya. Kamu bisa membicarakannya kalau mau mengubah.',
+    strictLockedTitle: 'Uang ini sudah punya tugas',
+    strictLockedBody: 'Orang tuamu yang menyimpannya di sini. Tanyakan kalau perlu diubah.',
+    ratioOver100: 'Rasio melebihi 100%',
+    ratioStrictMustBeExact: 'Bagikan sisa {remaining}% terakhir',
+    ratioMissingDestination: 'Pilih dulu tujuan bagian ini',
   },
+
   give: {
-    /** alasan Give OPSIONAL — jangan pajaki kemurahan hati (ADR-0006) */
-    reasonLabel: 'Kenapa kamu memberi? (boleh dikosongkan)',
-    storyPrompt: 'Ceritakan apa yang terjadi dengan uangnya',
+    giveItAway: 'Berikan',
+    reasonLabel: 'Kenapa yang ini? (boleh dikosongkan)',
+    storyPrompt: 'Ceritakan ke {child} ke mana uangnya pergi — justru itu intinya.',
     whereMyGivingWent: 'Ke mana uang berbagiku pergi',
+  },
+
+  dream: {
+    raidWarning: 'Ini memotong {stars} bintangmu. Memindahkannya ke impian lain gratis.',
   },
 };

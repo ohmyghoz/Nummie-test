@@ -1,6 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "github": { "silent": true },
+  "buildCommand": null,
+  "outputDirectory": "legacy",
+  "cleanUrls": true,
   "headers": [
     {
       "source": "/(.*)",

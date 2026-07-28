@@ -1,0 +1,11 @@
+{
+  "name": "nummi",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Nummi — Parent as Banking untuk anak KG B sampai Grade 9",
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "test": "npm run test --workspace @nummi/core",
+    "typecheck": "npm run typecheck --workspace @nummi/core"
+  }
+}

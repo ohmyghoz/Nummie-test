@@ -1,38 +1,26 @@
-# legacy/ — DIBEKUKAN
+# legacy/ — lima mockup asli, DIBEKUKAN
 
-Lima mockup HTML yang membawa proyek ini sampai ke titik sekarang. **Jangan diedit lagi.**
+Berkas di sini adalah lima permukaan MVP dalam bentuk HTML mandiri. **Jangan diedit lagi.**
+Mereka adalah referensi visual dan riwayat keputusan, bukan sumber kebenaran.
 
 | Berkas | Permukaan | Nama lama |
 |---|---|---|
 | `kid-mobile.html` | anak, HP | `Nummi_Middle__App_standalone_.html` |
-| `kid-ipad.html` | anak, iPad | `Celengan_iPad__Standalone_.html` |
+| `kid-ipad.html` | anak, iPad | `Celengan_iPad__Standalone_.html` (X8/K11 — nama lama akhirnya hilang) |
 | `parent-mobile.html` | ortu, HP | `Nummi_Parent_App__Standalone_.html` |
 | `parent-web.html` | ortu, web | `Nummi_Parent_Web__Standalone_.html` |
 | `console.html` | admin | `nummi-console.html` |
 
-Rename sekaligus menuntaskan X8/K11 — jejak nama kerja lama "Celengan" hilang dari nama berkas.
+## Kenapa dibekukan
 
-## Cara memakainya
+Kelima berkas tidak live-linked satu sama lain — angkanya disamakan manual. Audit 28 Juli 2026
+membuktikan biayanya nyata: target dream, request pending, dan rasio auto-split sudah menyimpang
+antar-permukaan tanpa ada yang menyadari (X2, X3, X4).
 
-**Sebagai referensi visual dan referensi flow: ya.** Lima berkas ini adalah spesifikasi UI paling
-detail yang dimiliki proyek ini, dan jauh lebih akurat daripada deskripsi tekstual mana pun.
+Itu bukan kelalaian, itu sifat lima berkas terpisah. Karena itu angka kanonik sekarang hidup di
+satu tempat: **`packages/core/src/seed.ts`**, dengan test yang gagal kalau totalnya tidak cocok.
 
-**Sebagai sumber kebenaran angka: TIDAK PERNAH.** Angka di sini sudah terbukti saling bertentangan
-— audit 28 Juli 2026 menemukan target dream, request pending, dan rasio auto-split menyimpang antar
-permukaan tanpa ada yang menyadari (K4, K5, K6).
+## Dua mockup yang sengaja tidak dibawa
 
-> Sumber kebenaran angka: `packages/core/src/seed.ts`.
-
-## Kontradiksi yang diketahui ada di dalam berkas ini
-
-Jangan ikut menyalinnya ke kode:
-
-| # | Masalah |
-|---|---|
-| X1/K3 | format rupiah `Rp 10,000` — seharusnya `Rp50.000` (brand §17) |
-| X2/K4 | target dream berbeda antara app anak & ortu |
-| X3/K5 | request pending Rp20.000 vs Rp25.000 |
-| X4/K6 | rasio auto-split seed 40/40/10, total hanya 90% |
-| X5/K7 | badge "🔥 7-day streak" — mustahil didapat, streak sudah dihapus |
-| X6 | app anak tidak menyebut "Nummi" sama sekali dan tidak memuat maskot |
-| X10/K12 | "Practice" (HP) vs "Practise" (iPad) |
+`celengan-home-mockup.html` dan `celengan-parent-mockup.html` — sudah digantikan, dan membawanya
+hanya menambah peluang sesi baru mengedit berkas yang salah (X9).
