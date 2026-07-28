@@ -1,4 +1,4 @@
-import { formatRp } from '@nummi/core';
+import { formatRp, fulfilmentPath } from '@nummi/core';
 import {
   getConsoleData,
   POCKETS,
@@ -167,15 +167,22 @@ function RequestTable({ requests, debtIds, nameOf }: {
       ) : (
         <table>
           <thead>
-            <tr><th>Jenis</th><th>Sumber</th><th>Alasan</th><th>Status</th><th>Penyelesaian</th><th className="r">Jumlah</th></tr>
+            <tr><th>Jenis</th><th>Jalur</th><th>Sumber</th><th>Alasan</th><th>Status</th><th>Penyelesaian</th><th className="r">Jumlah</th></tr>
           </thead>
           <tbody>
             {requests.map((r) => {
               const st = STATUS_ID[r.status];
               const isDebt = debtIds.has(r.id);
+              // ADR-0002 terlihat di data nyata: jalur instan tidak pernah menyisakan pekerjaan.
+              const instant = fulfilmentPath(r.kind) === 'instant';
               return (
                 <tr key={r.id}>
                   <td>{KIND_ID[r.kind]}</td>
+                  <td>
+                    <span className={`pill ${instant ? 'ok' : 'neutral'}`}>
+                      {instant ? 'instan' : 'to-do'}
+                    </span>
+                  </td>
                   <td>{r.sourceWalletId ? nameOf(r.sourceWalletId) : '—'}</td>
                   <td>{r.reason ?? <span style={{ color: 'var(--ink-4)' }}>—</span>}</td>
                   <td><span className={`pill ${st.cls}`}>{st.label}</span></td>
