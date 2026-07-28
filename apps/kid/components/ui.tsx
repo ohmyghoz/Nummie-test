@@ -62,12 +62,15 @@ export function TotalRing({
 
 /** Nav bawah. Missions & Me belum ada di irisan ini — sengaja TIDAK dirender sebagai
  *  tombol mati, karena tombol yang tidak melakukan apa-apa mengajari anak hal yang salah. */
-export function Nav({ active }: { active: 'home' | 'wallets' | 'sort' | 'requests' }) {
+export function Nav({
+  active,
+}: { active: 'home' | 'wallets' | 'sort' | 'give' | 'grow' | 'requests' }) {
   const items = [
     { key: 'home', href: '/', icon: '🏠', label: dict.nav.home },
     { key: 'wallets', href: '/wallets', icon: '👛', label: dict.nav.wallets },
     { key: 'sort', href: '/sort', icon: '✨', label: dict.home.sortItNow },
-    { key: 'requests', href: '/requests', icon: '⏳', label: dict.requests.title },
+    { key: 'give', href: '/give', icon: '🎁', label: dict.give.giveItAway },
+    { key: 'grow', href: '/grow', icon: '🌱', label: dict.grow.title },
   ] as const;
   return (
     <nav className="nav">

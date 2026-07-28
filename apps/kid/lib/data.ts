@@ -13,17 +13,23 @@ import {
   POCKETS,
   SEED_ECONOMY,
   SEED_LEDGER,
+  SEED_PRICES,
   SEED_REQUESTS,
   SEED_RULES,
   SEED_WALLETS,
+  closedGiving,
+  growPosition,
+  harvestDestinations,
   pocketBalancesForTier,
   promiseDebt,
   sortPlan,
   totalBalance,
   walletBalances,
+  type GrowPosition,
   type MoneyRequest,
   type MoneyRules,
   type Pocket,
+  type Prices,
   type RuleMode,
   type SortPlan,
   type Tier,
@@ -31,11 +37,16 @@ import {
 } from '@nummi/core';
 
 export { POCKETS };
-export type { MoneyRequest, Pocket, SortPlan, Wallet };
+export type { GrowPosition, MoneyRequest, Pocket, Prices, SortPlan, Wallet };
 
 export interface WalletRow {
   wallet: Wallet;
   balance: number;
+}
+
+export interface GrowRow {
+  wallet: Wallet;
+  position: GrowPosition;
 }
 
 export interface KidData {
@@ -50,6 +61,11 @@ export interface KidData {
   rules: MoneyRules;
   plan: SortPlan;
   economy: typeof SEED_ECONOMY;
+  grow: GrowRow[];
+  harvestTargets: Wallet[];
+  giveBalance: number;
+  givingStories: MoneyRequest[];
+  prices: Prices;
 }
 
 /**
@@ -65,7 +81,23 @@ export function getKidData(mode?: RuleMode): KidData {
   const pockets = pocketBalancesForTier(ledger, wallets, CHILD_ARTHUR.tier);
   const unsortedBalance = byWallet['w_unsorted'] ?? 0;
 
+  // Modal yang dimasukkan anak ke tiap instrumen = jumlah baris `grow_in` ke wallet itu.
+  // Nilai SEKARANG tetap saldo ledger — tidak pernah dihitung ulang dari harga (lihat grow.ts).
+  const grow: GrowRow[] = wallets
+    .filter((w) => w.category === 'grow')
+    .map((wallet) => {
+      const rupiahIn = ledger
+        .filter((e) => e.reason === 'grow_in' && e.toWalletId === wallet.id)
+        .reduce((sum, e) => sum + e.amount, 0);
+      return { wallet, position: growPosition(rupiahIn, byWallet[wallet.id] ?? 0) };
+    });
+
   return {
+    grow,
+    harvestTargets: harvestDestinations(wallets),
+    giveBalance: byWallet['w_give'] ?? 0,
+    givingStories: closedGiving(SEED_REQUESTS),
+    prices: SEED_PRICES,
     child: { name: CHILD_ARTHUR.name, tier: CHILD_ARTHUR.tier, avatar: CHILD_ARTHUR.avatar },
     total: totalBalance(ledger, wallets),
     pockets,

@@ -98,6 +98,23 @@ export function canChildMoveFrom(wallet: Wallet, rules: MoneyRules): boolean {
 }
 
 /**
+ * Sumber yang sah untuk Cash out.
+ *
+ * **Give sengaja TIDAK termasuk** — sejak Fase 5, Give punya flow sendiri ("Give it away",
+ * ADR-0006) dan dicabut dari sumber cash out biasa. Kalau Give tetap bisa di-cash-out lewat
+ * jalur biasa, anak bisa melewati cerita wajib yang justru menutup lingkarannya.
+ *
+ * Grow juga tidak: satu-satunya jalan keluar dari Grow adalah Harvest (ADR-0003).
+ * Unsorted tidak: uang yang belum diberi tugas disortir dulu, bukan langsung dicairkan.
+ */
+export function canCashOutFrom(wallet: Wallet): boolean {
+  if (wallet.category === 'grow') return false;
+  if (wallet.category === 'give') return false;
+  if (wallet.category === 'unsorted') return false;
+  return true; // tersisa: envelope (spend), dream, free_savings
+}
+
+/**
  * Aturan Take money (ADR-0007): ortu TIDAK PERNAH boleh menarik dari dream, Give, dan Grow.
  * Kantong terlindungi tetap DITAMPILKAN tapi digembok — menyembunyikan membuat ortu bingung,
  * menampilkan-digembok mengajari ortu aturannya.

@@ -15,12 +15,15 @@ npm run kid:dev     # http://localhost:3100
 npm run kid:build
 ```
 
-**Sudah ada:** Home (ring kantong + total + kartu "uang baru" + progres dream) · Wallets
-(dikelompokkan per kantong) · **Sort** · Requests.
+**Sudah ada:** Home (ring kantong + total + kartu "uang baru" + progres dream) · Wallets ·
+**Sort** · **Give** (+ "Where my giving went") · **Grow** (+ Harvest) · Requests.
 
-**Belum ada di irisan ini:** Missions · Me · flow Add/Move money · flow Give · flow Grow/Harvest.
+**Belum ada di irisan ini:** Missions · Me · flow Add/Move money · Forex "Add money" per mata uang.
 Nav sengaja **tidak** merender tombol untuk layar yang belum ada — tombol yang tidak melakukan
-apa-apa mengajari anak hal yang salah.
+apa-apa mengajari anak hal yang salah. (Requests dicapai lewat banner di Home.)
+
+**Belum persisten.** Semua flow berhenti di layar "menunggu orang tua" dan belum menulis ledger —
+penulisan menunggu S1b (Supabase). Yang sudah nyata: aturannya, validasinya, dan angkanya.
 
 Sumber data: seed kanonik `@nummi/core`, dibungkus di `lib/data.ts` → `getKidData()`.
 Itu titik tukar S1b; UI tidak menyentuh seed langsung.

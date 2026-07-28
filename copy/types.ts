@@ -1,4 +1,5 @@
 import type { Tier, Pocket } from '../packages/core/src/types.js';
+import type { GiveCause } from '../packages/core/src/give.js';
 
 export type CategoryTerms = Record<Pocket, string>;
 
@@ -48,7 +49,24 @@ export interface Dictionary {
     string
   >;
 
-  give: Record<'reasonLabel' | 'storyPrompt' | 'whereMyGivingWent' | 'giveItAway', string>;
+  give: Record<
+    'reasonLabel' | 'storyPrompt' | 'whereMyGivingWent' | 'giveItAway'
+    | 'title' | 'howMuch' | 'pickCause' | 'notePlaceholder' | 'submit' | 'sent'
+    | 'available' | 'noStoriesYet' | 'stillWaitingStory'
+    | 'amountRequired' | 'notEnough' | 'ownCauseNeedsNote',
+    string
+  >;
+
+  /** Sebab Give — kuncinya di core (`GIVE_CAUSES`), labelnya hanya di sini. */
+  giveCause: Record<GiveCause, string>;
+
+  grow: Record<
+    'title' | 'putIn' | 'worthNow' | 'youOwn' | 'pricesAsOf'
+    | 'whyLess' | 'whyLessBody' | 'onlyWayOut'
+    | 'harvest' | 'harvestTo' | 'harvestLockedToSave'
+    | 'matured' | 'cashOut' | 'rollOver' | 'takeProfit',
+    string
+  >;
 
   /** Peringatan tampil SEBELUM konfirmasi, bukan sesudah (Fase 5). */
   dream: Record<'raidWarning', string>;
