@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import {
-  SEED_RULES, SEED_WALLETS,
-  applyAutoSplit, canChildMoveFrom, canParentTakeFrom, dreamRaidPenalty, ratioTotal, validateAutoSplit,
+  SEED_REQUESTS, SEED_RULES, SEED_WALLETS,
+  applyAutoSplit, canChildMoveFrom, canParentTakeFrom, dreamRaidPenalty, promiseDebt, ratioTotal, validateAutoSplit,
 } from '../src/index.js';
+import type { MoneyRequest } from '../src/index.js';
 
 const wallet = (id: string) => SEED_WALLETS.find((w) => w.id === id)!;
+
+const req = (over: Partial<MoneyRequest>): MoneyRequest => ({
+  id: 'r', childId: 'c', kind: 'cash_out', amount: 1_000,
+  status: 'needs_ok', fulfilment: 'todo', ...over,
+});
 
 describe('auto-split', () => {
   it('rasio default kanonik 40/40/20, bukan 40/40/10 (X4)', () => {
@@ -84,5 +90,22 @@ describe('minus ⭐ saat merampok dream', () => {
   });
   it('dream -> Grow gratis (menunda lebih lama = perilaku baik)', () => {
     expect(dreamRaidPenalty(wallet('w_bmx'), wallet('w_gold'))).toBe(0);
+  });
+});
+
+describe('utang janji — metrik kepercayaan console (backlog §R)', () => {
+  it('hanya approved + todo yang dihitung utang janji', () => {
+    const debt = promiseDebt([
+      req({ id: 'a', status: 'approved', fulfilment: 'todo' }),   // utang
+      req({ id: 'b', status: 'needs_ok', fulfilment: 'todo' }),   // belum di-approve
+      req({ id: 'c', status: 'approved', fulfilment: 'done' }),   // sudah ditepati
+      req({ id: 'd', status: 'declined', fulfilment: 'todo' }),   // ditolak
+      req({ id: 'e', status: 'approved', fulfilment: 'not_applicable' }), // Grow/Harvest instan
+    ]);
+    expect(debt.map((r) => r.id)).toEqual(['a']);
+  });
+
+  it('seed kanonik belum punya utang janji (request masih needs_ok)', () => {
+    expect(promiseDebt(SEED_REQUESTS)).toHaveLength(0);
   });
 });

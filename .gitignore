@@ -5,6 +5,7 @@ dist/
 .turbo/
 .vercel/
 *.tsbuildinfo
+next-env.d.ts
 
 # Rahasia — TIDAK PERNAH di-commit.
 .env

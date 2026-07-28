@@ -6,7 +6,7 @@
  * terjadi apa-apa. Aturan yang tidak ditegakkan lebih buruk daripada aturan yang belum ada,
  * karena ortu mengira anaknya dibatasi padahal tidak. (backlog A-sisa-1 & C)
  */
-import type { AutoSplit, Category, MoneyRules, Wallet } from './types.js';
+import type { AutoSplit, Category, MoneyRequest, MoneyRules, Wallet } from './types.js';
 import { CATEGORIES } from './ledger.js';
 
 export interface SplitTarget {
@@ -107,6 +107,20 @@ export function canParentTakeFrom(wallet: Wallet): boolean {
   if (wallet.category === 'give') return false;
   if (wallet.kind === 'dream') return false;
   return true; // tersisa: unsorted, envelope (spend), free_savings
+}
+
+/**
+ * Utang janji (promise debt) — metrik kepercayaan console (backlog §R).
+ *
+ * Sebuah request masuk "utang janji" ketika ortu SUDAH menyetujuinya (`status === 'approved'`)
+ * tapi penyelesaian dunia-nyata BELUM ditandai selesai (`fulfilment === 'todo'`). Ini konsekuensi
+ * langsung ADR-0002 (approve ≠ fulfil): approve hanya membuka izin, uang riil berpindah di dunia
+ * nyata. Utang janji yang menumpuk = ortu berjanji lalu lupa menepati — sinyal kepercayaan yang
+ * lebih penting daripada DAU. Grow/Harvest tidak pernah muncul di sini: approve = selesai seketika
+ * sehingga fulfilment-nya `not_applicable`, bukan `todo`.
+ */
+export function promiseDebt(requests: MoneyRequest[]): MoneyRequest[] {
+  return requests.filter((r) => r.status === 'approved' && r.fulfilment === 'todo');
 }
 
 /** Minus ⭐ saat "merampok" dream (Fase 5). Memotong SALDO saja, tidak pernah lifetime (ADR-0004). */
