@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nummi Console — Admin & Insight (data dummy)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   NUMMI CONSOLE — permukaan ketiga (anak · ortu · OPERATOR)
+   Aturan yang diwarisi & TIDAK diubah:
+   - Warna kategori semantik: Spend/Save/Give/Grow tetap.
+   - Fredoka = angka besar & wordmark saja. Plus Jakarta Sans = UI.
+   - Format rupiah Indonesia: Rp50.000 (titik ribuan, tanpa spasi).
+   Yang sengaja BEDA dari app ortu: rail gelap (ink-berry).
+   Alasan: operator melihat lintas-keluarga, bukan keluarganya sendiri —
+   pembeda visual mencegah tangkapan layar internal disangka layar produk.
+   ============================================================ */
+:root{
+  --canvas:#F4F2FA; --surface:#FFFFFF; --surface-2:#FAF8FE; --surface-3:#F2EFFB;
+  --ink:#221C42; --ink-2:#4F4865; --ink-3:#7A7596; --ink-4:#A9A3BE;
+  --line:#E7E2F3; --line-2:#F1EDFA;
+  --brand:#6C4CE0; --brand-deep:#4A32A8; --brand-lite:#8A6BFF; --brand-tint:#EDE7FC;
+  --rail-1:#241C46; --rail-2:#1A1533; --rail-line:rgba(255,255,255,.09);
+  --spend:#FF7A4D; --spend-tint:#FFEDE5;
+  --save:#2CA6E0;  --save-tint:#E2F2FB;
+  --give:#F056A0;  --give-tint:#FCE6F1;
+  --grow:#2FC078;  --grow-tint:#E1F6EC;
+  --unsorted:#8A7CF0; --unsorted-tint:#ECE9FC;
+  --ok:#1F9D63; --ok-bg:#E1F6EC;
+  --warn:#B77908; --warn-bg:#FFF3D7;
+  --risk:#B5473C; --risk-bg:#FCE8EA;
+  --learn:#2266B5; --learn-bg:#E7F0FB;
+  --sun:#FFB020;
+  --display:'Fredoka',sans-serif;
+  --ui:'Plus Jakarta Sans',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --r-lg:18px; --r-md:13px; --r-sm:9px;
+  --sh-1:0 1px 2px rgba(34,28,66,.05);
+  --sh-2:0 4px 18px rgba(34,28,66,.08);
+  --sh-3:0 20px 60px rgba(34,28,66,.26);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--ui);background:var(--canvas);color:var(--ink);
+  -webkit-font-smoothing:antialiased;font-size:14px;line-height:1.5}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:-.02em}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,select{font-family:inherit;font-size:inherit;color:inherit}
+a{color:var(--brand);text-decoration:none}
+:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(108,76,224,.4);border-radius:6px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- SHELL ---------- */
+.shell{display:grid;grid-template-columns:236px 1fr;min-height:100vh}
+.rail{background:linear-gradient(180deg,var(--rail-1),var(--rail-2));color:#EDEAF8;
+  padding:22px 0 18px;position:sticky;top:0;height:100vh;overflow-y:auto;
+  display:flex;flex-direction:column;gap:6px}
+.brandbox{padding:0 20px 20px;display:flex;align-items:center;gap:10px}
+.coin{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#FFD56A,#F0A81C);
+  display:grid;place-items:center;font:700 14px/1 var(--display);color:#6B4A05;flex:0 0 auto;
+  box-shadow:0 2px 8px rgba(255,176,32,.35)}
+.brandbox b{font:600 19px/1 var(--display);letter-spacing:.01em;color:#fff}
+.brandbox span{display:block;font-size:10px;letter-spacing:.15em;text-transform:uppercase;
+  color:rgba(237,234,248,.5);font-weight:700;margin-top:4px}
+.navgroup{padding:12px 14px 4px;font-size:10px;font-weight:800;letter-spacing:.16em;
+  text-transform:uppercase;color:rgba(237,234,248,.35)}
+.navitem{display:flex;align-items:center;gap:11px;padding:9px 14px;margin:0 10px;border-radius:10px;
+  font-size:13.5px;font-weight:500;color:rgba(237,234,248,.72);width:calc(100% - 20px);text-align:left;
+  transition:background .14s,color .14s}
+.navitem:hover{background:rgba(255,255,255,.06);color:#fff}
+.navitem.on{background:var(--brand);color:#fff;font-weight:600;box-shadow:0 4px 14px rgba(108,76,224,.45)}
+.navitem svg{flex:0 0 auto;opacity:.9}
+.navitem .badge{margin-left:auto;background:rgba(255,255,255,.14);border-radius:999px;
+  padding:1px 7px;font:700 10.5px/1.6 var(--mono)}
+.navitem.on .badge{background:rgba(0,0,0,.22)}
+.navitem .badge.hot{background:var(--risk);color:#fff}
+.railfoot{margin-top:auto;padding:14px 20px 0;border-top:1px solid var(--rail-line);
+  font-size:11px;color:rgba(237,234,248,.45);line-height:1.6}
+.railfoot b{color:rgba(237,234,248,.8);font-weight:600;display:block;font-size:12px}
+
+@media (max-width:880px){
+  .shell{grid-template-columns:1fr}
+  .rail{position:static;height:auto;flex-direction:row;align-items:center;gap:4px;
+    overflow-x:auto;padding:10px 12px;flex-wrap:nowrap}
+  .brandbox{padding:0 14px 0 4px;flex:0 0 auto}
+  .brandbox span{display:none}
+  .navgroup{display:none}
+  .navitem{width:auto;margin:0;flex:0 0 auto;white-space:nowrap;padding:8px 12px}
+  .railfoot{display:none}
+  .page{padding:20px 16px 60px}
+  .topbar{padding:12px 16px}
+  .search{flex:1 1 100%}
+}
+
+/* ---------- MAIN ---------- */
+.main{min-width:0}
+.topbar{display:flex;align-items:center;gap:14px;padding:16px 30px;background:rgba(255,255,255,.86);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.crumb{font-size:12px;color:var(--ink-3);font-weight:500}
+.crumb b{color:var(--ink);font-weight:700}
+.topspacer{flex:1}
+.envtag{font:700 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;
+  background:var(--warn-bg);color:var(--warn);padding:6px 10px;border-radius:6px}
+.whoami{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--ink-2)}
+.whoami .av{width:26px;height:26px;border-radius:50%;background:var(--brand-tint);color:var(--brand-deep);
+  display:grid;place-items:center;font:700 11px/1 var(--ui)}
+.page{padding:26px 30px 70px;max-width:1440px}
+.page[hidden]{display:none}
+.phead{display:flex;align-items:flex-end;gap:18px;margin-bottom:20px;flex-wrap:wrap}
+.phead h1{font:700 24px/1.15 var(--ui);letter-spacing:-.02em}
+.phead p{font-size:13px;color:var(--ink-3);margin-top:5px;max-width:640px;line-height:1.6}
+.pheadact{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+/* segmented period control */
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px}
+.seg button{padding:5px 11px;border-radius:6px;font-size:12.5px;font-weight:600;color:var(--ink-3)}
+.seg button.on{background:var(--brand);color:#fff}
+
+/* ---------- CARDS ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--sh-1);padding:18px 20px}
+.card.flush{padding:0;overflow:hidden}
+.chead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.chead h3{font:700 14px/1.3 var(--ui);letter-spacing:-.01em}
+.chead .sub{font-size:11.5px;color:var(--ink-3);font-weight:500}
+.chead .right{margin-left:auto;font-size:11.5px;color:var(--ink-3);display:flex;gap:8px;align-items:center}
+.cardpad{padding:18px 20px}
+.cols{display:grid;gap:16px}
+.c-2{grid-template-columns:1fr 1fr}
+.c-3{grid-template-columns:repeat(3,1fr)}
+.c-main{grid-template-columns:minmax(0,1.62fr) minmax(0,1fr)}
+@media (max-width:1180px){.c-main,.c-2,.c-3{grid-template-columns:1fr}}
+
+/* ---------- KPI ---------- */
+.kpigrid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px}
+@media (max-width:1240px){.kpigrid{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:700px){.kpigrid{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:13px 14px;
+  box-shadow:var(--sh-1);min-width:0}
+.kpi .lab{font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.02em;
+  display:flex;align-items:center;gap:5px;margin-bottom:7px}
+.kpi .val{font:600 23px/1 var(--display);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.kpi .val small{font:600 12px/1 var(--ui);color:var(--ink-3);margin-left:3px}
+.kpi .dlt{font-size:11.5px;font-weight:700;margin-top:6px;display:flex;align-items:center;gap:4px}
+.dlt.up{color:var(--ok)} .dlt.down{color:var(--risk)} .dlt.flat{color:var(--ink-3)}
+.dlt span{color:var(--ink-4);font-weight:500}
+
+/* hero north star */
+.hero{background:linear-gradient(135deg,#F0EBFD 0%,#FFFFFF 46%,#E8F6EF 100%);
+  border:1px solid var(--line);border-radius:var(--r-lg);padding:20px 22px;box-shadow:var(--sh-1);
+  display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:center;margin-bottom:16px}
+@media (max-width:900px){.hero{grid-template-columns:1fr}}
+.hero .eyebrow{font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--brand);
+  display:flex;align-items:center;gap:8px}
+.hero .eyebrow::before{content:"";width:22px;height:2px;background:var(--brand);border-radius:2px}
+.hero .big{font:600 46px/1 var(--display);letter-spacing:-.02em;margin:10px 0 4px;font-variant-numeric:tabular-nums}
+.hero .defn{font-size:12.5px;color:var(--ink-2);line-height:1.6;max-width:520px}
+.hero .defn b{color:var(--ink)}
+.herostats{display:flex;gap:20px;margin-top:12px;flex-wrap:wrap}
+.herostats div{font-size:12px;color:var(--ink-3)}
+.herostats b{display:block;font:600 17px/1.2 var(--display);color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* ---------- CHIPS / PILLS ---------- */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;
+  font-size:11.5px;font-weight:700;white-space:nowrap}
+.chip.ok{background:var(--ok-bg);color:var(--ok)}
+.chip.warn{background:var(--warn-bg);color:var(--warn)}
+.chip.risk{background:var(--risk-bg);color:var(--risk)}
+.chip.learn{background:var(--learn-bg);color:var(--learn)}
+.chip.mute{background:var(--surface-3);color:var(--ink-3)}
+.chip.brand{background:var(--brand-tint);color:var(--brand-deep)}
+.chip .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:0 0 auto}
+.tierpill{display:inline-flex;align-items:center;padding:2px 7px;border-radius:6px;
+  font-size:10.5px;font-weight:800;letter-spacing:.02em}
+/* Tier TIDAK memakai warna kategori uang (Pakai/Simpan/Berbagi/Bertumbuh).
+   Dipakai tangga ungu: makin tua makin pekat — terbaca sebagai urutan umur. */
+.t-little{background:#F1EDFB;color:#7A6AB8}
+.t-middle{background:#E3DBF9;color:#5645B8}
+.t-teen{background:#CFC2F3;color:#3D2A94}
+
+/* ---------- TABLE ---------- */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-3);padding:11px 14px;border-bottom:1px solid var(--line);background:var(--surface-2);
+  position:sticky;top:0;z-index:2;white-space:nowrap}
+.tbl td{padding:11px 14px;border-bottom:1px solid var(--line-2);font-size:13px;vertical-align:middle}
+.tbl tbody tr{cursor:default}
+.tbl tbody tr.click{cursor:pointer}
+.tbl tbody tr.click:hover{background:var(--surface-2)}
+.tbl td.r,.tbl th.r{text-align:right;font-variant-numeric:tabular-nums}
+.tbl .nm{font-weight:600}
+.tblwrap{max-height:520px;overflow:auto}
+.emptyrow td{color:var(--ink-3);text-align:center;padding:34px 14px;font-size:13px}
+
+/* mini bar in table */
+.mbar{height:6px;border-radius:999px;background:var(--line);overflow:hidden;min-width:64px}
+.mbar i{display:block;height:100%;border-radius:999px;background:var(--brand)}
+
+/* ---------- FILTERS ---------- */
+.filters{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.search{position:relative;flex:0 0 260px}
+.search input{width:100%;padding:8px 12px 8px 32px;border:1px solid var(--line);border-radius:9px;
+  background:var(--surface);font-size:13px}
+.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.42}
+.fchip{padding:6px 11px;border-radius:8px;border:1px solid var(--line);background:var(--surface);
+  font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.fchip.on{background:var(--brand-tint);border-color:#D3CBF5;color:var(--brand-deep)}
+.fcount{margin-left:auto;font-size:12px;color:var(--ink-3)}
+
+/* ---------- INSIGHT CARD ---------- */
+.ins{display:flex;gap:12px;padding:14px 16px;border:1px solid var(--line);border-radius:var(--r-md);
+  background:var(--surface);box-shadow:var(--sh-1)}
+.ins .ico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto}
+.ins h4{font-size:13px;font-weight:700;margin-bottom:4px;letter-spacing:-.01em}
+.ins p{font-size:12.5px;color:var(--ink-2);line-height:1.6}
+.ins p b{color:var(--ink)}
+.ins .rule{margin-top:7px;font-family:var(--mono);font-size:10.5px;color:var(--ink-4)}
+
+/* ---------- PRIVACY / MASK ---------- */
+.mask{display:inline-flex;align-items:center;gap:6px;background:repeating-linear-gradient(
+  -45deg,var(--surface-3),var(--surface-3) 5px,#EAE5F7 5px,#EAE5F7 10px);
+  color:var(--ink-3);border-radius:7px;padding:4px 9px;font-size:12px;font-weight:600}
+.privacybar{display:flex;gap:11px;align-items:flex-start;background:var(--learn-bg);border:1px solid #CFE0F4;
+  border-radius:var(--r-md);padding:12px 15px;font-size:12.5px;color:#1B4E8C;line-height:1.6}
+.privacybar b{font-weight:700}
+.supportbar{display:flex;gap:11px;align-items:center;background:var(--warn-bg);border:1px solid #F0DDAE;
+  border-radius:var(--r-md);padding:10px 15px;font-size:12.5px;color:#8A5C05;font-weight:600}
+.supportbar .t{margin-left:auto;font-family:var(--mono);font-size:12px}
+
+/* ---------- DRAWER ---------- */
+.scrim{position:fixed;inset:0;background:rgba(34,28,66,.42);opacity:0;pointer-events:none;
+  transition:opacity .2s;z-index:60}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:min(560px,94vw);background:var(--canvas);
+  box-shadow:var(--sh-3);transform:translateX(102%);transition:transform .26s cubic-bezier(.16,1,.3,1);
+  z-index:61;display:flex;flex-direction:column}
+.drawer.on{transform:none}
+.dhead{padding:18px 22px;background:var(--surface);border-bottom:1px solid var(--line);
+  display:flex;align-items:flex-start;gap:12px}
+.dhead h2{font:700 17px/1.25 var(--ui);letter-spacing:-.02em}
+.dhead .sub{font-size:12px;color:var(--ink-3);margin-top:3px}
+.dclose{margin-left:auto;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;
+  color:var(--ink-3);background:var(--surface-3)}
+.dbody{padding:18px 22px 40px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.kv{display:grid;grid-template-columns:132px 1fr;gap:7px 12px;font-size:12.5px}
+.kv dt{color:var(--ink-3);font-weight:600}
+.kv dd{font-weight:600}
+.sig{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.sigbox{border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;background:var(--surface-2)}
+.sigbox .l{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.sigbox .v{font:600 19px/1.2 var(--display);margin-top:4px;font-variant-numeric:tabular-nums}
+.sigbox .n{font-size:11px;color:var(--ink-3);margin-top:2px}
+
+/* ---------- MODAL ---------- */
+.modal{position:fixed;inset:0;display:none;place-items:center;z-index:70;padding:20px}
+.modal.on{display:grid}
+.mbox{background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--sh-3);width:min(480px,100%);
+  padding:22px 24px;position:relative;z-index:2}
+.mbox h3{font:700 17px/1.3 var(--ui);letter-spacing:-.02em;margin-bottom:6px}
+.mbox p.lede{font-size:12.5px;color:var(--ink-2);line-height:1.6;margin-bottom:16px}
+.field{display:block;margin-bottom:13px}
+.field span{display:block;font-size:11.5px;font-weight:700;color:var(--ink-2);margin-bottom:5px}
+.field input,.field select{display:block;width:100%;padding:9px 11px;border:1px solid var(--line);
+  border-radius:9px;background:var(--surface-2)}
+.mact{display:flex;gap:9px;justify-content:flex-end;margin-top:18px}
+.btn{padding:9px 15px;border-radius:9px;font-size:13px;font-weight:700;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink-2)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 4px 14px rgba(108,76,224,.3)}
+.btn.primary[disabled]{background:var(--line);border-color:var(--line);color:var(--ink-4);
+  box-shadow:none;cursor:not-allowed}
+.btn.sm{padding:6px 11px;font-size:12px;border-radius:8px}
+.btn.danger{color:var(--risk);border-color:#F0CFCF}
+
+/* ---------- TOAST ---------- */
+.toasts{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:80;
+  display:flex;flex-direction:column;gap:8px;align-items:center}
+.toast{background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:12.5px;
+  font-weight:600;box-shadow:var(--sh-2);animation:pop .22s cubic-bezier(.16,1,.3,1)}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---------- FEED ---------- */
+.feed{display:flex;flex-direction:column;max-height:392px;overflow-y:auto}
+.fitem{display:flex;gap:10px;padding:9px 20px;border-bottom:1px solid var(--line-2);align-items:flex-start}
+.fitem:last-child{border-bottom:none}
+.fdot{width:7px;height:7px;border-radius:50%;margin-top:6px;flex:0 0 auto}
+.fitem .txt{font-size:12.5px;line-height:1.5;min-width:0}
+.fitem .txt b{font-weight:700}
+.fitem .ev{font-family:var(--mono);font-size:10.5px;color:var(--ink-4);display:block;margin-top:2px}
+.fitem .t{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--ink-4);white-space:nowrap;padding-top:2px}
+
+/* ---------- COHORT ---------- */
+.cohort{border-collapse:separate;border-spacing:3px}
+.cohort th{font-size:10px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;
+  padding:2px 4px;background:none;border:none;position:static}
+.cohort td{padding:0;border:none}
+.cell{width:52px;height:30px;border-radius:6px;display:grid;place-items:center;font-size:11px;
+  font-weight:700;font-variant-numeric:tabular-nums;color:#fff}
+.cell.lab{background:none;color:var(--ink-2);justify-content:flex-start;width:auto;padding-right:8px;font-weight:600}
+.cell.na{background:var(--surface-3)}
+
+/* ---------- PENJELASAN BAHASA AWAM ---------- */
+.plain{display:block;background:var(--learn-bg);border:1px solid #D6E5F6;border-radius:11px;
+  padding:11px 14px;font-size:12.5px;color:#1B4E8C;line-height:1.65;margin-top:13px}
+.plain::before{content:"Bacanya";display:inline;font-weight:800;font-size:9.5px;letter-spacing:.11em;
+  text-transform:uppercase;opacity:.6;margin-right:9px}
+.plain b{font-weight:700}
+body.noplain .plain{display:none}
+
+/* ---------- RINGKASAN DESKRIPTIF ---------- */
+.summary{background:linear-gradient(135deg,#F0EBFD 0%,#FFFFFF 55%,#EAF4FC 100%);
+  border:1px solid var(--line);border-radius:var(--r-lg);padding:22px 26px;box-shadow:var(--sh-1);margin-bottom:16px}
+.summary h2{font:700 17px/1.3 var(--ui);letter-spacing:-.02em;margin-bottom:12px}
+.summary p{font-size:14px;line-height:1.75;color:var(--ink-2);max-width:78ch;margin-bottom:11px}
+.summary p:last-child{margin-bottom:0}
+.summary b{color:var(--ink);font-weight:700}
+
+/* ---------- PETA ---------- */
+.mapwrap{position:relative;background:linear-gradient(180deg,#F7F5FD,#F1EDFA);border:1px solid var(--line);
+  border-radius:var(--r-md);padding:10px 12px}
+.mapwrap svg{width:100%;height:auto;display:block}
+.mapwrap .isle{fill:#E0D8F6;stroke:#CBC0EF;stroke-width:.9;stroke-linejoin:round}
+.mapwrap circle.bub{fill:rgba(108,76,224,.42);stroke:#6C4CE0;stroke-width:1.6;cursor:pointer;
+  transition:fill .15s}
+.mapwrap circle.bub:hover{fill:rgba(108,76,224,.68)}
+.maplab{font:700 12px/1 var(--ui);fill:#3D2A94}
+.mapsub{font:600 10.5px/1 var(--ui);fill:#6C4CE0}
+.mapfoot{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:10px;
+  font-size:11.5px;color:var(--ink-3);font-weight:600}
+.mapfoot .bubkey{display:inline-flex;align-items:center;gap:6px}
+.mapfoot .bubkey i{border-radius:50%;background:rgba(108,76,224,.42);border:1.5px solid #6C4CE0;display:inline-block}
+
+/* ---------- DEFINISI STATUS ---------- */
+.defrow{display:grid;grid-template-columns:104px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-2)}
+.defrow:last-child{border-bottom:none}
+.defrow .rule2{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:6px;line-height:1.5}
+.defrow p{font-size:12.5px;color:var(--ink-2);line-height:1.6}
+
+.srcbadge{font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  padding:3px 7px;border-radius:5px;white-space:nowrap}
+.src-auto{background:var(--ok-bg);color:var(--ok)}
+.src-ask{background:var(--brand-tint);color:var(--brand-deep)}
+.src-none{background:var(--risk-bg);color:var(--risk)}
+
+/* ---------- BAR BERTUMPUK 100% ---------- */
+.stackbar{display:flex;height:30px;border-radius:9px;overflow:hidden;background:var(--line)}
+.stackbar i{display:block;height:100%;position:relative}
+.stacklegend{display:flex;gap:15px;flex-wrap:wrap;margin-top:10px;font-size:11.5px;font-weight:600;color:var(--ink-2)}
+.stacklegend span{display:inline-flex;align-items:center;gap:5px}
+.stacklegend em{width:9px;height:9px;border-radius:3px;font-style:normal;flex:0 0 auto}
+
+/* ---------- PEMILIH UMUR ---------- */
+.agepick{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.agebtn{width:54px;padding:8px 0;border-radius:11px;border:1px solid var(--line);background:var(--surface);
+  text-align:center;font:700 15px/1.1 var(--ui);color:var(--ink-2)}
+.agebtn small{display:block;font-size:9.5px;font-weight:700;color:var(--ink-4);letter-spacing:.03em;margin-top:2px}
+.agebtn.on{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 4px 14px rgba(108,76,224,.3)}
+.agebtn.on small{color:rgba(255,255,255,.72)}
+.pcard{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:900px){.pcard{grid-template-columns:1fr}}
+.factgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.fact{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface-2)}
+.fact .l{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.fact .v{font:600 21px/1.15 var(--display);margin-top:5px;font-variant-numeric:tabular-nums}
+.fact .n{font-size:11.5px;color:var(--ink-3);margin-top:3px;line-height:1.45}
+.narr{font-size:14px;line-height:1.7;color:var(--ink-2)}
+.narr b{color:var(--ink)}
+
+/* ---------- LANGKAH CORONG ---------- */
+.steps{display:flex;gap:0;align-items:stretch;flex-wrap:wrap}
+.step{flex:1 1 150px;padding:14px 16px;border:1px solid var(--line);background:var(--surface-2);
+  border-radius:12px;margin-right:26px;position:relative;min-width:0}
+.step:last-child{margin-right:0}
+.step::after{content:"";position:absolute;right:-19px;top:50%;width:12px;height:12px;
+  border-top:2px solid var(--ink-4);border-right:2px solid var(--ink-4);transform:translateY(-50%) rotate(45deg)}
+.step:last-child::after{display:none}
+.step .l{font-size:11px;font-weight:700;color:var(--ink-3);line-height:1.35}
+.step .v{font:600 24px/1.1 var(--display);margin-top:6px;font-variant-numeric:tabular-nums}
+.step .p{font-size:11.5px;font-weight:700;margin-top:4px}
+@media (max-width:900px){.step{margin-right:0;margin-bottom:22px}.step::after{right:50%;top:auto;bottom:-17px;
+  transform:translateX(50%) rotate(135deg)}}
+
+/* ---------- MISC BITS ---------- */
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-3);font-weight:600}
+.legend i{width:9px;height:9px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-1px}
+.note{font-size:11.5px;color:var(--ink-3);line-height:1.6;margin-top:11px;padding-top:11px;border-top:1px dashed var(--line)}
+.note b{color:var(--ink-2)}
+.stack{display:flex;flex-direction:column;gap:16px}
+.hbar{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.hbar .hl{width:118px;font-size:12px;font-weight:600;color:var(--ink-2);flex:0 0 auto}
+.hbar .ht{flex:1;height:20px;background:var(--line-2);border-radius:6px;overflow:hidden;position:relative}
+.hbar .ht i{display:block;height:100%;border-radius:6px}
+.hbar .hv{width:78px;text-align:right;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;flex:0 0 auto}
+.invrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line-2);font-size:12.5px}
+.invrow:last-child{border-bottom:none}
+.invrow .eq{font-family:var(--mono);font-size:11.5px;color:var(--ink-2)}
+.invrow .st{margin-left:auto}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ================= RAIL ================= -->
+  <nav class="rail">
+    <div class="brandbox">
+      <div class="coin">N</div>
+      <div><b>Nummi</b><span>Console</span></div>
+    </div>
+
+    <div class="navgroup">Pantau</div>
+    <button class="navitem on" data-go="overview">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+      Ikhtisar</button>
+    <button class="navitem" data-go="demo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-7"/></svg>
+      Demografi</button>
+    <button class="navitem" data-go="kids">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+      Profil anak</button>
+    <button class="navitem" data-go="families">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+      Keluarga<span class="badge" id="nav-fam">0</span></button>
+    <button class="navitem" data-go="trust">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Kepercayaan<span class="badge hot" id="nav-trust">0</span></button>
+
+    <div class="navgroup">Bangun</div>
+    <button class="navitem" data-go="content">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Konten &amp; misi</button>
+    <button class="navitem" data-go="money">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Monetisasi</button>
+
+    <div class="navgroup">Jaga</div>
+    <button class="navitem" data-go="system">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      Sistem &amp; data<span class="badge" id="nav-sys">1</span></button>
+    <button class="navitem" data-go="audit">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      Audit &amp; akses</button>
+
+    <div class="railfoot">
+      <b>Ghozy — Owner</b>
+      Akses penuh · sesi berakhir 18:40<br>
+      Prototipe, data dummy.
+    </div>
+  </nav>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+    <header class="topbar">
+      <div class="crumb">Nummi Console / <b id="crumb">Ikhtisar</b></div>
+      <div class="topspacer"></div>
+      <span class="envtag">Data dummy</span>
+      <button class="btn sm" id="plaintoggle">Penjelasan: aktif</button>
+      <div class="whoami"><span class="av">G</span> Ghozy · Owner</div>
+    </header>
+
+    <!-- ---------- OVERVIEW ---------- -->
+    <section class="page" id="page-overview">
+      <div class="phead">
+        <div>
+          <h1>Ikhtisar</h1>
+          <p>Satu pertanyaan yang dijawab halaman ini: berapa banyak keluarga yang benar-benar menyelesaikan satu siklus uang minggu ini — dan di mana siklus itu putus.</p>
+        </div>
+        <div class="pheadact">
+          <div class="seg" id="period">
+            <button data-p="7">7 hari</button>
+            <button class="on" data-p="30">30 hari</button>
+            <button data-p="90">90 hari</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero">
+        <div>
+          <div class="eyebrow">Metrik utara</div>
+          <div class="big num" id="ns-val">0</div>
+          <div class="defn"><b>Keluarga aktif mingguan dengan siklus uang lengkap.</b> Satu siklus = uang masuk → disortir anak → anak mengambil keputusan → ortu merespons → ditandai selesai. Bukan DAU: produk ini sehat kalau dipakai bermakna 2–3× seminggu, bukan tiap hari.</div>
+          <div class="herostats">
+            <div><b id="ns-share">0%</b>dari keluarga terdaftar</div>
+            <div><b id="ns-wow">0%</b>vs minggu lalu</div>
+            <div><b id="ns-teen">0</b>di antaranya tier Teen</div>
+          </div>
+        </div>
+        <div id="ns-spark"></div>
+      </div>
+
+      <div class="kpigrid" id="kpis"></div>
+
+      <div class="cols c-main">
+        <div class="stack">
+          <div class="card">
+            <div class="chead">
+              <h3>Siklus uang</h3>
+              <span class="sub">30 hari · keluarga unik per tahap</span>
+              <div class="right"><span class="chip risk"><span class="dot"></span>Kebocoran terbesar ditandai</span></div>
+            </div>
+            <div id="pipeline"></div>
+            <div class="note" id="pipeline-note"></div>
+          </div>
+
+          <div class="cols c-2" id="insights"></div>
+
+          <div class="card flush">
+            <div class="cardpad" style="padding-bottom:0">
+              <div class="chead" style="margin-bottom:0">
+                <h3>Retensi keluarga per kohort</h3>
+                <span class="sub">% keluarga yang menyelesaikan siklus di minggu ke-N</span>
+              </div>
+            </div>
+            <div class="cardpad" id="cohort"></div>
+          </div>
+        </div>
+
+        <div class="stack">
+          <div class="card">
+            <div class="chead">
+              <h3>Utang janji</h3>
+              <span class="sub">approve → belum ditandai selesai</span>
+            </div>
+            <div id="promise"></div>
+            <div class="note">Ini metrik integritas, bukan metrik keterlibatan. Di Nummi saldo hanyalah komitmen ortu; kalau <b>To&nbsp;do</b> tidak pernah jadi <b>Done</b>, anak belajar bahwa sistemnya bohong. Tidak ada kompetitor yang bisa menyalin metrik ini karena tak ada kompetitor yang memakai model ledger komitmen.</div>
+          </div>
+
+          <div class="card flush">
+            <div class="cardpad" style="padding-bottom:12px">
+              <div class="chead" style="margin-bottom:0">
+                <h3>Aliran peristiwa</h3>
+                <span class="sub">contoh langsung</span>
+                <div class="right"><span class="chip mute">tanpa teks bebas anak</span></div>
+              </div>
+            </div>
+            <div class="feed" id="feed"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- FAMILIES ---------- -->
+    <section class="page" id="page-families" hidden>
+      <div class="phead">
+        <div>
+          <h1>Keluarga</h1>
+          <p>Daftar operasional. Nama, teks bebas anak, dan nominal per keluarga tertutup secara bawaan — buka lewat mode dukungan yang berdurasi dan tercatat.</p>
+        </div>
+      </div>
+
+      <div class="privacybar" style="margin-bottom:16px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex:0 0 auto;margin-top:1px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <div><b>Subjek data di sini anak di bawah umur.</b> Admin melihat sinyal perilaku (rasio, jeda waktu, status), bukan isi kepala anak. Nama dream, alasan cash-out, dan cerita Give tidak pernah keluar dari basis data produk — termasuk ke alat analitik pihak ketiga. Dasar: UU PDP No. 27/2022 tentang data anak + prinsip nol-SDK-iklan di app anak.</div>
+      </div>
+
+      <div class="filters">
+        <label class="search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="fsearch" placeholder="Cari ID keluarga atau kota" autocomplete="off">
+        </label>
+        <button class="fchip on" data-f="status" data-v="all">Semua status</button>
+        <button class="fchip" data-f="status" data-v="Baru">Baru</button>
+        <button class="fchip" data-f="status" data-v="Sehat">Sehat</button>
+        <button class="fchip" data-f="status" data-v="Berisiko">Berisiko</button>
+        <button class="fchip" data-f="status" data-v="Dorman">Dorman</button>
+        <span style="width:1px;height:22px;background:var(--line)"></span>
+        <button class="fchip on" data-f="plan" data-v="all">Semua paket</button>
+        <button class="fchip" data-f="plan" data-v="Gratis">Gratis</button>
+        <button class="fchip" data-f="plan" data-v="Pro">Pro</button>
+        <button class="fchip" data-f="plan" data-v="Sekolah">Sekolah</button>
+        <span class="fcount" id="fcount"></span>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="chead"><h3>Apa arti setiap status</h3>
+          <span class="sub">dihitung dari dua sisi, bukan dari "kapan terakhir buka app"</span>
+          <div class="right" id="statcount"></div></div>
+        <div id="statdefs"></div>
+        <div class="note">Nummi hanya hidup kalau <b>dua sisi bergerak</b>. Keluarga yang anaknya rajin
+        mencatat tapi orang tuanya diam bukan keluarga sehat — itu keluarga yang sedang kehilangan kepercayaan
+        pada sistemnya, dan biasanya berhenti 3–4 minggu kemudian. Karena itu status di sini sengaja
+        <b>tidak</b> memakai definisi umum aplikasi lain ("aktif = pernah membuka app dalam 30 hari"),
+        yang akan menyebut keluarga seperti itu sehat sampai terlambat.</div>
+      </div>
+
+      <div class="card flush">
+        <div class="tblwrap">
+          <table class="tbl">
+            <thead><tr>
+              <th>ID keluarga</th><th>Kota</th><th>Anak</th><th>Paket</th><th>Status</th>
+              <th>Siklus terjauh</th><th class="r">Sortir (median)</th><th class="r">Respons ortu</th><th class="r">Aktivitas terakhir</th>
+            </tr></thead>
+            <tbody id="famrows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- DEMOGRAFI ---------- -->
+    <section class="page" id="page-demo" hidden>
+      <div class="phead">
+        <div>
+          <h1>Demografi</h1>
+          <p>Siapa sebenarnya yang mengunduh Nummi — dari mana mereka datang, di kota mana, dan seperti apa keluarganya. Setiap kartu diberi label sumber datanya, karena tidak semua angka di halaman ini datang sendiri.</p>
+        </div>
+      </div>
+
+      <div class="summary">
+        <h2>Kesimpulan halaman ini</h2>
+        <p>Pengguna Nummi punya wajah yang cukup seragam: <b>ibu berusia 35–44 tahun, tinggal di Jabodetabek,
+        anaknya di sekolah swasta, dan uang sakunya masih diberikan tunai.</b> Hampir setengah keluarga
+        terkumpul di satu wilayah metropolitan — bagus karena semuanya bisa kamu temui langsung, tapi berarti
+        kamu belum benar-benar tahu apakah produk ini laku di luar Jabodetabek, atau kamu hanya belum
+        mencobanya ke sana.</p>
+        <p>Yang paling menentukan pertumbuhan bukan iklan. Dua sumber terbesar — <b>pencarian di App Store dan
+        rekomendasi teman</b> — menyumbang 61% dan keduanya gratis, sementara Instagram berbayar hanya 18%.
+        Artinya judul di toko aplikasi dan seberapa mudah orang menceritakan Nummi ke temannya lebih layak
+        dikerjakan daripada menambah anggaran iklan.</p>
+        <p>Kebocoran terbesar terjadi paling awal: <b>dari 100 orang yang melihat halaman App Store, hanya 23
+        yang memasang, dan cuma 5 yang menyelesaikan satu putaran uang di minggu pertama.</b> Perbaikan
+        halaman toko akan menggerakkan angka lebih banyak daripada perbaikan fitur apa pun di dalam aplikasi.</p>
+        <p>Dua temuan yang mengubah arah produk: <b>74% keluarga masih memakai uang tunai</b> — jadi posisi
+        Nummi sebagai buku catatan, bukan dompet digital, sudah tepat; dan <b>32% belum pernah memberi uang
+        saku rutin sama sekali</b> — kelompok ini tidak butuh alat pencatat, mereka butuh dituntun memulai
+        dari nol.</p>
+        <p style="font-size:12.5px;color:var(--ink-3)">Catatan jujur: tidak semua angka di halaman ini datang
+        sendiri. App Store dan Play mengirim data unduhan, kota, dan perangkat — tapi <b>tidak mengirim umur,
+        jenis kelamin, atau kondisi keluarga</b>. Semua itu hanya ada kalau kamu menanyakannya saat pendaftaran.
+        Perhatikan label warna di tiap kartu di bawah.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="chead"><h3>Dari melihat sampai memakai</h3>
+          <span class="sub">30 hari</span>
+          <div class="right"><span class="srcbadge src-auto">otomatis</span></div></div>
+        <div class="steps" id="dfunnel"></div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="chead"><h3>Sebaran kota</h3>
+          <span class="sub">1.284 keluarga</span>
+          <div class="right"><span class="srcbadge src-auto">otomatis</span></div></div>
+        <div class="mapwrap" id="dmap"></div>
+        <div class="mapfoot" id="dmapfoot"></div>
+        <div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--line)">
+          <div class="chead" style="margin-bottom:12px"><h3 style="font-size:13px">Rinci per kota</h3>
+            <span class="sub">peta menggabungkan Jabodetabek, grafik ini memecahnya</span></div>
+          <div id="dcity"></div>
+        </div>
+      </div>
+
+      <div class="cols c-2">
+        <div class="card">
+          <div class="chead"><h3>Mereka tahu Nummi dari mana</h3>
+            <div class="right"><span class="srcbadge src-auto">otomatis</span></div></div>
+          <div id="dsource"></div>
+        </div>
+        <div class="stack">
+          <div class="card">
+            <div class="chead"><h3>Profil keluarga</h3><span class="sub">dari pertanyaan saat pendaftaran</span>
+              <div class="right"><span class="srcbadge src-ask">ditanya</span></div></div>
+            <div id="dprofile"></div>
+          </div>
+          <div class="card">
+            <div class="chead"><h3>Yang belum kamu punya</h3>
+              <div class="right"><span class="srcbadge src-none">tidak ada</span></div></div>
+            <div id="dmissing"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- PROFIL ANAK ---------- -->
+    <section class="page" id="page-kids" hidden>
+      <div class="phead">
+        <div>
+          <h1>Profil anak</h1>
+          <p>1.852 anak dari 1.284 keluarga. Halaman ini menjawab satu pertanyaan: anak umur berapa memakai Nummi seperti apa — dan apa yang berubah saat mereka bertambah umur.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="chead"><h3>Sebaran umur</h3><span class="sub">jumlah anak per umur · warna = tier</span></div>
+        <div id="agechart"></div>
+        <div class="plain" id="agechart-plain"></div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="chead"><h3>Pilih umur</h3><span class="sub">lihat profil satu kelompok umur</span></div>
+        <div class="agepick" id="agepick"></div>
+        <div class="pcard">
+          <div>
+            <div class="narr" id="ageNarr"></div>
+            <div style="margin-top:16px"><div class="stackbar" id="ageSplit"></div>
+              <div class="stacklegend" id="ageSplitLegend"></div></div>
+            <div class="plain" id="ageSplit-plain"></div>
+          </div>
+          <div class="factgrid" id="ageFacts"></div>
+        </div>
+      </div>
+
+      <div class="cols c-2">
+        <div class="card">
+          <div class="chead"><h3>Yang berubah seiring umur</h3><span class="sub">temuan lintas kelompok</span></div>
+          <div id="ageTrends"></div>
+        </div>
+        <div class="card">
+          <div class="chead"><h3>Perbandingan tiga tier</h3></div>
+          <div id="tierCompare"></div>
+          <div class="plain" id="tierCompare-plain"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- TRUST ---------- -->
+    <section class="page" id="page-trust" hidden>
+      <div class="phead">
+        <div>
+          <h1>Kepercayaan</h1>
+          <p>Ledger Nummi hanya sekuat janji yang ditepati. Halaman ini memantau tiga hal: janji yang menua, ortu yang berhenti merespons, dan pemotongan uang yang menyimpang dari aturan proteksi.</p>
+        </div>
+      </div>
+
+      <div class="kpigrid" id="trustkpi"></div>
+
+      <div class="cols c-main">
+        <div class="stack">
+          <div class="card flush">
+            <div class="cardpad" style="padding-bottom:0">
+              <div class="chead" style="margin-bottom:0">
+                <h3>Antrean janji tertunda</h3>
+                <span class="sub">disetujui &gt; 72 jam, belum ditandai selesai</span>
+              </div>
+            </div>
+            <div class="tblwrap" style="max-height:400px">
+              <table class="tbl">
+                <thead><tr><th>Keluarga</th><th>Jenis</th><th class="r">Usia janji</th><th>Dampak ke anak</th><th class="r">Aksi</th></tr></thead>
+                <tbody id="promiserows"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="chead"><h3>Sebaran waktu respons ortu</h3><span class="sub">dari request masuk sampai diputuskan</span></div>
+            <div id="resphist"></div>
+            <div class="note">Titik patah ada di <b>24 jam</b>: keluarga yang median responsnya di atas itu punya peluang dorman 30 hari <b>2,7×</b> lebih tinggi. Ini kandidat pemicu nudge otomatis — dan alasan kuat menambahkan pengingat harian ringan di app ortu, bukan di app anak.</div>
+          </div>
+        </div>
+
+        <div class="stack">
+          <div class="card">
+            <div class="chead"><h3>Keluarga berisiko</h3><span class="sub">aturan deterministik</span></div>
+            <div id="riskrules"></div>
+          </div>
+          <div class="card">
+            <div class="chead"><h3>Monitor aturan proteksi</h3><span class="sub">upaya potong uang dari kantong terkunci</span></div>
+            <div id="protect"></div>
+            <div class="note">Dream, Give, dan Grow terlindungi mutlak dari <b>Take money</b>. Jumlah upaya yang ditolak bukan sekadar log error — itu ukuran seberapa sering aturan ini benar-benar diuji, dan bahan untuk memperbaiki kata-kata penjelasan di app ortu.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- CONTENT ---------- -->
+    <section class="page" id="page-content" hidden>
+      <div class="phead">
+        <div>
+          <h1>Konten &amp; misi</h1>
+          <p>Kurikulum adalah gerbang ekonomi 💎. Kalau materi macet, ekonomi hadiah akan mengalahkan pelajaran — dan produk berubah jadi mesin screen time.</p>
+        </div>
+      </div>
+      <div class="cols c-main">
+        <div class="stack">
+          <div class="card">
+            <div class="chead"><h3>Corong bab</h3><span class="sub">% anak yang menyelesaikan, dari yang membuka bab 1</span></div>
+            <div id="chapters"></div>
+            <div class="note" id="chapternote"></div>
+          </div>
+          <div class="card">
+            <div class="chead"><h3>Gerbang ⭐100 per tier</h3><span class="sub">syarat membuka sistem pekerjaan</span></div>
+            <div id="gates"></div>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="card">
+            <div class="chead"><h3>Ekonomi 💎</h3><span class="sub">30 hari</span></div>
+            <div id="gems"></div>
+            <div class="note">Kalau 💎 yang ditebus melampaui yang diperoleh dalam waktu lama, artinya ada saldo lama yang dikuras — cek apakah hadiah terlalu murah. Rasio sehat: tebusan 60–85% dari perolehan.</div>
+          </div>
+          <div class="card">
+            <div class="chead"><h3>Hadiah paling sering ditebus</h3><span class="sub">30 hari</span></div>
+            <div id="prizes"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- MONEY ---------- -->
+    <section class="page" id="page-money" hidden>
+      <div class="phead">
+        <div>
+          <h1>Monetisasi</h1>
+          <p>Model sekali bayar: pendapatan adalah fungsi keluarga baru, bukan total keluarga. Jadi yang dipantau bukan MRR, tapi pemicu konversi dan mutu keluarga baru.</p>
+        </div>
+      </div>
+      <div class="kpigrid" id="moneykpi"></div>
+      <div class="cols c-main">
+        <div class="stack">
+          <div class="card flush">
+            <div class="cardpad" style="padding-bottom:0">
+              <div class="chead" style="margin-bottom:0">
+                <h3>Pemicu konversi</h3>
+                <span class="sub">layar apa yang mendorong ortu membayar</span>
+              </div>
+            </div>
+            <table class="tbl">
+              <thead><tr><th>Pemicu di app ortu</th><th class="r">Tampil</th><th class="r">Ketuk</th><th class="r">Beli</th><th class="r">Konversi</th></tr></thead>
+              <tbody id="triggers"></tbody>
+            </table>
+            <div class="cardpad"><div class="note" id="triggernote"></div></div>
+          </div>
+          <div class="card">
+            <div class="chead"><h3>Sekolah</h3><span class="sub">akses lewat Enterprise Services, di luar app store</span></div>
+            <div class="tblwrap" style="max-height:none">
+              <table class="tbl">
+                <thead><tr><th>Sekolah</th><th>Kode</th><th class="r">Kursi</th><th class="r">Terpakai</th><th class="r">Aktif 30h</th><th>Berakhir</th></tr></thead>
+                <tbody id="schools"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="card">
+            <div class="chead"><h3>Pemeriksa invarian premis</h3><span class="sub">berjalan tiap hari</span></div>
+            <div id="invariants"></div>
+            <div class="note">Tiga baris pertama menegakkan janji produk, bukan sekadar kebenaran teknis: <b>tidak ada gembok Pro di app anak</b>, dan <b>nol slot iklan</b>. Kalau salah satu pernah menyala, itu insiden — bukan bug tampilan.</div>
+          </div>
+          <div class="card">
+            <div class="chead"><h3>Pendapatan 30 hari</h3></div>
+            <div id="revsplit"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- SYSTEM ---------- -->
+    <section class="page" id="page-system" hidden>
+      <div class="phead">
+        <div>
+          <h1>Sistem &amp; data</h1>
+          <p>Dua penjadwal, satu umpan harga, dan satu invarian ledger. Kalau salah satu diam-diam gagal, angka anak jadi salah tanpa ada yang berteriak.</p>
+        </div>
+      </div>
+      <div class="cols c-2">
+        <div class="stack">
+          <div class="card">
+            <div class="chead"><h3>Umpan harga</h3><span class="sub">emas Antam &amp; kurs</span>
+              <div class="right" id="feedstatus"></div></div>
+            <div id="feed-prices"></div>
+            <div class="note">Rate deposito <b>tidak</b> ikut umpan — ditetapkan ortu, karena dia banknya. Harga basi harus tampil sebagai "terakhir diperbarui", tak boleh diam-diam dipakai.</div>
+          </div>
+          <div class="card">
+            <div class="chead"><h3>Penjadwal</h3></div>
+            <div id="schedulers"></div>
+          </div>
+          <div class="card">
+            <div class="chead"><h3>Invarian ledger</h3><span class="sub">Unsorted + Spend + Save + Give + Grow = Total</span></div>
+            <div id="ledgercheck"></div>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="card">
+            <div class="chead"><h3>Perangkat</h3><span class="sub">keluarga aktif · menjawab blocker distribusi</span></div>
+            <div id="devices"></div>
+            <div class="note" id="devnote"></div>
+          </div>
+          <div class="card">
+            <div class="chead"><h3>Volume peristiwa &amp; galat</h3><span class="sub">7 hari</span></div>
+            <div id="events"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- AUDIT ---------- -->
+    <section class="page" id="page-audit" hidden>
+      <div class="phead">
+        <div>
+          <h1>Audit &amp; akses</h1>
+          <p>Setiap kali admin melihat data yang seharusnya tertutup, barisnya muncul di sini. Catatan ini yang bisa ditunjukkan ke orang tua dan ke sekolah saat mereka bertanya "siapa yang bisa lihat data anak saya".</p>
+        </div>
+      </div>
+      <div class="cols c-2">
+        <div class="card flush">
+          <div class="cardpad" style="padding-bottom:0">
+            <div class="chead" style="margin-bottom:0"><h3>Jejak audit</h3><span class="sub">tak bisa dihapus</span></div>
+          </div>
+          <div class="tblwrap" style="max-height:520px">
+            <table class="tbl">
+              <thead><tr><th>Waktu</th><th>Aktor</th><th>Aksi</th><th>Objek</th><th>Alasan</th></tr></thead>
+              <tbody id="auditrows"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="card">
+            <div class="chead"><h3>Peran &amp; hak akses</h3><span class="sub">hak paling kecil sebagai bawaan</span></div>
+            <div class="tblwrap" style="max-height:none">
+              <table class="tbl">
+                <thead><tr><th>Peran</th><th>Boleh</th><th>Tidak boleh</th></tr></thead>
+                <tbody id="roles"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="chead"><h3>Mode dukungan aktif</h3></div>
+            <div id="activesupport"></div>
+            <div class="note">Mode dukungan otomatis mati setelah 15 menit. Tidak ada cara membuka data satu keluarga tanpa menuliskan alasan — termasuk untuk Owner.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- drawer -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="dhead">
+    <div>
+      <h2 id="dr-title">—</h2>
+      <div class="sub" id="dr-sub">—</div>
+    </div>
+    <button class="dclose" id="dr-close" aria-label="Tutup">✕</button>
+  </div>
+  <div class="dbody" id="dr-body"></div>
+</aside>
+
+<!-- support modal -->
+<div class="modal" id="supmodal">
+  <div class="scrim on" style="position:absolute" id="supscrim"></div>
+  <div class="mbox">
+    <h3>Buka mode dukungan</h3>
+    <p class="lede">Membuka teks bebas anak dan nominal untuk <b id="sup-fam">—</b> selama 15 menit. Barisnya masuk ke jejak audit dan orang tua bisa memintanya kapan saja.</p>
+    <label class="field"><span>Alasan</span>
+      <select id="sup-reason">
+        <option value="">Pilih alasan…</option>
+        <option>Tiket dukungan dari orang tua</option>
+        <option>Laporan bug — saldo tidak cocok</option>
+        <option>Permintaan ekspor data (hak subjek data)</option>
+        <option>Investigasi dugaan penyalahgunaan</option>
+      </select></label>
+    <label class="field"><span>Nomor tiket</span>
+      <input id="sup-ticket" placeholder="mis. NUM-2481" autocomplete="off"></label>
+    <div class="mact">
+      <button class="btn" id="sup-cancel">Batal</button>
+      <button class="btn primary" id="sup-go" disabled>Buka 15 menit</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<script>
+/* ============================================================
+   NUMMI CONSOLE — logika prototipe. Semua angka DUMMY & deterministik
+   (PRNG berbenih) supaya demo selalu terlihat sama.
+   ============================================================ */
+(function(){
+'use strict';
+
+/* ---------- util ---------- */
+function seed(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+var rnd = seed(20260727);
+function pick(arr){ return arr[Math.floor(rnd()*arr.length)]; }
+function ri(a,b){ return a+Math.floor(rnd()*(b-a+1)); }
+function rp(n){ return 'Rp'+Math.round(n).toLocaleString('id-ID'); }
+function nf(n){ return n.toLocaleString('id-ID'); }
+function pct(n,d){ return d ? Math.round(n/d*1000)/10 : 0; }
+function el(html){ var d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstElementChild; }
+function $(id){ return document.getElementById(id); }
+function hrs(h){ if(h<1) return Math.round(h*60)+' mnt'; if(h<48) return (Math.round(h*10)/10)+' jam';
+  return Math.round(h/24)+' hari'; }
+function toast(msg){ var t=el('<div class="toast">'+msg+'</div>'); $('toasts').appendChild(t);
+  setTimeout(function(){ t.remove(); },2600); }
+
+/* ============================================================
+   1. DATA DUMMY
+   ============================================================ */
+var CITIES=['Jakarta Selatan','Jakarta Barat','Depok','Tangerang Selatan','Bekasi','Bandung',
+  'Surabaya','Semarang','Yogyakarta','Denpasar','Medan','Makassar','Balikpapan','Batam'];
+var TIERS=['Little','Middle','Teen'];
+var STAGES=['Uang masuk','Disortir anak','Keputusan anak','Ortu merespons','Ditandai selesai'];
+
+/* Keluarga */
+var FAMS=[];
+(function(){
+  for(var i=0;i<1284;i++){
+    var plan = rnd()<0.082 ? 'Pro' : (rnd()<0.09 ? 'Sekolah' : 'Gratis');
+    var nkid = rnd()<0.58 ? 1 : (rnd()<0.85 ? 2 : 3);
+    var kids=[];
+    for(var k=0;k<nkid;k++){
+      var t = pick(TIERS);
+      kids.push({ tier:t, initial:String.fromCharCode(65+ri(0,25)),
+        savings: Math.round((t==='Teen'?38:t==='Middle'?31:24)+rnd()*22),
+        sortH: Math.round((rnd()*rnd()*70+2)*10)/10,
+        dreams: ri(0,4), done: 0, requests: ri(0,14) });
+      kids[k].done = ri(0, kids[k].dreams);
+    }
+    /* Dua sisi dicatat terpisah — inti definisi status.
+       Untuk demo, bentuk populasinya ditentukan dulu lalu angkanya dibuat
+       konsisten dengan aturan di statusOf(), bukan sebaliknya. */
+    var roll=rnd(), joined=ri(15,214), childLastD, parentLastD, cycleLastD, promiseH=0;
+    if(roll<0.08){                       /* Baru */
+      joined=ri(1,14); childLastD=ri(0,7); parentLastD=ri(0,10); cycleLastD=null;
+    } else if(roll<0.50){                /* Sehat */
+      childLastD=ri(0,10); parentLastD=ri(0,12); cycleLastD=ri(0,14);
+    } else if(roll<0.79){                /* Berisiko — tiga sebab berbeda */
+      var sub=rnd();
+      if(sub<0.42){                      /* ortu diam, anak masih aktif */
+        childLastD=ri(0,13); parentLastD=ri(14,29); cycleLastD= rnd()<0.5?ri(16,60):null;
+      } else if(sub<0.74){               /* anak berhenti, ortu masih mengisi */
+        childLastD=ri(21,30); parentLastD=ri(0,20); cycleLastD= rnd()<0.5?ri(18,70):null;
+      } else {                           /* janji tertunda */
+        childLastD=ri(0,12); parentLastD=ri(0,12); cycleLastD=ri(15,40); promiseH=ri(180,420);
+      }
+    } else {                             /* Dorman */
+      childLastD=ri(31,95); parentLastD=ri(34,110); cycleLastD= rnd()<0.4?ri(45,120):null;
+    }
+    var lastD = Math.min(childLastD,parentLastD);
+    var stage = cycleLastD!==null && cycleLastD<=14 ? 5 : (lastD<=21 ? ri(2,4) : ri(1,3));
+    var resp = Math.round((rnd()*rnd()*96+0.4)*10)/10;
+    if(parentLastD>14) resp = Math.round((resp+ri(8,40))*10)/10;
+    FAMS.push({
+      id:'NUM-'+(1000+i), city:pick(CITIES), kids:kids, plan:plan,
+      childLastD:childLastD, parentLastD:parentLastD, cycleLastD:cycleLastD,
+      stage:stage, lastD:lastD, resp:resp,
+      sortH: Math.round(kids.reduce(function(s,x){return s+x.sortH;},0)/kids.length*10)/10,
+      joined: joined,
+      balance: ri(45,1450)*1000,
+      openReq: rnd()<0.22 ? ri(1,3) : 0,
+      promiseH: promiseH
+    });
+  }
+  FAMS.forEach(function(f){ if(!f.promiseH && f.openReq && rnd()<0.35) f.promiseH = ri(74,160); });
+})();
+
+/* ------------------------------------------------------------
+   DEFINISI STATUS KELUARGA — satu tempat, dipakai di mana-mana.
+   Prinsipnya: Nummi hanya hidup kalau DUA sisi bergerak. Keluarga
+   yang anaknya rajin tapi ortunya diam bukan keluarga sehat —
+   itu keluarga yang sedang kehilangan kepercayaan pada sistemnya.
+   Karena itu status TIDAK dihitung dari "kapan terakhir buka app".
+   ------------------------------------------------------------ */
+function statusOf(f){
+  if(f.cycleLastD===null && f.joined<=14)
+    return {s:'Baru', why:'Bergabung '+f.joined+' hari lalu, belum pernah menyelesaikan siklus pertama'};
+  if(f.cycleLastD!==null && f.cycleLastD<=14)
+    return {s:'Sehat', why:'Siklus uang lengkap terakhir '+f.cycleLastD+' hari lalu'};
+  if(Math.min(f.childLastD,f.parentLastD)>30)
+    return {s:'Dorman', why:'Tidak ada aktivitas dari kedua sisi selama '+Math.min(f.childLastD,f.parentLastD)+' hari'};
+  if(f.parentLastD>=14 && f.childLastD<14)
+    return {s:'Berisiko', why:'Anak masih aktif, orang tua tidak merespons '+f.parentLastD+' hari'};
+  if(f.childLastD>=21 && f.parentLastD<21)
+    return {s:'Berisiko', why:'Orang tua masih mengisi, anak tidak membuka app '+f.childLastD+' hari'};
+  if(f.promiseH>168)
+    return {s:'Berisiko', why:'Ada janji disetujui yang belum ditepati '+Math.round(f.promiseH/24)+' hari'};
+  return {s:'Berisiko', why:'Belum ada siklus lengkap dalam '+(f.cycleLastD||'30+')+' hari terakhir'};
+}
+FAMS.forEach(function(f){ var r=statusOf(f); f.status=r.s; f.why=r.why; });
+var STATCLASS={Sehat:'ok',Berisiko:'warn',Dorman:'mute','Baru':'learn'};
+
+var TOTAL_FAM = FAMS.length;
+var HEALTHY = FAMS.filter(function(f){return f.status==='Sehat';}).length;
+
+/* Metrik per periode (dummy, tapi konsisten arah) */
+var PERIODS = {
+  '7':  { ns:412, share:32.1, wow:6.4, teen:118, funnel:[1043,871,693,528,412],
+          kpi:[ ['Keluarga terdaftar', nf(TOTAL_FAM), '', 2.1,'up','vs 7 hari lalu'],
+                ['Aktivasi &lt;7 hari','46','%',3.4,'up','siklus pertama'],
+                ['Median waktu sortir','19','jam',-11,'up','makin cepat'],
+                ['Median respons ortu','8,4','jam',5.2,'down','makin lambat'],
+                ['Janji tertunda','37','',9,'down','&gt;72 jam'],
+                ['Konversi Pro','8,2','%',0.4,'up','kumulatif'] ] },
+  '30': { ns:412, share:32.1, wow:6.4, teen:118, funnel:[1043,871,693,528,412],
+          kpi:[ ['Keluarga terdaftar', nf(TOTAL_FAM), '', 8.6,'up','vs 30 hari lalu'],
+                ['Aktivasi &lt;7 hari','46','%',5.1,'up','siklus pertama'],
+                ['Median waktu sortir','19','jam',-14,'up','makin cepat'],
+                ['Median respons ortu','8,4','jam',12,'down','makin lambat'],
+                ['Janji tertunda','37','',22,'down','&gt;72 jam'],
+                ['Konversi Pro','8,2','%',1.1,'up','kumulatif'] ] },
+  '90': { ns:412, share:32.1, wow:6.4, teen:118, funnel:[2610,2118,1602,1174,903],
+          kpi:[ ['Keluarga terdaftar', nf(TOTAL_FAM), '', 41,'up','vs 90 hari lalu'],
+                ['Aktivasi &lt;7 hari','43','%',-2.2,'down','siklus pertama'],
+                ['Median waktu sortir','23','jam',-26,'up','makin cepat'],
+                ['Median respons ortu','7,9','jam',3,'down','makin lambat'],
+                ['Janji tertunda','112','',18,'down','&gt;72 jam'],
+                ['Konversi Pro','8,2','%',2.9,'up','kumulatif'] ] }
+};
+var SPARK=[188,206,221,238,247,269,284,301,318,347,372,388,412];
+
+/* ============================================================
+   2. KOMPONEN GRAFIK (SVG tangan, tanpa pustaka)
+   ============================================================ */
+function sparkline(vals,w,h){
+  var mx=Math.max.apply(null,vals), mn=Math.min.apply(null,vals), pad=8;
+  var pts=vals.map(function(v,i){
+    var x=pad+i*(w-pad*2)/(vals.length-1);
+    var y=h-pad-(v-mn)/(mx-mn||1)*(h-pad*2);
+    return [x,y];
+  });
+  var d=pts.map(function(p,i){ return (i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1); }).join(' ');
+  var area=d+' L'+(w-pad)+' '+(h-pad)+' L'+pad+' '+(h-pad)+' Z';
+  var last=pts[pts.length-1];
+  return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" height="'+h+'" role="img" aria-label="Tren 13 minggu">'
+    +'<defs><linearGradient id="spk" x1="0" y1="0" x2="0" y2="1">'
+    +'<stop offset="0" stop-color="#6C4CE0" stop-opacity=".22"/><stop offset="1" stop-color="#6C4CE0" stop-opacity="0"/>'
+    +'</linearGradient></defs>'
+    +'<path d="'+area+'" fill="url(#spk)"/>'
+    +'<path d="'+d+'" fill="none" stroke="#6C4CE0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>'
+    +'<circle cx="'+last[0].toFixed(1)+'" cy="'+last[1].toFixed(1)+'" r="4.2" fill="#fff" stroke="#6C4CE0" stroke-width="2.4"/>'
+    +'<text x="'+pad+'" y="'+(h-1)+'" font-size="9.5" font-family="JetBrains Mono, monospace" fill="#A9A3BE">13 minggu</text>'
+    +'</svg>';
+}
+
+/* Pipeline "siklus uang": pita yang menyempit + tetesan kebocoran */
+function pipeline(vals){
+  var W=980,H=196,top=34,band=112,cy=top+band/2, n=vals.length, seg=(W-40)/(n-1);
+  var mx=vals[0];
+  function hgt(v){ return Math.max(10, v/mx*band); }
+  var drops=[],maxDropI=1,maxDropPct=0;
+  for(var i=1;i<n;i++){
+    var p=(vals[i-1]-vals[i])/vals[i-1]*100;
+    drops.push(p); if(p>maxDropPct){maxDropPct=p;maxDropI=i;}
+  }
+  var s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" role="img" aria-label="Corong siklus uang">'
+    +'<defs><linearGradient id="pipe" x1="0" y1="0" x2="1" y2="0">'
+    +'<stop offset="0" stop-color="#8A7CF0"/><stop offset=".55" stop-color="#6C4CE0"/><stop offset="1" stop-color="#2FC078"/>'
+    +'</linearGradient></defs>';
+  for(var j=0;j<n-1;j++){
+    var x1=20+j*seg, x2=20+(j+1)*seg, h1=hgt(vals[j])/2, h2=hgt(vals[j+1])/2;
+    s+='<path d="M'+x1+' '+(cy-h1)+' L'+x2+' '+(cy-h2)+' L'+x2+' '+(cy+h2)+' L'+x1+' '+(cy+h1)+' Z" '
+      +'fill="url(#pipe)" opacity="'+(0.82-j*0.06).toFixed(2)+'"/>';
+    /* tetesan kebocoran */
+    var lost=vals[j]-vals[j+1], isMax=(j+1)===maxDropI;
+    var lx=(x1+x2)/2, lh=Math.max(6, lost/mx*band*0.62);
+    s+='<path d="M'+(lx-11)+' '+(cy+h2+2)+' L'+(lx+11)+' '+(cy+h2+2)+' L'+lx+' '+(cy+h2+2+lh)+' Z" '
+      +'fill="'+(isMax?'#B5473C':'#D9D2EE')+'" opacity="'+(isMax?'.9':'.75')+'"/>';
+    s+='<text x="'+lx+'" y="'+(cy+h2+lh+16)+'" text-anchor="middle" font-size="11" font-weight="700" '
+      +'font-family="Plus Jakarta Sans, sans-serif" fill="'+(isMax?'#B5473C':'#7A7596')+'">−'+Math.round(drops[j])+'%</text>';
+  }
+  for(var k=0;k<n;k++){
+    var x=20+k*seg, hh=hgt(vals[k])/2;
+    s+='<line x1="'+x+'" y1="'+(cy-hh)+'" x2="'+x+'" y2="'+(cy+hh)+'" stroke="#fff" stroke-width="2" opacity=".55"/>';
+    s+='<text x="'+x+'" y="'+(top-16)+'" text-anchor="'+(k===0?'start':k===n-1?'end':'middle')+'" '
+      +'font-size="11.5" font-weight="700" font-family="Plus Jakarta Sans, sans-serif" fill="#4F4865">'+STAGES[k]+'</text>';
+    s+='<text x="'+x+'" y="'+(top-1)+'" text-anchor="'+(k===0?'start':k===n-1?'end':'middle')+'" '
+      +'font-size="14" font-weight="600" font-family="Fredoka, sans-serif" fill="#221C42">'+nf(vals[k])+'</text>';
+  }
+  s+='</svg>';
+  return { svg:s, maxDropI:maxDropI, maxDropPct:Math.round(maxDropPct) };
+}
+
+function hbar(label,val,max,color,valTxt){
+  return '<div class="hbar"><div class="hl">'+label+'</div><div class="ht">'
+    +'<i style="width:'+Math.max(2,val/max*100).toFixed(1)+'%;background:'+color+'"></i></div>'
+    +'<div class="hv">'+(valTxt||nf(val))+'</div></div>';
+}
+
+/* ============================================================
+   3. HALAMAN: IKHTISAR
+   ============================================================ */
+function renderKPI(target,rows){
+  target.innerHTML = rows.map(function(r){
+    var dir = r[4]==='up'?'up':r[4]==='down'?'down':'flat';
+    var arrow = r[4]==='up'?'▲':r[4]==='down'?'▼':'—';
+    return '<div class="kpi"><div class="lab">'+r[0]+'</div>'
+      +'<div class="val">'+r[1]+(r[2]?'<small>'+r[2]+'</small>':'')+'</div>'
+      +'<div class="dlt '+dir+'">'+arrow+' '+Math.abs(r[3]).toString().replace('.',',')+'% <span>'+r[5]+'</span></div></div>';
+  }).join('');
+}
+
+function renderOverview(p){
+  var D=PERIODS[p];
+  $('ns-val').textContent = nf(D.ns);
+  $('ns-share').textContent = String(D.share).replace('.',',')+'%';
+  $('ns-wow').textContent = '+'+String(D.wow).replace('.',',')+'%';
+  $('ns-teen').textContent = nf(D.teen);
+  $('ns-spark').innerHTML = sparkline(SPARK,300,116);
+  renderKPI($('kpis'), D.kpi);
+
+  var pipe = pipeline(D.funnel);
+  $('pipeline').innerHTML = pipe.svg;
+  $('pipeline-note').innerHTML = 'Kebocoran terbesar ada di <b>'+STAGES[pipe.maxDropI-1]+' → '+
+    STAGES[pipe.maxDropI]+' (−'+pipe.maxDropPct+'%)</b>. Artinya penghambat siklus bukan anak — anak sudah '
+    +'menyortir dan mengambil keputusan; yang berhenti adalah orang tua. Semua pekerjaan retensi berikutnya '
+    +'harus menyasar app ortu, bukan menambah gamifikasi di app anak.';
+
+  /* insight rule-based */
+  var INS=[
+    ['risk','#FCE8EA','#B5473C','Penghambat ada di sisi orang tua',
+     'Dari 693 keluarga yang anaknya sudah mengambil keputusan, hanya <b>528</b> yang direspons ortu dalam 7 hari. '
+     +'Menambah fitur untuk anak tidak akan menggeser angka ini.',
+     'aturan: drop_terbesar(funnel) DAN tahap.pemilik = "ortu"'],
+    ['ok','#E1F6EC','#1F9D63','Menyortir cepat = menabung lebih banyak',
+     'Anak yang menyortir uang baru dalam <b>&lt;24 jam</b> punya rasio Simpan <b>1,8×</b> lebih tinggi '
+     +'(41% vs 23%). Uang yang menganggur di Uang Baru cenderung berakhir di Pakai.',
+     'aturan: korelasi(waktu_sortir, rasio_simpan) · n=1.043 · r=−0,41'],
+    ['warn','#FFF3D7','#B77908','Nominal besar justru gagal disortir',
+     'Pemberian keluarga &amp; hadiah ulang tahun = <b>12%</b> frekuensi pemasukan tapi <b>41%</b> nominal. '
+     +'Median waktu sortirnya <b>4,1 hari</b> — lima kali lebih lama dari uang saku rutin.',
+     'aturan: bandingkan(median_sortir | tag_sumber)'],
+    ['learn','#E7F0FB','#2266B5','Teen memanen terlalu cepat',
+     '63% anak tier Teen memakai Bertumbuh, tapi <b>28%</b> memanen dalam &lt;14 hari. Kebiasaan jangka panjang '
+     +'belum terbentuk — kandidat: tampilkan "kalau ditahan 3 bulan lagi" sebelum konfirmasi panen.',
+     'aturan: distribusi(lama_simpan | tier="Teen")']
+  ];
+  $('insights').innerHTML = INS.map(function(x){
+    return '<div class="ins"><div class="ico" style="background:'+x[1]+';color:'+x[2]+'">'
+      +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/><circle cx="12" cy="12" r="3.4"/></svg></div>'
+      +'<div><h4>'+x[3]+'</h4><p>'+x[4]+'</p><div class="rule">'+x[5]+'</div></div></div>';
+  }).join('');
+
+  /* kohort */
+  var COH=[['22 Jun',214],['15 Jun',188],['8 Jun',231],['1 Jun',176],['25 Mei',203],['18 Mei',167],['11 Mei',149],['4 Mei',158]];
+  var rowsHtml='<table class="cohort"><thead><tr><th></th><th>Ukuran</th>'
+    +[0,1,2,3,4,5].map(function(w){return '<th>M'+w+'</th>';}).join('')+'</tr></thead><tbody>';
+  COH.forEach(function(c,ci){
+    rowsHtml+='<tr><td><div class="cell lab">'+c[0]+'</div></td>'
+      +'<td><div class="cell" style="background:#F2EFFB;color:#4F4865">'+c[1]+'</div></td>';
+    for(var w=0;w<6;w++){
+      if(w>ci){ rowsHtml+='<td><div class="cell na"></div></td>'; continue; }
+      var base=[78,58,49,44,41,39][w];
+      var v=Math.max(12,Math.round(base - ci*1.6 + (rnd()*7-3.5)));
+      var alpha=(0.14+v/100*0.86).toFixed(2);
+      rowsHtml+='<td><div class="cell" style="background:rgba(108,76,224,'+alpha+');color:'+(v>46?'#fff':'#4F4865')+'">'+v+'%</div></td>';
+    }
+    rowsHtml+='</tr>';
+  });
+  rowsHtml+='</tbody></table>'
+    +'<div class="note">Kurva mendatar di <b>~40%</b> mulai minggu ke-3 — artinya ada inti keluarga yang benar-benar '
+    +'memakai sistem ini sebagai kebiasaan, bukan sekadar mencoba. Yang perlu diperbaiki adalah jurang M0→M1 '
+    +'(−20 poin), yang hampir seluruhnya adalah keluarga yang tak pernah menyelesaikan satu siklus penuh.</div>';
+  $('cohort').innerHTML = rowsHtml;
+
+  /* utang janji ringkas */
+  var b1=FAMS.filter(function(f){return f.promiseH>72 && f.promiseH<=120;}).length;
+  var b2=FAMS.filter(function(f){return f.promiseH>120 && f.promiseH<=240;}).length;
+  var b3=FAMS.filter(function(f){return f.promiseH>240;}).length;
+  var buckets=[['3–5 hari',b1,'#B77908'],['6–10 hari',b2,'#C25E2E'],['&gt;10 hari',b3,'#B5473C']];
+  var mxB=Math.max(b1,b2,b3);
+  var pendN=FAMS.filter(function(f){return f.promiseH>72;}).length;
+  $('promise').innerHTML =
+    '<div style="font:600 34px/1 var(--display);margin-bottom:2px">'+nf(pendN)+'</div>'
+    +'<div style="font-size:12px;color:var(--ink-3);margin-bottom:14px">janji disetujui, belum ditepati · '
+    +'salah satu sebab keluarga masuk status <b style="color:var(--ink-2)">Berisiko</b></div>'
+    + buckets.map(function(b){ return hbar(b[0],b[1],mxB,b[2]); }).join('')
+    +'<div style="margin-top:12px"><span class="chip risk"><span class="dot"></span>'+nf(b3)+' janji berumur &gt;10 hari</span></div>';
+
+  /* aliran peristiwa */
+  var EV=[
+    ['#8A7CF0','NUM-1043','uang masuk ditandai <b>Hadiah ulang tahun</b>','income_received',' baru saja'],
+    ['#2CA6E0','NUM-1187','anak menyortir uang baru: 20 / 50 / 10 / 20','sort_completed','2 mnt'],
+    ['#FF7A4D','NUM-1002','pengajuan cash out — alasan tertutup','request_submitted','4 mnt'],
+    ['#1F9D63','NUM-1225','ortu menandai janji <b>selesai</b>','request_marked_done','6 mnt'],
+    ['#F056A0','NUM-1160','cerita Berbagi diisi — lingkaran ditutup','give_story_saved','9 mnt'],
+    ['#2FC078','NUM-1091','panen emas simulasi, +3,2%','grow_harvested','12 mnt'],
+    ['#B5473C','NUM-1310','upaya potong uang dari dream — <b>ditolak</b>','take_blocked','15 mnt'],
+    ['#6C4CE0','NUM-1077','ortu kedua ditambahkan (Pro)','purchase_completed','21 mnt'],
+    ['#B77908','NUM-1264','request menunggu &gt; 48 jam','request_aging','32 mnt'],
+    ['#2CA6E0','NUM-1119','dream tercapai: target Rp450.000','dream_achieved','40 mnt']
+  ];
+  $('feed').innerHTML = EV.map(function(e){
+    return '<div class="fitem"><span class="fdot" style="background:'+e[0]+'"></span>'
+      +'<div class="txt"><span class="mono" style="color:var(--ink-2)">'+e[1]+'</span> '+e[2]
+      +'<span class="ev">'+e[3]+'</span></div><span class="t">'+e[4]+'</span></div>';
+  }).join('');
+}
+
+/* ============================================================
+   4. HALAMAN: KELUARGA
+   ============================================================ */
+var filt={status:'all',plan:'all',q:''};
+var SUPPORT={};   /* famId -> expiry ts */
+
+function famRow(f){
+  var kidPills=f.kids.map(function(k){
+    return '<span class="tierpill t-'+k.tier.toLowerCase()+'">'+k.tier+'</span>';
+  }).join(' ');
+  var st=STATCLASS[f.status];
+  return '<tr class="click" data-fam="'+f.id+'">'
+    +'<td class="mono nm">'+f.id+'</td>'
+    +'<td>'+f.city+'</td>'
+    +'<td>'+kidPills+'</td>'
+    +'<td>'+f.plan+'</td>'
+    +'<td><span class="chip '+st+'" title="'+f.why+'"><span class="dot"></span>'+f.status+'</span></td>'
+    +'<td><div style="display:flex;align-items:center;gap:8px"><div class="mbar"><i style="width:'
+      +(f.stage/5*100)+'%"></i></div><span style="font-size:11.5px;color:var(--ink-3)">'+f.stage+'/5</span></div></td>'
+    +'<td class="r">'+hrs(f.sortH)+'</td>'
+    +'<td class="r">'+hrs(f.resp)+'</td>'
+    +'<td class="r" style="color:var(--ink-3)">'+(f.lastD===0?'hari ini':f.lastD+' hari')+'</td>'
+    +'</tr>';
+}
+
+function renderStatDefs(){
+  var cnt={Baru:0,Sehat:0,Berisiko:0,Dorman:0};
+  FAMS.forEach(function(f){ cnt[f.status]++; });
+  var D=[
+    ['Baru','Keluarga yang baru bergabung (≤14 hari) dan <b>belum pernah</b> menyelesaikan satu siklus uang penuh. Sengaja dipisah: memasukkan mereka ke "Berisiko" membuat angka onboarding tercampur dengan angka churn, dan dua masalah itu butuh penanganan berbeda.',
+      'umur_akun ≤ 14 hari DAN siklus_lengkap_terakhir = belum pernah'],
+    ['Sehat','Ada <b>minimal satu siklus uang lengkap dalam 14 hari terakhir</b>: uang masuk → disortir anak → anak mengambil keputusan → orang tua merespons → ditandai selesai. Kedua sisi terbukti bergerak.',
+      'siklus_lengkap_terakhir ≤ 14 hari'],
+    ['Berisiko','Masih ada tanda kehidupan, tapi <b>salah satu sisi berhenti</b>. Tiga sebab yang paling sering: (1) anak masih aktif tapi ortu tidak merespons ≥14 hari — ini sinyal churn terkuat; (2) ortu masih mengisi tapi anak tidak membuka app ≥21 hari; (3) ada janji yang sudah disetujui tapi belum ditepati lebih dari 7 hari.',
+      'bukan Sehat DAN salah satu sisi aktif ≤ 30 hari'],
+    ['Dorman','<b>Kedua sisi</b> tidak ada aktivitas apa pun selama lebih dari 30 hari. Berbeda dengan Berisiko: di sini tidak ada lagi yang bisa diselamatkan lewat pengingat — butuh alasan berhenti, bukan notifikasi.',
+      'aktivitas_terakhir(anak) > 30 hari DAN aktivitas_terakhir(ortu) > 30 hari']
+  ];
+  $('statdefs').innerHTML = D.map(function(d){
+    return '<div class="defrow"><div><span class="chip '+STATCLASS[d[0]]+'"><span class="dot"></span>'
+      +d[0]+'</span><div style="font:600 18px/1.2 var(--display);margin-top:8px;font-variant-numeric:tabular-nums">'
+      +nf(cnt[d[0]])+'</div><div style="font-size:11px;color:var(--ink-3)">'
+      +String(pct(cnt[d[0]],TOTAL_FAM)).replace('.',',')+'% keluarga</div></div>'
+      +'<div><p>'+d[1]+'</p><div class="rule2">'+d[2]+'</div></div></div>';
+  }).join('');
+  $('statcount').innerHTML='<span class="chip mute">urutan pemeriksaan dari atas ke bawah</span>';
+}
+
+function renderFams(){
+  var list=FAMS.filter(function(f){
+    if(filt.status!=='all' && f.status!==filt.status) return false;
+    if(filt.plan!=='all' && f.plan!==filt.plan) return false;
+    if(filt.q){ var q=filt.q.toLowerCase();
+      if(f.id.toLowerCase().indexOf(q)<0 && f.city.toLowerCase().indexOf(q)<0) return false; }
+    return true;
+  });
+  var show=list.slice(0,150);
+  $('famrows').innerHTML = show.length
+    ? show.map(famRow).join('')
+    : '<tr class="emptyrow"><td colspan="9">Tidak ada keluarga yang cocok. Longgarkan filter atau kosongkan pencarian.</td></tr>';
+  $('fcount').innerHTML = 'Menampilkan <b>'+nf(show.length)+'</b> dari '+nf(list.length)+' keluarga';
+  $('nav-fam').textContent = nf(TOTAL_FAM);
+  Array.prototype.forEach.call($('famrows').querySelectorAll('tr.click'),function(tr){
+    tr.addEventListener('click',function(){ openFam(tr.dataset.fam); });
+  });
+}
+
+/* ---------- drawer keluarga ---------- */
+var curFam=null;
+function supportActive(id){ return SUPPORT[id] && SUPPORT[id]>Date.now(); }
+
+function openFam(id){
+  var f=FAMS.filter(function(x){return x.id===id;})[0]; if(!f) return;
+  curFam=f;
+  $('dr-title').textContent=f.id;
+  $('dr-sub').textContent=f.city+' · bergabung '+f.joined+' hari lalu · paket '+f.plan;
+  drawFam();
+  $('scrim').classList.add('on'); $('drawer').classList.add('on');
+  $('drawer').setAttribute('aria-hidden','false');
+}
+function closeDrawer(){
+  $('scrim').classList.remove('on'); $('drawer').classList.remove('on');
+  $('drawer').setAttribute('aria-hidden','true');
+}
+
+function drawFam(){
+  var f=curFam, open=supportActive(f.id);
+  var kidsHtml=f.kids.map(function(k,i){
+    return '<div class="card" style="padding:14px 16px">'
+      +'<div class="chead" style="margin-bottom:10px"><h3>Anak '+(i+1)+' '
+        +'<span class="tierpill t-'+k.tier.toLowerCase()+'" style="margin-left:6px">'+k.tier+'</span></h3>'
+        +'<div class="right">'+(open?'<span class="mono">Nama: '+k.initial+'aisha</span>':'<span class="mask">nama tertutup</span>')+'</div></div>'
+      +'<div class="sig">'
+        +'<div class="sigbox"><div class="l">Rasio simpan</div><div class="v">'+k.savings+'%</div>'
+          +'<div class="n">Simpan + Bertumbuh dari pemasukan</div></div>'
+        +'<div class="sigbox"><div class="l">Waktu sortir</div><div class="v">'+hrs(k.sortH)+'</div>'
+          +'<div class="n">median, uang baru → kategori</div></div>'
+        +'<div class="sigbox"><div class="l">Dream selesai</div><div class="v">'+k.done+'/'+k.dreams+'</div>'
+          +'<div class="n">'+(k.dreams? Math.round(k.done/k.dreams*100)+'% tercapai':'belum ada dream')+'</div></div>'
+        +'<div class="sigbox"><div class="l">Request 30 hari</div><div class="v">'+k.requests+'</div>'
+          +'<div class="n">semua jenis</div></div>'
+      +'</div>'
+      +'<div style="margin-top:11px;font-size:12px;color:var(--ink-3)">Nama dream: '
+        +(open?'<span class="mono" style="color:var(--ink-2)">"Sepeda lipat", "Lego kota"</span>':'<span class="mask">tertutup</span>')
+      +'</div></div>';
+  }).join('');
+
+  var alasan = open
+    ? '<span class="mono" style="color:var(--ink-2)">"buat beli bakso sama Rafi pulang sekolah"</span>'
+    : '<span class="mask"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> alasan tertutup</span>';
+
+  $('dr-body').innerHTML =
+    (open
+      ? '<div class="supportbar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
+        +'Mode dukungan aktif — semua yang Anda lihat tercatat<span class="t" id="suptimer">15:00</span></div>'
+      : '')
+    +'<div class="card"><div class="chead"><h3>Ringkasan</h3>'
+      +'<div class="right"><span class="chip '+STATCLASS[f.status]+'">'
+      +'<span class="dot"></span>'+f.status+'</span></div></div>'
+      +'<div style="font-size:12.5px;color:var(--ink-2);background:var(--surface-2);border-radius:9px;'
+      +'padding:9px 12px;margin-bottom:12px;line-height:1.55"><b>Kenapa '+f.status.toLowerCase()+':</b> '+f.why+'</div>'
+      +'<dl class="kv">'
+      +'<dt>Anak terakhir aktif</dt><dd>'+(f.childLastD===0?'hari ini':f.childLastD+' hari lalu')+'</dd>'
+      +'<dt>Ortu terakhir aktif</dt><dd>'+(f.parentLastD===0?'hari ini':f.parentLastD+' hari lalu')+'</dd>'
+      +'<dt>Siklus lengkap terakhir</dt><dd>'+(f.cycleLastD===null?'belum pernah':f.cycleLastD+' hari lalu')+'</dd>'
+      +'<dt>Siklus terjauh</dt><dd>'+f.stage+'/5 — '+STAGES[f.stage-1]+'</dd>'
+      +'<dt>Respons ortu</dt><dd>'+hrs(f.resp)+' (median)</dd>'
+      +'<dt>Request terbuka</dt><dd>'+(f.openReq||'tidak ada')+'</dd>'
+      +'<dt>Janji tertunda</dt><dd>'+(f.promiseH?'<span style="color:var(--risk)">'+hrs(f.promiseH)+'</span>':'—')+'</dd>'
+      +'<dt>Total saldo ledger</dt><dd>'+(open?rp(f.balance):'<span class="mask">tertutup</span>')+'</dd>'
+      +'<dt>Aktivitas terakhir</dt><dd>'+(f.lastD===0?'hari ini':f.lastD+' hari lalu')+'</dd>'
+      +'</dl></div>'
+    + kidsHtml
+    +'<div class="card"><div class="chead"><h3>Request terakhir</h3><span class="sub">status saja</span></div>'
+      +'<dl class="kv"><dt>Jenis</dt><dd>Cash out · '+(open?rp(25000):'<span class="mask">tertutup</span>')+'</dd>'
+      +'<dt>Alasan anak</dt><dd>'+alasan+'</dd>'
+      +'<dt>Status</dt><dd><span class="chip warn"><span class="dot"></span>To do — menunggu ortu</span></dd></dl>'
+      +'<div class="note">Yang tidak pernah tersedia untuk siapa pun di Console: isi percakapan ortu–anak, foto '
+      +'cerita Berbagi, dan tanggal lahir presisi (hanya bulan+tahun yang disimpan).</div></div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+      +(open
+        ? '<button class="btn danger sm" id="sup-end">Akhiri mode dukungan</button>'
+        : '<button class="btn primary sm" id="sup-open">Buka mode dukungan</button>')
+      +'<button class="btn sm" id="act-nudge">Kirim pengingat ke ortu</button>'
+      +'<button class="btn sm" id="act-export">Siapkan ekspor data</button>'
+    +'</div>';
+
+  var so=$('sup-open'); if(so) so.addEventListener('click',function(){ askSupport(f.id); });
+  var se=$('sup-end'); if(se) se.addEventListener('click',function(){
+    delete SUPPORT[f.id]; logAudit('Mode dukungan diakhiri', f.id, 'manual');
+    toast('Mode dukungan diakhiri'); drawFam(); });
+  $('act-nudge').addEventListener('click',function(){
+    logAudit('Pengingat dikirim ke orang tua', f.id, 'janji tertunda');
+    toast('Pengingat terkirim ke app ortu'); });
+  $('act-export').addEventListener('click',function(){
+    logAudit('Ekspor data disiapkan', f.id, 'permintaan subjek data');
+    toast('Ekspor disiapkan — butuh persetujuan ortu di app'); });
+}
+
+/* ---------- mode dukungan ---------- */
+var pendingFam=null;
+function askSupport(id){
+  pendingFam=id; $('sup-fam').textContent=id;
+  $('sup-reason').value=''; $('sup-ticket').value=''; $('sup-go').disabled=true;
+  $('supmodal').classList.add('on');
+}
+function checkSupForm(){
+  $('sup-go').disabled = !($('sup-reason').value && $('sup-ticket').value.trim().length>=3);
+}
+
+/* ============================================================
+   5. HALAMAN: KEPERCAYAAN
+   ============================================================ */
+function renderTrust(){
+  var quiet=FAMS.filter(function(f){return f.parentLastD>=14 && f.childLastD<14;}).length;
+  var pend=FAMS.filter(function(f){return f.promiseH>72;}).length;
+  renderKPI($('trustkpi'),[
+    ['Janji tertunda',nf(pend),'',22,'down','&gt;72 jam'],
+    ['Janji terlama','14','hari',0,'flat','NUM-1264'],
+    ['Ortu diam &gt;14 hari',nf(quiet),'keluarga',8,'down','anak masih aktif'],
+    ['Respons &lt;24 jam','71','%',3.1,'up','dari semua request'],
+    ['Potong uang ditolak','48','upaya',5,'flat','aturan proteksi'],
+    ['Ditolak tanpa alasan','9','%',-2.4,'up','pakai "Bahas dulu"']
+  ]);
+
+  var P=[
+    ['NUM-1264','Tukar hadiah','14 hari','Anak sudah bayar 25 💎 — hadiah belum diberikan','risk'],
+    ['NUM-1002','Cash out','11 hari','Saldo sudah dipotong di ledger, uang belum diterima','risk'],
+    ['NUM-1187','Berbagi','9 hari','Uang keluar dari Berbagi, cerita belum ditutup','risk'],
+    ['NUM-1091','Cash out','6 hari','Saldo sudah dipotong di ledger, uang belum diterima','warn'],
+    ['NUM-1225','Tukar hadiah','5 hari','Anak sudah bayar 15 💎 — hadiah belum diberikan','warn'],
+    ['NUM-1160','Cash out','4 hari','Saldo sudah dipotong di ledger, uang belum diterima','warn'],
+    ['NUM-1310','Berbagi','3 hari','Uang keluar dari Berbagi, cerita belum ditutup','warn']
+  ];
+  $('promiserows').innerHTML = P.map(function(r){
+    return '<tr><td class="mono nm">'+r[0]+'</td><td>'+r[1]+'</td>'
+      +'<td class="r"><span class="chip '+r[4]+'">'+r[2]+'</span></td>'
+      +'<td style="color:var(--ink-2);font-size:12.5px">'+r[3]+'</td>'
+      +'<td class="r"><button class="btn sm" data-nudge="'+r[0]+'">Ingatkan</button></td></tr>';
+  }).join('');
+  Array.prototype.forEach.call($('promiserows').querySelectorAll('[data-nudge]'),function(b){
+    b.addEventListener('click',function(){
+      logAudit('Pengingat dikirim ke orang tua', b.dataset.nudge, 'janji tertunda');
+      toast('Pengingat terkirim ke '+b.dataset.nudge); });
+  });
+
+  var H=[['&lt;1 jam',231],['1–4 jam',388],['4–12 jam',274],['12–24 jam',163],['1–3 hari',118],['&gt;3 hari',64],['tak dijawab',41]];
+  var mx=Math.max.apply(null,H.map(function(h){return h[1];}));
+  $('resphist').innerHTML = H.map(function(h,i){
+    var c = i<=2 ? '#1F9D63' : i<=3 ? '#B77908' : '#B5473C';
+    return hbar(h[0],h[1],mx,c);
+  }).join('');
+
+  var cA=FAMS.filter(function(f){return f.parentLastD>=14 && f.childLastD<14;}).length;
+  var cB=FAMS.filter(function(f){return f.promiseH>168;}).length;
+  var cC=FAMS.filter(function(f){return f.cycleLastD===null;}).length;
+  var cD=FAMS.filter(function(f){return f.childLastD>=21 && f.parentLastD<21;}).length;
+  var R=[
+    ['Anak aktif, ortu diam &ge;14 hari',cA,'risk','Sinyal churn terkuat. Anak masih mencatat, tapi tak ada yang menjawab.'],
+    ['Janji tertunda &ge;7 hari',cB,'risk','Ledger anak sudah berkurang, dunia nyata belum menyusul.'],
+    ['Belum pernah menyelesaikan 1 siklus',cC,'warn','Belum pernah membuktikan sistemnya nyata. Ini pekerjaan onboarding, bukan pekerjaan retensi.'],
+    ['Anak berhenti membuka app &ge;21 hari',cD,'mute','Perlu dipisah: bosan, atau memang tak ada uang masuk untuk diurus?']
+  ];
+  $('riskrules').innerHTML = R.map(function(r){
+    return '<div style="padding:11px 0;border-bottom:1px solid var(--line-2)">'
+      +'<div style="display:flex;align-items:center;gap:9px"><span class="chip '+r[2]+'"><span class="dot"></span>'
+      +nf(r[1])+'</span><b style="font-size:12.5px">'+r[0]+'</b></div>'
+      +'<p style="font-size:12px;color:var(--ink-3);margin-top:5px;line-height:1.55">'+r[3]+'</p></div>';
+  }).join('');
+
+  var PR=[['Dream (Simpan)',26,'#2CA6E0'],['Berbagi',9,'#F056A0'],['Bertumbuh',13,'#2FC078']];
+  $('protect').innerHTML = PR.map(function(p){ return hbar(p[0],p[1],26,p[2],p[1]+' upaya'); }).join('')
+    +'<div style="margin-top:10px;font-size:12px;color:var(--ink-3)">Semua ditolak sistem. <b style="color:var(--ink-2)">31%</b> '
+    +'ortu mencoba lagi ke kantong yang benar dalam 5 menit — sisanya keluar dari flow tanpa memotong sama sekali.</div>';
+}
+
+/* ============================================================
+   6. HALAMAN: KONTEN
+   ============================================================ */
+function renderContent(){
+  var CH=[['Bab 1 — Uang datang dari mana',100],['Bab 2 — Empat tugas uang',84],
+    ['Bab 3 — Ingin vs butuh',61],['Bab 4 — Menunggu itu mahal',43],
+    ['Bab 5 — Uang yang tumbuh',27],['Bab 6 — Berbagi punya harga',19]];
+  $('chapters').innerHTML = CH.map(function(c,i){
+    var col = c[1]>=60?'#2FC078':c[1]>=35?'#FFB020':'#B5473C';
+    return hbar(c[0].split(' — ')[0],c[1],100,col,c[1]+'%')
+      +'<div style="font-size:11.5px;color:var(--ink-3);margin:-4px 0 10px 128px">'+c[0].split(' — ')[1]+'</div>';
+  }).join('');
+  $('chapternote').innerHTML='Patahan tajam di <b>Bab 3 → Bab 4</b> (−18 poin). Bab 4 memperkenalkan konsep '
+    +'menunda kepuasan — materi tersulit sekaligus paling penting. Ini bukan alasan mempermudahnya; '
+    +'ini alasan memecahnya jadi dua bagian dan menambah versi Little.';
+
+  var G=[['Little',34,'#F056A0'],['Middle',68,'#2CA6E0'],['Teen',81,'#2FC078']];
+  $('gates').innerHTML = G.map(function(g){ return hbar(g[0],g[1],100,g[2],g[1]+'%'); }).join('')
+    +'<div class="note">Hanya <b>34%</b> anak Little melewati gerbang ⭐100. Untuk mereka gerbangnya bukan '
+    +'motivasi, melainkan tembok — kandidat: turunkan ke ⭐60 untuk Little, atau beri jalur bintang dari '
+    +'aktivitas non-baca.</div>';
+
+  $('gems').innerHTML =
+    hbar('Diperoleh',4820,4820,'#FFB020',nf(4820)+' 💎')
+    + hbar('Ditebus',3610,4820,'#6C4CE0',nf(3610)+' 💎')
+    + '<div style="margin-top:8px"><span class="chip ok"><span class="dot"></span>Rasio tebus 75% — sehat</span></div>';
+
+  var PZ=[['1 jam main game',612],['Pilih menu makan malam',388],['Nonton film bareng',274],
+    ['Tidur lebih malam 30 mnt',196],['Pilih tujuan akhir pekan',141]];
+  $('prizes').innerHTML='<table class="tbl"><tbody>'+PZ.map(function(p){
+    return '<tr><td>'+p[0]+'</td><td class="r nm">'+nf(p[1])+'</td></tr>';
+  }).join('')+'</tbody></table>'
+    +'<div class="note">Empat dari lima hadiah teratas adalah <b>waktu bersama</b>, bukan barang. Ini temuan '
+    +'yang layak dipakai di halaman pemasaran — dan alasan kuat untuk tidak pernah menambahkan hadiah berbentuk uang.</div>';
+}
+
+/* ============================================================
+   7. HALAMAN: MONETISASI
+   ============================================================ */
+function renderMoney(){
+  renderKPI($('moneykpi'),[
+    ['Pendapatan 30 hari','Rp24,7','jt',18,'up','sekali bayar'],
+    ['Keluarga membayar','62','baru',12,'up','30 hari'],
+    ['Konversi ke Pro','8,2','%',1.1,'up','dari terdaftar'],
+    ['Harga rata-rata','Rp399','rb',0,'flat','tanpa diskon'],
+    ['Refund','1,4','%',-0.6,'up','App Store'],
+    ['Kursi sekolah','240','',0,'flat','4 sekolah']
+  ]);
+
+  var TR=[
+    ['Menambah anak kedua',1840,612,148,'brand'],
+    ['Menambah akun ortu kedua',1120,498,171,'brand'],
+    ['Membuka Bertumbuh untuk Teen',960,341,86,''],
+    ['Rapor literasi bulanan',2410,402,61,''],
+    ['Ekspor riwayat',430,88,9,'']
+  ];
+  $('triggers').innerHTML = TR.map(function(t){
+    var conv=pct(t[3],t[1]);
+    return '<tr><td class="nm">'+t[0]+'</td><td class="r">'+nf(t[1])+'</td><td class="r">'+nf(t[2])+'</td>'
+      +'<td class="r">'+nf(t[3])+'</td><td class="r"><span class="chip '+(conv>10?'ok':conv>5?'warn':'mute')+'">'
+      +String(conv).replace('.',',')+'%</span></td></tr>';
+  }).join('');
+  $('triggernote').innerHTML='Pemicu terkuat bukan fitur finansial, tapi <b>identitas</b>: akun ortu kedua '
+    +'(15,3%) dan anak kedua (8,0%). Orang membayar agar Ibu dan Ayah punya nama masing-masing di riwayat. '
+    +'Sementara <b>Rapor literasi</b> paling sering dilihat tapi paling jarang menjual (2,5%) — nilainya terasa '
+    +'setelah dipakai, bukan sebelum. Pindahkan rapor keluar dari paywall dan jadikan umpan.';
+
+  var SC=[['Sekolah Cita Buana','CITA-26',80,64,52,'30 Jun 2027'],
+    ['Global Islamic School','GIS-26',60,58,41,'31 Jul 2027'],
+    ['Sekolah Alam Depok','ALAM-26',60,39,22,'31 Agu 2027'],
+    ['Binus School Serpong','BINUS-26',40,31,27,'31 Des 2026']];
+  $('schools').innerHTML = SC.map(function(s){
+    return '<tr><td class="nm">'+s[0]+'</td><td class="mono">'+s[1]+'</td><td class="r">'+s[2]+'</td>'
+      +'<td class="r">'+s[3]+'</td><td class="r">'+s[4]+'</td><td>'+s[5]+'</td></tr>';
+  }).join('');
+
+  var INV=[
+    ['gembok_pro_tampil_di_app_anak = 0','ok','lolos'],
+    ['slot_iklan_di_app_anak = 0','ok','lolos'],
+    ['tombol_upgrade_untuk_pengguna_sekolah = 0','ok','lolos'],
+    ['teks_bebas_anak_keluar_ke_pihak_ketiga = 0','ok','lolos'],
+    ['harga_umpan_lebih_tua_dari_36_jam','warn','1 kejadian']
+  ];
+  $('invariants').innerHTML = INV.map(function(i){
+    return '<div class="invrow"><span class="eq">'+i[0]+'</span>'
+      +'<span class="st"><span class="chip '+i[1]+'"><span class="dot"></span>'+i[2]+'</span></span></div>';
+  }).join('');
+
+  var RV=[['Sekali bayar (App Store)',18734000,'#6C4CE0'],['Sekali bayar (Play)',4201000,'#8A7CF0'],
+    ['Sekolah (invoice)',1800000,'#2FC078']];
+  var mxr=18734000;
+  $('revsplit').innerHTML = RV.map(function(r){ return hbar(r[0],r[1],mxr,r[2],rp(r[1])); }).join('')
+    +'<div class="note">Model sekali bayar berarti garis ini <b>tidak berulang</b>. Yang perlu dipantau bukan '
+    +'total, tapi apakah keluarga baru per bulan tetap tumbuh — dan apakah biaya melayani keluarga lama '
+    +'benar-benar mendekati nol.</div>';
+}
+
+/* ============================================================
+   8. HALAMAN: SISTEM
+   ============================================================ */
+function renderSystem(){
+  $('feedstatus').innerHTML='<span class="chip warn"><span class="dot"></span>1 sumber basi</span>';
+  var PRC=[['Emas Antam — jual','Rp1.985.000/g','12 mnt lalu','ok'],
+    ['Emas Antam — buyback','Rp1.842.000/g','12 mnt lalu','ok'],
+    ['USD/IDR','Rp16.284','12 mnt lalu','ok'],
+    ['SGD/IDR','Rp12.061','12 mnt lalu','ok'],
+    ['JPY/IDR','Rp108,4','41 jam lalu','warn']];
+  $('feed-prices').innerHTML='<table class="tbl"><tbody>'+PRC.map(function(p){
+    return '<tr><td class="nm">'+p[0]+'</td><td class="r mono">'+p[1]+'</td>'
+      +'<td class="r" style="color:var(--ink-3);font-size:12px">'+p[2]+'</td>'
+      +'<td class="r"><span class="chip '+p[3]+'"><span class="dot"></span>'+(p[3]==='ok'?'segar':'basi')+'</span></td></tr>';
+  }).join('')+'</tbody></table>';
+
+  var SCH=[['Uang saku otomatis','tiap hari 06:00','06:00 hari ini','besok 06:00','0','ok'],
+    ['Reset misi mingguan','Senin 00:00','hari ini 00:00','Senin depan','0','ok'],
+    ['Tarik harga harian','tiap 6 jam','2 jam lalu','4 jam lagi','2','warn']];
+  $('schedulers').innerHTML='<table class="tbl"><thead><tr><th>Penjadwal</th><th>Jadwal</th><th>Terakhir</th>'
+    +'<th>Berikutnya</th><th class="r">Gagal 7h</th></tr></thead><tbody>'
+    +SCH.map(function(s){
+      return '<tr><td class="nm">'+s[0]+'</td><td style="color:var(--ink-3);font-size:12px">'+s[1]+'</td>'
+        +'<td style="font-size:12px">'+s[2]+'</td><td style="font-size:12px">'+s[3]+'</td>'
+        +'<td class="r"><span class="chip '+s[5]+'">'+s[4]+'</span></td></tr>';
+    }).join('')+'</tbody></table>'
+    +'<div class="note">Uang saku otomatis masuk tanpa konfirmasi ortu — jadi kegagalan penjadwal ini '
+    +'<b>tidak terlihat oleh siapa pun</b> kecuali dipantau di sini. Perlu alarm, bukan sekadar tabel.</div>';
+
+  $('ledgercheck').innerHTML=
+    '<div class="invrow"><span class="eq">keluarga_diperiksa</span><span class="st nm">'+nf(TOTAL_FAM)+'</span></div>'
+    +'<div class="invrow"><span class="eq">saldo_tidak_seimbang</span><span class="st"><span class="chip ok"><span class="dot"></span>0</span></span></div>'
+    +'<div class="invrow"><span class="eq">transaksi_yatim (tanpa induk)</span><span class="st"><span class="chip ok"><span class="dot"></span>0</span></span></div>'
+    +'<div class="invrow"><span class="eq">panen &gt; pokok + hasil</span><span class="st"><span class="chip ok"><span class="dot"></span>0</span></span></div>'
+    +'<div class="note">Kalau baris kedua pernah bukan nol, itu <b>insiden P0</b>: angka di layar anak berbeda '
+    +'dari jumlah kantongnya. Di produk yang seluruh premisnya adalah kepercayaan, ini lebih gawat dari app crash.</div>';
+
+  var DEV=[['iOS',68,'#6C4CE0'],['Android',31,'#2FC078'],['Web (ortu)',1,'#8A7CF0']];
+  $('devices').innerHTML = DEV.map(function(d){ return hbar(d[0],d[1],68,d[2],d[1]+'%'); }).join('')
+    +'<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">'
+    +'<span class="chip mute">iOS 17+: 94%</span><span class="chip mute">Android 12+: 88%</span>'
+    +'<span class="chip mute">Tablet: 12%</span></div>';
+  $('devnote').innerHTML='Ini data yang menutup perdebatan distribusi: <b>68% iOS</b> di segmen sekolah swasta '
+    +'dan kurikulum internasional, kebalikan dari pangsa pasar Indonesia secara umum. Konsekuensinya: '
+    +'iOS adalah pasar utama, aturan Apple yang mengikat, dan pengujian di perangkat Apple didahulukan.';
+
+  var EVT=[['income_received',18420],['sort_completed',12184],['request_submitted',9640],
+    ['request_decided',8802],['dream_progress',7211],['request_marked_done',6114],['grow_action',2408]];
+  var mxe=18420;
+  $('events').innerHTML = EVT.map(function(e){
+    return '<div class="hbar"><div class="hl mono" style="font-size:11px;width:150px">'+e[0]+'</div>'
+      +'<div class="ht"><i style="width:'+(e[1]/mxe*100).toFixed(1)+'%;background:#8A7CF0"></i></div>'
+      +'<div class="hv">'+nf(e[1])+'</div></div>';
+  }).join('')
+    +'<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">'
+    +'<span class="chip ok"><span class="dot"></span>Galat 0,21%</span>'
+    +'<span class="chip ok"><span class="dot"></span>p95 render 240 ms</span>'
+    +'<span class="chip mute">Nominal disimpan sebagai rentang, bukan nilai persis</span></div>';
+}
+
+/* ============================================================
+   9. AUDIT
+   ============================================================ */
+var AUDIT=[
+  ['27 Jul 09:12','ghozy@nummi','Mode dukungan dibuka','NUM-1002','Tiket dukungan · NUM-2471'],
+  ['27 Jul 08:40','sistem','Invarian ledger dijalankan','1.284 keluarga','terjadwal'],
+  ['26 Jul 17:03','rani@nummi','Ekspor data disiapkan','NUM-1187','Permintaan subjek data · NUM-2468'],
+  ['26 Jul 14:22','ghozy@nummi','Kode sekolah dibuat','ALAM-26','Kontrak baru'],
+  ['26 Jul 11:47','sistem','Penarikan harga gagal','JPY/IDR','sumber tak merespons'],
+  ['25 Jul 16:15','rani@nummi','Mode dukungan berakhir otomatis','NUM-1264','15 menit habis'],
+  ['25 Jul 10:02','ghozy@nummi','Bab 4 diperbarui','kurikulum','revisi bahasa Little'],
+  ['24 Jul 19:31','sistem','Uang saku otomatis dijalankan','412 keluarga','terjadwal']
+];
+function renderAudit(){
+  $('auditrows').innerHTML = AUDIT.map(function(a){
+    return '<tr><td class="mono" style="color:var(--ink-3)">'+a[0]+'</td>'
+      +'<td class="mono">'+a[1]+'</td><td class="nm">'+a[2]+'</td>'
+      +'<td class="mono">'+a[3]+'</td><td style="color:var(--ink-3);font-size:12px">'+a[4]+'</td></tr>';
+  }).join('');
+
+  var RO=[['Owner','Semua data agregat, buka mode dukungan, kelola sekolah','Melihat teks anak tanpa alasan tercatat'],
+    ['Dukungan','Status &amp; jeda waktu, buka mode dukungan','Ekspor massal, ubah ledger'],
+    ['Analis','Agregat &amp; rentang nominal saja','Membuka keluarga tunggal, semua teks bebas'],
+    ['Admin sekolah','Jumlah kursi &amp; aktif di sekolahnya','Data keuangan keluarga mana pun']];
+  $('roles').innerHTML = RO.map(function(r){
+    return '<tr><td class="nm">'+r[0]+'</td><td style="font-size:12.5px;color:var(--ink-2)">'+r[1]+'</td>'
+      +'<td style="font-size:12.5px;color:var(--risk)">'+r[2]+'</td></tr>';
+  }).join('');
+
+  var act=Object.keys(SUPPORT).filter(function(k){return SUPPORT[k]>Date.now();});
+  $('activesupport').innerHTML = act.length
+    ? act.map(function(k){
+        var left=Math.max(0,Math.round((SUPPORT[k]-Date.now())/1000));
+        return '<div class="invrow"><span class="mono nm">'+k+'</span>'
+          +'<span class="st"><span class="chip warn"><span class="dot"></span>sisa '
+          +Math.floor(left/60)+':'+String(left%60).padStart(2,'0')+'</span></span></div>';
+      }).join('')
+    : '<div style="font-size:12.5px;color:var(--ink-3);padding:6px 0">Tidak ada sesi terbuka. '
+      +'Semua data keluarga tertutup.</div>';
+}
+function logAudit(action,obj,reason){
+  var d=new Date(), t=d.getDate()+' Jul '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  AUDIT.unshift([t,'ghozy@nummi',action,obj,reason]);
+  renderAudit();
+  var b=$('nav-sys');
+  if(b) b.textContent='1';
+}
+
+/* ============================================================
+   9b. DEMOGRAFI
+   ============================================================ */
+var IDN_PATH='M63.4 107.1 73.1 117.6 70.7 126.3 67.8 125.6 66.0 120.6 61.8 118.2 54.9 108.0 58.4 108.0 60.8 105.5 63.4 107.1Z M99.3 176.1 92.1 172.6 87.3 163.8 88.8 158.9 94.3 158.6 101.4 172.9 101.5 175.3 99.3 176.1Z M471.1 321.6 468.4 326.0 469.9 327.4 462.5 327.9 454.4 325.3 459.1 324.4 458.7 317.8 466.0 312.8 472.7 315.7 471.1 321.6Z M445.7 311.8 451.1 317.2 443.2 321.6 439.3 326.6 437.3 320.7 427.9 316.6 424.9 312.0 434.9 312.5 439.4 309.9 445.7 311.8Z M245.6 173.8 252.4 190.7 262.1 193.1 257.7 199.9 258.9 203.7 244.6 198.4 240.1 184.7 226.2 181.8 231.4 176.9 233.2 171.8 235.8 170.8 238.4 175.1 238.7 170.9 242.8 170.3 245.6 173.8Z M610.2 235.1 610.5 240.9 607.5 239.3 605.8 247.6 610.4 251.8 605.7 253.3 602.4 259.0 598.8 258.8 597.6 255.1 601.4 249.2 603.3 236.6 608.0 231.6 610.2 235.1Z M598.8 250.4 597.1 252.9 591.2 251.5 593.5 246.2 593.0 239.7 600.0 236.6 601.3 243.3 598.2 247.6 598.8 250.4Z M294.0 59.8 289.4 59.5 292.4 57.2 287.3 53.6 292.5 48.6 295.6 53.5 294.0 59.8Z M291.7 202.1 288.4 206.9 284.2 204.0 279.0 206.6 278.0 200.4 280.2 192.9 283.8 192.1 291.8 195.7 293.4 198.5 291.7 202.1Z M869.9 152.2 880.7 153.7 891.0 161.6 886.5 164.1 881.1 163.4 877.6 155.8 875.4 157.0 869.9 152.2Z M871.8 172.2 902.0 176.6 887.8 178.6 872.1 173.8 871.8 172.2Z M772.6 138.4 782.5 141.5 783.8 144.5 776.7 146.0 768.6 140.1 774.4 145.6 771.3 147.7 770.0 144.6 767.0 146.1 765.9 144.0 760.4 142.8 763.0 139.8 772.6 138.4Z M722.4 94.6 719.1 95.0 717.4 89.4 719.8 85.8 725.6 83.0 727.4 85.7 726.0 91.0 722.4 94.6Z M716.0 173.6 703.4 175.1 699.8 173.3 701.2 169.2 705.3 166.7 716.0 173.6Z M671.4 190.4 667.3 182.5 668.6 180.3 671.4 190.4Z M670.7 176.4 677.2 177.1 659.1 179.6 657.2 177.5 670.7 176.4Z M648.3 174.6 653.0 174.7 655.6 178.2 636.6 180.9 634.7 177.8 636.6 173.6 648.3 174.6Z M783.5 308.5 779.0 308.4 779.5 301.8 790.3 289.6 792.3 291.4 790.3 292.9 791.3 296.6 783.5 308.5Z M687.3 301.4 687.5 302.9 682.5 304.4 680.2 307.5 671.0 306.1 665.9 308.2 669.7 301.4 674.8 302.3 683.1 299.4 687.3 301.4Z M639.9 311.5 650.0 312.3 651.7 315.5 635.7 317.4 636.8 312.4 639.9 311.5Z M776.7 166.3 772.0 165.0 769.6 158.7 777.3 157.8 776.7 166.3Z M42.4 27.0 64.9 27.5 79.7 44.4 81.0 51.2 111.4 70.6 128.2 91.7 135.9 96.8 134.6 90.6 139.3 90.3 148.4 102.3 155.0 103.8 161.7 109.4 167.9 120.4 181.5 126.0 181.0 129.5 171.3 133.7 178.6 132.4 188.0 127.4 195.1 132.2 197.6 137.3 189.9 142.4 189.5 146.0 191.7 148.2 190.2 150.5 196.2 157.2 210.2 161.1 213.1 177.0 220.1 182.8 215.9 190.0 216.0 193.5 222.8 188.7 231.8 188.9 235.8 191.3 245.6 204.4 241.3 215.2 243.2 219.8 241.1 226.9 242.3 244.9 239.3 262.1 230.8 256.4 225.1 260.5 215.8 255.7 216.7 263.7 214.9 263.9 198.5 246.4 171.0 226.6 162.3 214.9 150.6 205.7 135.9 186.2 135.3 179.5 123.6 155.9 110.0 137.3 99.1 130.8 91.4 106.5 87.1 98.6 68.1 88.1 65.8 77.7 61.5 75.0 52.5 62.2 41.3 57.1 23.0 39.1 15.1 25.9 15.5 19.9 24.0 18.9 34.8 25.7 42.4 27.0Z M601.8 321.5 577.7 327.6 572.6 325.8 570.8 328.0 564.6 328.4 554.2 325.6 545.1 325.0 540.6 326.8 538.5 323.4 539.9 317.4 555.5 313.6 573.3 320.8 584.4 318.2 592.0 321.9 603.2 315.0 604.6 313.2 601.3 312.5 604.6 310.7 606.5 315.5 601.8 321.5Z M542.8 337.8 548.7 343.6 554.4 345.1 559.2 350.2 559.7 353.4 551.9 357.3 548.0 356.2 534.1 346.2 523.1 344.8 520.4 340.8 527.6 337.6 538.2 337.9 541.3 336.2 542.8 337.8Z M505.1 315.3 513.0 314.5 515.2 317.4 519.7 314.8 524.1 322.7 515.9 324.1 517.7 326.3 510.2 326.7 508.0 322.9 504.1 326.4 480.0 331.9 474.2 329.9 475.2 319.8 482.2 316.3 490.8 317.6 495.9 323.6 499.3 324.0 505.0 321.1 496.1 315.8 494.8 311.7 502.5 311.1 505.1 315.3Z M646.6 117.1 636.7 128.3 622.4 131.8 612.1 131.3 606.3 127.8 564.1 128.9 554.8 127.1 549.9 128.8 546.7 132.6 542.8 142.5 543.9 150.1 547.6 156.8 553.5 160.4 556.8 167.5 564.6 168.2 567.0 166.8 576.1 155.9 584.5 158.2 591.1 154.4 604.0 154.4 602.7 152.3 610.0 150.4 614.4 152.1 615.6 154.9 614.4 159.7 604.3 157.5 590.5 171.4 582.1 174.3 577.7 178.6 571.4 178.2 576.1 184.0 580.2 186.0 586.9 196.8 591.3 200.2 593.6 206.4 590.5 215.3 599.8 225.2 603.2 224.8 603.6 231.7 600.4 230.7 600.5 232.1 587.6 234.9 585.9 241.1 576.4 239.6 574.1 235.8 577.0 225.4 561.5 213.2 565.0 205.7 565.0 196.8 561.3 194.6 556.5 195.1 548.1 201.0 551.9 217.2 550.3 225.2 551.5 236.5 548.5 247.8 551.7 257.3 541.5 257.0 536.5 259.4 533.2 257.7 529.0 251.4 533.9 234.5 534.5 224.1 531.3 213.0 519.6 212.4 516.7 196.2 523.2 191.1 528.1 179.4 527.9 168.3 532.1 157.6 536.4 152.8 539.2 156.6 536.6 140.2 539.1 138.8 538.5 133.2 548.3 117.6 551.4 120.2 555.4 120.1 561.1 111.7 565.6 110.1 572.5 111.8 576.4 115.6 594.4 116.6 602.9 120.3 607.8 118.3 624.4 120.5 633.5 116.5 647.8 102.7 651.3 102.4 653.9 106.3 646.6 117.1Z M273.9 266.1 280.2 270.6 294.3 272.0 301.6 282.8 338.8 286.1 347.6 275.0 350.5 275.2 354.9 280.6 362.6 279.8 374.2 285.0 383.8 285.7 386.2 291.9 389.2 293.7 389.2 299.0 393.9 301.2 404.2 302.7 416.4 300.7 423.6 304.1 423.1 317.1 427.3 324.9 399.0 314.6 386.8 317.2 361.9 315.0 342.7 311.7 326.7 304.9 314.5 302.2 303.0 301.4 296.9 304.2 285.5 302.7 272.1 297.3 254.4 295.1 253.5 292.3 255.7 288.4 248.9 285.7 228.9 283.7 231.3 280.1 233.7 282.6 237.4 275.9 240.1 275.7 241.9 268.4 246.2 264.1 262.2 268.0 266.9 263.9 273.9 266.1Z M321.9 95.1 320.0 98.0 322.5 103.9 340.5 120.0 353.2 115.9 368.3 116.8 374.0 114.0 376.3 107.7 382.5 105.1 392.4 105.0 393.8 107.8 406.9 112.0 412.8 107.8 425.8 107.4 432.6 96.2 431.6 90.4 440.0 84.6 437.9 82.3 438.7 76.7 441.4 73.9 445.9 73.7 450.6 49.1 454.5 45.8 480.9 46.0 491.0 49.6 488.6 51.6 495.3 59.8 492.1 60.9 489.6 58.9 488.3 61.1 479.9 61.2 486.1 65.4 486.2 70.4 491.7 73.1 490.8 76.0 493.6 76.9 492.3 78.2 495.4 79.9 501.4 89.0 495.5 95.2 521.0 117.4 511.3 121.0 504.1 119.7 498.1 114.9 499.2 119.4 494.6 122.8 489.8 133.3 488.6 145.2 490.7 154.7 476.9 164.3 473.2 160.5 473.5 166.5 463.3 176.3 466.5 176.3 467.1 179.2 464.2 183.8 469.4 187.2 468.7 191.7 464.2 192.6 465.5 193.1 464.5 200.0 461.0 200.7 462.9 204.8 456.5 214.8 429.7 227.0 426.1 210.1 424.4 212.4 422.2 211.6 422.2 207.1 419.9 209.8 416.7 208.1 408.6 211.8 406.6 206.3 400.9 207.4 394.4 200.7 393.0 206.1 388.5 209.0 385.1 210.6 378.4 208.9 369.3 213.9 368.6 203.3 365.9 199.8 364.4 201.6 358.9 200.7 349.6 203.6 347.4 202.0 349.0 200.2 344.7 202.6 342.0 199.8 335.2 201.4 331.9 180.9 329.0 177.9 330.6 170.8 329.4 165.4 325.3 159.8 314.0 155.5 316.5 151.9 311.1 146.6 314.0 137.6 307.4 130.7 306.8 118.9 307.6 114.2 311.3 111.6 308.7 111.9 310.1 106.5 316.6 97.4 321.9 95.1Z M707.0 120.3 710.3 120.6 712.1 116.1 716.2 113.6 717.5 108.5 727.4 104.9 727.7 114.8 719.1 119.6 718.3 122.7 725.7 126.6 727.5 130.6 731.9 133.7 712.4 128.3 710.3 132.0 712.3 143.6 721.8 157.3 713.8 153.3 706.2 143.5 706.6 132.2 702.9 125.3 704.4 120.3 700.6 114.1 704.9 99.1 713.6 91.5 710.3 99.3 713.0 102.1 713.0 110.0 705.4 116.7 707.0 120.3Z M750.1 199.3 755.0 201.6 763.4 201.9 767.5 204.9 773.6 214.3 772.5 220.4 752.0 209.1 745.0 209.1 744.0 211.8 731.1 207.1 723.7 211.7 715.5 205.5 710.7 212.7 710.2 206.8 717.0 199.3 733.9 198.5 737.8 200.7 744.3 197.6 750.1 199.3Z M688.5 204.0 696.3 210.5 696.4 215.6 684.8 219.7 674.8 215.0 671.4 211.1 672.1 204.4 688.5 204.0Z M647.3 328.6 647.6 330.9 652.1 330.7 651.1 333.8 648.1 334.3 650.4 340.7 648.1 343.9 636.7 354.2 624.6 358.4 620.1 357.7 621.6 352.7 619.0 350.4 621.5 342.9 628.5 337.0 629.6 338.7 634.4 338.6 637.1 333.8 647.3 328.6Z M856.3 259.7 855.6 272.3 849.8 273.1 843.7 267.3 846.8 266.2 847.8 262.4 844.8 259.7 847.7 259.8 852.6 253.8 856.3 259.7Z M851.8 275.4 847.3 284.0 844.7 285.3 842.4 283.7 842.7 276.0 844.5 275.7 842.8 270.0 851.8 275.4Z M936.9 314.3 931.9 317.1 918.1 316.7 927.3 299.3 931.9 296.6 941.9 295.6 946.6 302.1 942.3 309.8 936.9 314.3Z M988.8 193.8 988.8 273.3 986.5 281.7 988.8 285.2 988.8 332.3 967.7 312.1 970.5 306.9 966.7 310.7 955.0 312.5 952.1 308.2 944.5 313.6 943.7 311.6 948.7 299.7 941.4 292.6 950.5 291.3 943.5 290.1 938.3 285.9 944.0 284.2 934.8 273.2 931.9 264.9 933.5 262.6 929.8 261.8 932.8 259.1 927.4 259.8 926.8 254.6 910.2 243.5 896.2 240.8 882.5 234.7 865.8 233.0 854.9 225.1 855.5 222.4 859.3 222.1 846.1 222.2 843.5 219.1 839.9 219.5 833.6 212.3 834.0 207.4 837.0 203.3 834.0 204.0 833.0 209.9 830.2 210.9 827.7 221.2 824.5 224.7 817.3 224.6 813.9 217.1 816.3 213.9 813.9 208.4 797.3 197.6 802.8 195.3 813.3 197.6 823.2 190.2 834.0 194.1 835.2 190.4 838.4 189.2 838.3 187.3 836.0 187.1 838.8 183.0 818.3 186.6 804.4 186.0 798.3 180.7 796.4 171.5 776.6 167.8 780.7 163.1 782.0 156.5 793.7 153.3 806.2 145.9 816.1 147.2 829.2 153.8 839.9 154.1 842.8 156.3 841.9 159.6 845.9 167.3 842.7 174.9 844.5 187.4 850.2 198.6 852.5 191.7 855.3 200.7 858.4 200.2 859.9 207.4 867.1 210.0 872.0 209.5 880.0 202.0 883.3 196.5 888.1 193.2 891.3 186.7 905.8 183.1 907.9 181.4 906.9 177.5 921.4 169.9 963.6 188.3 981.3 190.3 984.0 193.8 988.8 193.8Z M944.6 316.8 937.5 315.1 942.5 312.2 944.6 316.8Z M153.3 94.1 154.8 97.0 153.6 100.2 149.0 101.4 147.0 95.3 151.9 93.0 153.3 94.1Z M168.6 117.2 165.5 115.4 165.0 108.6 169.0 112.0 168.6 117.2Z M170.0 107.3 170.2 110.0 161.2 106.4 160.1 104.1 170.0 107.3Z M181.4 122.4 170.0 120.1 170.3 115.1 180.9 120.0 181.4 122.4Z M184.4 119.8 174.5 115.9 175.0 113.6 180.8 115.6 184.4 119.8Z M202.7 113.2 205.1 113.5 203.5 117.2 200.7 115.5 202.7 113.2Z M214.6 112.4 216.2 116.0 214.4 120.6 211.5 115.9 207.5 116.7 209.9 113.2 214.6 112.4Z M218.7 142.1 220.0 141.3 223.5 144.3 211.6 142.3 213.7 137.9 218.7 142.1Z M212.2 145.4 214.7 148.2 209.9 152.3 207.6 148.1 212.2 145.4Z M196.5 145.7 190.6 145.9 192.5 143.1 196.5 145.7Z M323.6 163.4 318.4 165.5 318.6 159.3 324.3 160.4 323.6 163.4Z M411.6 289.5 396.3 292.0 387.8 288.8 390.8 285.1 395.1 284.7 414.4 284.5 416.4 286.4 411.6 289.5Z M860.9 162.0 858.8 162.0 858.0 159.1 860.5 159.1 860.9 162.0Z M696.8 148.8 694.0 149.4 694.2 144.2 697.6 144.3 696.8 148.8Z M703.5 145.1 706.0 148.3 704.4 151.3 709.3 153.7 709.4 156.3 701.3 155.5 701.5 152.0 697.9 149.0 698.4 145.5 701.1 146.9 703.5 145.1Z M817.6 263.9 815.9 265.7 821.6 251.3 822.9 252.1 821.7 256.9 817.6 263.9Z M815.0 262.8 812.4 264.1 811.3 257.6 815.0 262.8Z M718.6 216.5 712.3 218.5 711.2 217.0 719.8 213.1 718.6 216.5Z M687.6 52.5 685.2 51.7 687.5 47.7 685.6 45.9 686.4 41.5 689.8 47.0 687.6 52.5Z M662.9 65.2 659.8 64.7 658.9 58.9 662.9 65.2Z M773.7 315.3 771.8 315.9 777.1 310.4 780.3 311.3 773.7 315.3Z M751.9 307.5 749.2 309.4 746.6 306.8 747.0 304.3 751.3 304.7 751.9 307.5Z M709.0 310.6 715.3 312.1 713.2 314.0 709.0 312.5 709.0 310.6Z M762.8 174.3 764.3 180.2 760.6 181.9 752.9 180.6 749.7 178.0 762.8 174.3Z M167.4 254.9 161.9 251.5 167.5 252.5 167.4 254.9Z M126.1 206.0 126.9 209.1 121.4 201.9 121.2 197.6 126.7 202.2 126.1 206.0Z M121.4 196.6 117.3 198.3 116.8 192.0 121.4 196.6Z M113.7 188.1 108.7 186.3 107.9 181.4 110.4 182.2 113.7 188.1Z M84.2 149.6 81.0 149.6 83.5 143.1 81.3 138.3 83.3 138.7 86.1 143.8 84.2 149.6Z M41.8 88.1 27.9 81.8 25.9 78.2 29.7 76.8 40.8 84.8 41.8 88.1Z M586.0 254.0 584.6 254.6 581.0 250.1 583.3 246.2 585.9 248.1 586.0 254.0Z M610.9 163.2 611.5 167.9 615.7 164.6 618.0 166.8 617.3 169.1 614.2 170.4 612.2 168.9 610.1 172.7 609.6 166.1 604.0 172.1 602.3 168.8 604.4 163.4 610.9 163.2Z M553.8 272.3 552.9 275.8 552.7 261.2 553.8 272.3Z M444.2 286.6 440.9 286.2 441.3 284.3 445.0 283.8 447.8 285.9 444.2 286.6Z M463.9 220.6 459.4 224.6 458.0 215.1 459.9 209.3 463.2 207.5 463.9 220.6Z M605.3 370.4 602.7 370.2 603.1 367.3 614.3 361.2 615.3 364.9 605.3 370.4Z M633.7 315.5 630.8 319.8 626.2 318.1 632.7 312.8 633.7 315.5Z M626.1 314.3 623.1 314.9 618.1 320.6 611.3 319.8 616.5 315.4 614.7 314.5 622.9 312.5 626.1 314.3Z M613.1 316.1 606.9 316.9 611.0 313.5 613.5 314.2 613.1 316.1Z M611.5 225.8 608.0 228.2 605.7 224.1 610.9 223.3 611.5 225.8Z M531.2 324.3 529.5 324.2 530.8 317.6 533.2 319.6 531.2 324.3Z M492.5 49.6 497.6 49.2 498.4 52.0 494.4 53.1 492.5 49.6Z M490.6 316.3 489.1 312.4 492.9 311.7 490.6 316.3Z M774.6 154.8 773.0 156.6 763.9 158.0 765.6 156.0 774.6 154.8Z M582.7 363.6 578.8 362.9 585.1 360.6 582.7 363.6Z';
+var IDN_W=1000, IDN_H=383;
+var BUBBLES=[["Jabodetabek", 49.8, [262.1, 271.3], "below"], ["Bandung", 9.6, [278.9, 285.3], "right"], ["Surabaya", 8.2, [388.3, 292.8], "right"], ["Semarang", 4.3, [338.7, 286.6], "above"], ["Denpasar", 3.9, [440.9, 322.3], "below"], ["Makassar", 3.1, [530.4, 247.9], "right"], ["Medan", 2.4, [88.7, 61.9], "right"], ["Balikpapan", 1.8, [475.1, 165.3], "right"], ["Pekanbaru", 1.3, [147.9, 127.4], "right"], ["Manado", 0.9, [645.7, 107.0], "right"]];
+
+function renderMap(){
+  var s='<svg viewBox="0 0 '+IDN_W+' '+IDN_H+'" role="img" aria-label="Peta sebaran keluarga Nummi di Indonesia">';
+  s+='<path class="isle" d="'+IDN_PATH+'"/>';
+  BUBBLES.forEach(function(b){
+    var r=Math.sqrt(b[1])*5.0, x=b[2][0], y=b[2][1];
+    s+='<circle class="bub" cx="'+x+'" cy="'+y+'" r="'+r.toFixed(1)+'">'
+      +'<title>'+b[0]+' — '+String(b[1]).replace('.',',')+'% keluarga</title></circle>';
+  });
+  BUBBLES.forEach(function(b){
+    if(b[1]<3) return;
+    var r=Math.sqrt(b[1])*5.0, x=b[2][0], y=b[2][1], tx, ty, anc;
+    if(b[3]==='below'){ tx=x; ty=y+r+15; anc='middle'; }
+    else if(b[3]==='above'){ tx=x; ty=y-r-24; anc='middle'; }
+    else { tx=x+r+7; ty=y+2; anc='start'; }
+    var suby = b[3]==='above' ? ty-13 : ty+13;
+    s+='<text class="maplab" x="'+tx+'" y="'+ty+'" text-anchor="'+anc+'">'+b[0]+'</text>';
+    s+='<text class="mapsub" x="'+tx+'" y="'+suby+'" text-anchor="'+anc+'">'
+      +String(b[1]).replace('.',',')+'%</text>';
+  });
+  s+='</svg>';
+  $('dmap').innerHTML=s;
+  $('dmapfoot').innerHTML=
+    '<span class="bubkey"><i style="width:9px;height:9px"></i>1%</span>'
+    +'<span class="bubkey"><i style="width:19px;height:19px"></i>10%</span>'
+    +'<span class="bubkey"><i style="width:36px;height:36px"></i>50%</span>'
+    +'<span style="color:var(--ink-4)">Besar lingkaran = porsi keluarga. Arahkan kursor untuk melihat angkanya.</span>'
+    +'<span style="margin-left:auto;color:var(--ink-3)">Sisanya <b>14,7%</b> tersebar di 40+ kota lain</span>';
+}
+
+function renderDemo(){
+  renderMap();
+  var F=[['Lihat halaman App Store',12400,null],['Pasang aplikasi',2840,22.9],
+    ['Buat akun ortu',1980,69.7],['Tambah anak pertama',1284,64.8],['Selesai 1 siklus &lt;7 hari',592,46.1]];
+  $('dfunnel').innerHTML = F.map(function(s){
+    var col = s[2]===null ? 'var(--ink-3)' : s[2]>=65 ? 'var(--ok)' : s[2]>=45 ? 'var(--warn)' : 'var(--risk)';
+    return '<div class="step"><div class="l">'+s[0]+'</div><div class="v">'+nf(s[1])+'</div>'
+      +(s[2]===null?'<div class="p" style="color:var(--ink-4)">titik awal</div>'
+        :'<div class="p" style="color:'+col+'">'+String(s[2]).replace('.',',')+'% lanjut</div>')+'</div>';
+  }).join('');
+
+  var S=[['Pencarian di App Store',34,'#6C4CE0'],['Diberi tahu teman / grup WA',27,'#8A7CF0'],
+    ['Instagram',18,'#9A82F0'],['Halaman web Nummi',12,'#B4A5F5'],['Grup sekolah',9,'#CFC2F3']];
+  $('dsource').innerHTML = S.map(function(s){ return hbar(s[0],s[1],34,s[2],s[1]+'%'); }).join('');
+
+  var C=[['Jakarta Selatan',18.4],['Tangerang Selatan',12.1],['Bandung',9.6],['Surabaya',8.2],
+    ['Depok',7.4],['Bekasi',6.1],['Jakarta Barat',5.8],['Semarang',4.3],['Denpasar',3.9],['Makassar',3.1]];
+  $('dcity').innerHTML = C.map(function(c){
+    return hbar(c[0],c[1],18.4,'#6C4CE0',String(c[1]).replace('.',',')+'%'); }).join('');
+
+  var P=[
+    ['Yang mendaftar','Ibu 71% &middot; Ayah 26% &middot; Wali lain 3%'],
+    ['Umur orang tua','35&ndash;44 th 58% &middot; 25&ndash;34 th 22% &middot; 45+ 20%'],
+    ['Sekolah anak','Swasta nasional 44% &middot; Islam terpadu 24% &middot; Kurikulum internasional 19% &middot; Negeri 13%'],
+    ['Jumlah anak','1 anak 42% &middot; 2 anak 39% &middot; 3+ 19%'],
+    ['Sudah beri uang saku rutin sebelum Nummi','Sudah 68% &middot; Belum 32%'],
+    ['Cara memberi uang','Tunai 74% &middot; E-wallet 19% &middot; Campur 7%']
+  ];
+  $('dprofile').innerHTML='<table class="tbl"><tbody>'+P.map(function(p){
+    return '<tr><td style="color:var(--ink-3);font-size:12px;width:150px">'+p[0]+'</td>'
+      +'<td class="nm" style="font-size:12.5px">'+p[1]+'</td></tr>';
+  }).join('')+'</tbody></table>';
+
+  var M=[
+    ['Penghasilan keluarga','Jangan ditanya. Menyinggung, jawabannya jarang jujur, dan tidak boleh disimpan tanpa alasan kuat. Pakai penggantinya: jenis sekolah dan jenis HP sudah cukup menggambarkan daya beli.'],
+    ['Umur &amp; jenis kelamin pengunduh','Apple tidak memberikannya sama sekali; Play hanya untuk sebagian pengguna. Kalau kamu butuh, satu-satunya cara jujur adalah menanyakannya sendiri saat pendaftaran.'],
+    ['Kenapa mereka berhenti','Tidak akan pernah muncul di angka mana pun. Butuh satu pertanyaan saat menghapus akun, atau menelepon 10 keluarga yang berhenti. Sepuluh percakapan biasanya lebih berguna dari seribu baris data.'],
+    ['Berapa uang saku sebenarnya','Yang terlihat hanya yang dicatat di Nummi. Kalau ortu masih memberi uang di luar app, angkanya lebih rendah dari kenyataan. Perlu satu pertanyaan pembanding tiap beberapa bulan.']
+  ];
+  $('dmissing').innerHTML = M.map(function(m){
+    return '<div style="padding:11px 0;border-bottom:1px solid var(--line-2)">'
+      +'<b style="font-size:12.5px">'+m[0]+'</b>'
+      +'<p style="font-size:12px;color:var(--ink-3);margin-top:4px;line-height:1.6">'+m[1]+'</p></div>';
+  }).join('');
+}
+
+/* ============================================================
+   9c. PROFIL ANAK PER UMUR
+   ============================================================ */
+var AGES=[
+  [5,'Little',48, 25000,[72,20, 8, 0],41,'Mainan','Jajan di kantin',1.2,1.8,2.6],
+  [6,'Little',96, 30000,[69,21,10, 0],36,'Mainan','Jajan di kantin',1.6,2.1,2.9],
+  [7,'Little',178,35000,[66,23,11, 0],31,'Buku cerita','Jajan di kantin',2.1,2.4,3.1],
+  [8,'Middle',241,45000,[60,27,10, 3],26,'Sepeda','Jajan di kantin',2.8,3.1,3.8],
+  [9,'Middle',268,55000,[56,29, 9, 6],22,'Lego','Jajan di kantin',3.2,3.4,4.2],
+  [10,'Middle',254,65000,[53,30, 9, 8],19,'Sepatu','Kado untuk teman',3.6,3.5,4.6],
+  [11,'Middle',228,80000,[50,32, 8,10],17,'Voucher game','Kado untuk teman',3.9,3.3,5.0],
+  [12,'Middle',196,95000,[48,32, 7,13],15,'Sepeda','Isi ulang game',4.1,3.0,5.4],
+  [13,'Teen',147,130000,[46,32, 7,15],14,'Ponsel','Nongkrong',4.4,2.9,5.9],
+  [14,'Teen',112,165000,[44,33, 6,17],13,'Sepatu','Nongkrong',4.2,2.8,6.3],
+  [15,'Teen',84, 195000,[42,34, 5,19],12,'Tabungan sendiri','Nongkrong',3.8,2.6,6.8]
+];
+var CATCOL=['#FF7A4D','#2CA6E0','#F056A0','#2FC078'];
+var CATNAM=['Pakai','Simpan','Berbagi','Bertumbuh'];
+var TIERCOL={Little:'#B4A5F5',Middle:'#8A6BFF',Teen:'#5A3FC0'};
+var curAge=9;
+
+function ageChart(){
+  var W=980,H=210,pad=44,bw=(W-pad*2)/AGES.length,
+      mx=Math.max.apply(null,AGES.map(function(a){return a[2];}));
+  var s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" role="img" aria-label="Sebaran umur anak">';
+  AGES.forEach(function(a,i){
+    var h=a[2]/mx*(H-84), x=pad+i*bw+5, y=H-46-h;
+    s+='<rect x="'+x+'" y="'+y+'" width="'+(bw-10)+'" height="'+h+'" rx="7" fill="'+TIERCOL[a[1]]+'"'
+      +(a[0]===curAge?' stroke="#221C42" stroke-width="2.5"':'')+'/>';
+    s+='<text x="'+(x+(bw-10)/2)+'" y="'+(y-8)+'" text-anchor="middle" font-size="12" font-weight="700" '
+      +'font-family="Plus Jakarta Sans, sans-serif" fill="#4F4865">'+a[2]+'</text>';
+    s+='<text x="'+(x+(bw-10)/2)+'" y="'+(H-26)+'" text-anchor="middle" font-size="13" font-weight="700" '
+      +'font-family="Plus Jakarta Sans, sans-serif" fill="#221C42">'+a[0]+'</text>';
+  });
+  s+='<text x="'+pad+'" y="'+(H-6)+'" font-size="11" font-family="Plus Jakarta Sans, sans-serif" fill="#A9A3BE">umur (tahun)</text>';
+  s+='</svg>';
+  return s+'<div class="stacklegend" style="margin-top:12px">'
+    +['Little (5–7 th)','Middle (8–12 th)','Teen (13–15 th)'].map(function(l,i){
+      return '<span><em style="background:'+[TIERCOL.Little,TIERCOL.Middle,TIERCOL.Teen][i]+'"></em>'+l+'</span>';
+    }).join('')+'</div>';
+}
+
+function renderAge(){
+  $('agechart').innerHTML = ageChart();
+  $('agechart-plain').innerHTML='Puncaknya di <b>umur 9–10 tahun</b>. Anak umur 5–6 hampir tidak ada — '
+    +'wajar, mereka belum benar-benar memegang uang. Umur 14–15 juga menipis, tapi sebabnya berbeda: '
+    +'mereka mulai pindah ke dompet digital sungguhan. Artinya jantung produk ini adalah <b>anak SD kelas 3–6</b>, '
+    +'dan tier Teen tugasnya <b>menahan mereka tetap tinggal</b>, bukan menarik pengguna baru.';
+
+  $('agepick').innerHTML = AGES.map(function(a){
+    return '<button class="agebtn'+(a[0]===curAge?' on':'')+'" data-age="'+a[0]+'">'+a[0]
+      +'<small>'+a[1]+'</small></button>';
+  }).join('');
+  Array.prototype.forEach.call($('agepick').querySelectorAll('.agebtn'),function(b){
+    b.addEventListener('click',function(){ curAge=+b.dataset.age; renderAge(); });
+  });
+
+  var a=AGES.filter(function(x){return x[0]===curAge;})[0];
+  var kel=a[1]==='Little'?'KG B – Kelas 1':a[1]==='Middle'?'Kelas 2 – Kelas 6':'Kelas 7 – Kelas 9';
+
+  $('ageNarr').innerHTML='<b>Anak umur '+a[0]+' tahun</b> ('+kel+') di Nummi biasanya menerima '
+    +'<b>'+rp(a[3])+' per minggu</b>. Dari setiap Rp100 yang masuk, sekitar <b>Rp'+a[4][0]+'</b> ia taruh di Pakai '
+    +'dan <b>Rp'+a[4][1]+'</b> di Simpan. Ia butuh <b>'+hrs(a[5])+'</b> untuk memutuskan uang barunya mau ditaruh '
+    +'di mana, membuka app <b>'+String(a[9]).replace('.',',')+'×</b> seminggu selama '
+    +String(a[10]).replace('.',',')+' menit, dan mengajukan <b>'+String(a[8]).replace('.',',')+' permintaan</b> ke '
+    +'orang tuanya tiap bulan. Impian yang paling sering ia buat: <b>'+a[6]+'</b>. Alasan menarik uang yang '
+    +'paling sering: <b>'+a[7]+'</b>.';
+
+  $('ageSplit').innerHTML = a[4].map(function(v,i){
+    return v ? '<i style="width:'+v+'%;background:'+CATCOL[i]+'" title="'+CATNAM[i]+' '+v+'%"></i>' : '';
+  }).join('');
+  $('ageSplitLegend').innerHTML = a[4].map(function(v,i){
+    return v ? '<span><em style="background:'+CATCOL[i]+'"></em>'+CATNAM[i]+' '+v+'%</span>' : '';
+  }).join('');
+  $('ageSplit-plain').innerHTML = a[1]==='Little'
+    ? 'Bertumbuh sengaja <b>tidak ada</b> untuk umur ini — konsep uang yang beranak masih terlalu jauh. '
+      +'Perhatikan Berbagi yang justru <b>paling besar di umur termuda</b>.'
+    : (a[4][3]>=13
+      ? 'Bertumbuh sudah <b>'+a[4][3]+'%</b> — di umur ini gagasan menunda dan menumbuhkan uang mulai masuk akal.'
+      : 'Bertumbuh baru <b>'+a[4][3]+'%</b>, masih coba-coba. Pakai masih mendominasi, dan itu normal.');
+
+  $('ageFacts').innerHTML =
+    '<div class="fact"><div class="l">Jumlah anak</div><div class="v">'+nf(a[2])+'</div>'
+      +'<div class="n">'+String(pct(a[2],1852)).replace('.',',')+'% dari semua anak</div></div>'
+    +'<div class="fact"><div class="l">Uang saku</div><div class="v">'+rp(a[3])+'</div>'
+      +'<div class="n">per minggu, rata-rata</div></div>'
+    +'<div class="fact"><div class="l">Lama memutuskan</div><div class="v">'+hrs(a[5])+'</div>'
+      +'<div class="n">dari uang masuk sampai disortir</div></div>'
+    +'<div class="fact"><div class="l">Buka app</div><div class="v">'+String(a[9]).replace('.',',')+'×</div>'
+      +'<div class="n">seminggu · '+String(a[10]).replace('.',',')+' menit tiap kali</div></div>';
+
+  var T=[
+    ['Uang saku naik 8 kali lipat','Rp25.000 di umur 5 jadi Rp195.000 di umur 15 per minggu. Lonjakan terbesar terjadi saat masuk SMP.'],
+    ['Berbagi justru menurun','11% di umur 7, tinggal 5% di umur 15. Anak kecil lebih murah hati. Ini alasan kuat untuk <b>tidak</b> memaksa remaja menyisihkan Berbagi — memaksa akan mengubah kemurahan hati jadi pajak.'],
+    ['Makin tua makin cepat memutuskan','41 jam di umur 5 jadi 12 jam di umur 15. Kemampuan memberi tujuan pada uang memang terlatih.'],
+    ['Buka lebih jarang, tapi lebih lama','Puncak kunjungan di umur 10 (3,5× seminggu). Remaja hanya 2,6× tapi 6,8 menit — mereka datang untuk mengurus sesuatu, bukan bermain.'],
+    ['Bertumbuh baru berarti dari umur 11','Di bawah itu pemakaiannya kurang dari 10% dan cepat dipanen. Menawarkannya lebih awal hanya menambah kebingungan.']
+  ];
+  $('ageTrends').innerHTML = T.map(function(t,i){
+    return '<div style="display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--line-2)">'
+      +'<span style="flex:0 0 auto;width:22px;height:22px;border-radius:7px;background:var(--brand-tint);'
+      +'color:var(--brand-deep);display:grid;place-items:center;font:800 11px/1 var(--ui)">'+(i+1)+'</span>'
+      +'<div><b style="font-size:12.5px">'+t[0]+'</b>'
+      +'<p style="font-size:12px;color:var(--ink-3);margin-top:4px;line-height:1.6">'+t[1]+'</p></div></div>';
+  }).join('');
+
+  var TIERS3=[
+    ['Little',322,'Rp30.000',[69,21,10,0],'2,1×'],
+    ['Middle',1187,'Rp68.000',[53,30,9,8],'3,3×'],
+    ['Teen',343,'Rp163.000',[44,33,6,17],'2,8×']
+  ];
+  $('tierCompare').innerHTML='<table class="tbl"><thead><tr><th>Tier</th><th class="r">Anak</th>'
+    +'<th class="r">Uang saku/mgg</th><th>Pembagian uang</th><th class="r">Buka app</th></tr></thead><tbody>'
+    +TIERS3.map(function(t){
+      return '<tr><td><span class="tierpill t-'+t[0].toLowerCase()+'">'+t[0]+'</span></td>'
+        +'<td class="r nm">'+nf(t[1])+'</td><td class="r">'+t[2]+'</td>'
+        +'<td><div class="stackbar" style="height:16px;border-radius:5px;min-width:130px">'
+        +t[3].map(function(v,i){ return v?'<i style="width:'+v+'%;background:'+CATCOL[i]+'"></i>':''; }).join('')
+        +'</div></td><td class="r">'+t[4]+'</td></tr>';
+    }).join('')+'</tbody></table>'
+    +'<div class="stacklegend">'+CATNAM.map(function(n,i){
+      return '<span><em style="background:'+CATCOL[i]+'"></em>'+n+'</span>'; }).join('')+'</div>';
+  $('tierCompare-plain').innerHTML='Middle (kelas 2–6) adalah <b>64% dari semua anak</b> sekaligus yang paling '
+    +'sering membuka app. Kalau kamu hanya punya waktu memperbaiki satu tier, perbaiki yang ini. '
+    +'Little dan Teen sama-sama kecil, tapi perannya berbeda: Little adalah <b>pintu masuk</b> keluarga, '
+    +'Teen adalah <b>bukti</b> bahwa produk ini dipakai sampai selesai.';
+}
+
+/* ============================================================
+   10. NAVIGASI & PENGIKAT
+   ============================================================ */
+var TITLES={overview:'Ikhtisar',demo:'Demografi',kids:'Profil anak',families:'Keluarga',trust:'Kepercayaan',
+  content:'Konten & misi',money:'Monetisasi',system:'Sistem & data',audit:'Audit & akses'};
+function go(name){
+  Array.prototype.forEach.call(document.querySelectorAll('.page'),function(p){ p.hidden=true; });
+  $('page-'+name).hidden=false;
+  Array.prototype.forEach.call(document.querySelectorAll('.navitem'),function(b){
+    b.classList.toggle('on', b.dataset.go===name); });
+  $('crumb').textContent=TITLES[name];
+  window.scrollTo({top:0,behavior:'instant'});
+  if(name==='families'){ renderStatDefs(); renderFams(); }
+  if(name==='audit') renderAudit();
+}
+Array.prototype.forEach.call(document.querySelectorAll('.navitem'),function(b){
+  b.addEventListener('click',function(){ go(b.dataset.go); });
+});
+
+$('plaintoggle').addEventListener('click',function(){
+  var off=document.body.classList.toggle('noplain');
+  this.textContent='Penjelasan: '+(off?'mati':'aktif');
+});
+
+$('period').addEventListener('click',function(e){
+  var b=e.target.closest('button'); if(!b) return;
+  Array.prototype.forEach.call(this.querySelectorAll('button'),function(x){ x.classList.toggle('on',x===b); });
+  renderOverview(b.dataset.p);
+});
+
+$('fsearch').addEventListener('input',function(){ filt.q=this.value.trim(); renderFams(); });
+Array.prototype.forEach.call(document.querySelectorAll('.fchip'),function(b){
+  b.addEventListener('click',function(){
+    var f=b.dataset.f;
+    Array.prototype.forEach.call(document.querySelectorAll('.fchip[data-f="'+f+'"]'),function(x){
+      x.classList.toggle('on',x===b); });
+    filt[f]=b.dataset.v; renderFams();
+  });
+});
+
+$('dr-close').addEventListener('click',closeDrawer);
+$('scrim').addEventListener('click',closeDrawer);
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){ closeDrawer(); $('supmodal').classList.remove('on'); }
+});
+
+$('sup-reason').addEventListener('change',checkSupForm);
+$('sup-ticket').addEventListener('input',checkSupForm);
+$('sup-cancel').addEventListener('click',function(){ $('supmodal').classList.remove('on'); });
+$('supscrim').addEventListener('click',function(){ $('supmodal').classList.remove('on'); });
+$('sup-go').addEventListener('click',function(){
+  SUPPORT[pendingFam]=Date.now()+15*60*1000;
+  logAudit('Mode dukungan dibuka', pendingFam, $('sup-reason').value+' · '+$('sup-ticket').value.trim());
+  $('supmodal').classList.remove('on');
+  toast('Mode dukungan aktif 15 menit — tercatat di audit');
+  drawFam();
+});
+
+/* hitung mundur mode dukungan */
+setInterval(function(){
+  var t=$('suptimer'); if(!t||!curFam||!SUPPORT[curFam.id]) return;
+  var left=Math.max(0,Math.round((SUPPORT[curFam.id]-Date.now())/1000));
+  t.textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0');
+  if(left===0){ delete SUPPORT[curFam.id]; drawFam(); toast('Mode dukungan berakhir otomatis'); }
+},1000);
+
+/* ---------- render awal ---------- */
+$('nav-fam').textContent=nf(TOTAL_FAM);
+$('nav-trust').textContent=nf(FAMS.filter(function(f){return f.promiseH>72;}).length);
+renderOverview('30');
+renderDemo();
+renderAge();
+renderStatDefs();
+renderFams();
+renderTrust();
+renderContent();
+renderMoney();
+renderSystem();
+renderAudit();
+
+})();
+
+</script>
+</body>
+</html>

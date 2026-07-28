@@ -1,0 +1,351 @@
+# Nummi — Backlog (item tertunda untuk dikerjakan nanti)
+
+Dokumen ini mencatat keputusan & fitur yang sudah didiskusikan tapi **belum dibangun**,
+agar tidak hilang. Diurutkan kasar berdasarkan prioritas/ketergantungan.
+
+*Diperbarui 28 Juli 2026 setelah audit lintas-file. Status permukaan & register kontradiksi
+lengkap ada di `nummi-status.md`.*
+
+---
+
+## ‼️ PALING ATAS — bersih-bersih hasil audit (murah, dan menghentikan angka yang saling bertentangan)
+
+- **X1. Format rupiah** → `Rp50.000` (brand §17). Sekarang semua mockup produk memakai `Rp 10,000`,
+  bahkan antar-mockup anak beda (`Rp 900.000.` vs `Rp 900,000.`). Satu titik ubah per berkas:
+  fungsi `rp()` di app anak, `fmt()` di app ortu. Console sudah benar — pakai itu sebagai contoh.
+- **X2. Target dream tidak sinkron** → app anak BMX 300.000 / Headphones 100.000; app ortu 400.000 / 60.000.
+  Pakai angka app anak (sesuai handoff), perbaiki sisi ortu.
+- **X3. Request pending tidak sinkron** → anak Rp20.000, ortu Rp25.000. Samakan ke Rp25.000.
+- **X4. Rasio auto-split seed 40/40/10** (total 90%) padahal default 40/40/20. Perbaiki seed.
+- **X5. Badge "🔥 7-day streak" yatim** di app anak (HP + iPad) — streak sudah dihapus total di Fase 5,
+  jadi badge ini mustahil didapat. Hapus, atau ganti badge berbasis perilaku
+  (mis. "3 minggu berturut-turut menyortir dalam 2 hari").
+- **X6. App anak tidak menyebut "Nummi" sama sekali** dan tidak memuat maskot — satu-satunya permukaan
+  tanpa brand, padahal paling sering dilihat anak. Sudah tidak terhalang — X7 selesai, bentuk maskot
+  sekarang tunggal dan jelas.
+- ~~**X7. Kontradiksi maskot di brand system**~~ ✅ **selesai 28 Juli 2026** — §8.2 ditulis ulang mengikuti
+  lembar karakter yang disetujui (kancil emas, selendang ungu ber-monogram **n**, kecambah hijau), plus
+  catatan agar §8.1/§8.2/lembar karakter tidak pernah lagi diubah sendiri-sendiri.
+- **X8. Nama berkas & judul** masih memakai "Celengan" (`Celengan_iPad_…`, `celengan-*.md/html`).
+  ✅ Sebagian selesai: `nummi-brand-system.md`, `nummi-handoff.md`, `nummi-backlog.md` sudah bernama bersih.
+  Sisa: mockup iPad dan dua mockup arsip.
+- **X9. Instruksi Project masih menunjuk mockup usang** (`celengan-home-mockup.html`) — ganti ke
+  lima berkas aktif, kalau tidak setiap sesi baru mengedit berkas yang salah.
+- **X10. Ejaan Inggris tidak konsisten** ("Practice" HP vs "Practise" iPad) — gugur sendiri kalau
+  keputusan bahasa (D1) jatuh ke Indonesia.
+
+---
+
+## A. Auto-split ratio editor — ✅ LEVEL 1 SELESAI (sisi ortu, Fase 6) · ⚠️ belum di sisi anak
+**Sudah dibangun** di app ortu HP + web: sakelar on/off, rasio per kategori, pemilihan wallet tujuan
+per kategori, validasi "Ratio is over 100%", sisa rasio boleh tersisa di mode Flexible (mendarat di
+Unsorted) tapi wajib habis di mode Strict.
+**Yang tersisa:**
+- **A-sisa-1 (mendesak).** App anak belum tahu-menahu — masih menampilkan teks mati
+  *"40% Spend / 40% Save / 20% Give default"*. Rasio yang diatur ortu harus muncul & berlaku di layar Sort anak.
+- **A-sisa-2.** Level 2 (rasio di dalam kategori) belum ada sama sekali — lihat rinciannya di bawah.
+- **A-sisa-3.** Tier Teen boleh mengedit rasio dalam batas ortu — belum ada di app anak.
+
+Rincian level 2 yang masih berlaku:
+- **Level 1 — antar kategori** (Spend/Save/Give): diatur orang tua. Remaja boleh mengedit
+  dalam batas ortu (mis. minimal 20% ke Save). **Grow dikecualikan** dari auto-split.
+- **Level 2 — di dalam kategori** (aturan berbeda sesuai sifat):
+  - Spend → rasio antar-envelope (mis. Jajan 60% / Transport 40%).
+  - Save → **strategi**, bukan rasio mati: "fokus dream terdekat selesai" / "bagi rata semua dream" / "ikut prioritas".
+  - Give → biasanya satu pool, tak perlu split.
+  - Grow → manual + izin, tidak di-auto-split.
+- **Prinsip UI**: selalu tampilkan **preview hasil** sebelum konfirmasi (bukan kotak hitam).
+- **Lokasi**: kemungkinan di app orang tua, dengan cermin baca/edit-terbatas di app anak (tier Remaja).
+
+## B. Sistem Poin / Rewards / Gamifikasi — SELESAI di Fase 4 + 5
+- ✅ **Keputusan besar hybrid** (Fase 4): ⭐ lifetime (gerbang, tak berkurang) + ⭐ saldo (belanja) + 💎 (chores→hadiah nyata).
+- ✅ Avatar shop, badges — dibangun Fase 4.
+- ✅ **Minus-point raid dream** (Fase 5): ⭐ −15 flat saat dream→Spend/Give. Memotong SALDO saja, tak pernah
+  lifetime (kalau lifetime ikut turun, anak bisa mengunci ulang chores-nya sendiri). Peringatan tampil
+  sebelum konfirmasi, bukan hukuman diam-diam.
+- ✅ **Bonus streak — DITOLAK** (Fase 5, bukan dibangun lalu dibuang tanpa alasan): streak menghukum jeda
+  wajar (sakit/liburan) dan mendorong buka-app-harian kosong padahal keputusan uang bukan aktivitas harian.
+  Streak lama yang sudah ada (dan sempat bertabrakan 🔥5 vs 🔥4 di layar berbeda) **dihapus total**, topbar
+  ⭐ diganti nunjuk ke chapters progress. Kalau nanti ingin streak lagi, harus berbasis PERILAKU
+  (mis. "3 minggu berturut-turut sortir dlm 2 hari"), bukan sekadar membuka app.
+
+## C. Setelan "Strict vs Flexible" — ✅ SELESAI (sisi ortu, Fase 6) · ❌ BELUM DITEGAKKAN di sisi anak
+**Sudah dibangun** di app ortu sebagai layar **"Money rules"** per anak: dua mode dengan konsekuensi
+ditulis apa adanya (Flexible = anak bebas menyortir ulang Unsorted & Spend; Strict = pembagian terkunci,
+uang tidak bisa keluar dari tugas yang sudah diberikan). Yang berlaku di kedua mode: cash-out selalu butuh
+persetujuan, dream & Give tidak bisa dibatalkan tanpa ortu, Grow tidak bisa ditarik sepihak.
+
+**⚠️ Ini gap paling mahal di seluruh backlog.** App anak tidak mengenal konsep mode sama sekali —
+tidak ada `rules`, `strict`, atau turunannya di kodenya. Artinya ortu bisa menyalakan Strict dan tidak
+terjadi apa-apa. **Aturan yang tidak ditegakkan lebih buruk daripada aturan yang belum ada**, karena ortu
+mengira anaknya dibatasi padahal tidak.
+**Yang tersisa:**
+- Terjemahkan mode ke perilaku app anak: gembok pada Move money, sumber Sort yang boleh diubah,
+  dan pesan yang menjelaskan **kenapa** terkunci (bukan sekadar tombol mati).
+- Default per tier + kemampuan ortu meng-override. Catatan riset yang sudah dikunci:
+  **Strict default mati** — riset literasi finansial memperingatkan bahaya mencabut pengambilan
+  keputusan nyata dari anak.
+
+## F. Penamaan "Free savings"
+Ganti ke nama yang lebih ramah anak. Kandidat: **"Someday / Suatu Nanti"** (rekomendasi utama),
+"Nabung Aja" (paling lugas), "Rainy Day / Dana Jaga-jaga". Wallet ini juga berperan sebagai
+**default Save tak-terlihat** di mode Little, tujuan pulang saat dream dibatalkan, dan titik mendarat Harvest.
+
+## G. Sisi Orang Tua — Fase 7 (Fase 1–6 sudah selesai)
+Selesai: login, dashboard+switcher, approval inbox 5-jalur (Grow/Harvest instan, mission instan, prize→To do,
+Give→To do+cerita wajib, cashout→To do), Send/Take money, Add a child, Settings nyata, Missions nyata
+(Learning tracker, Jobs builder, Prizes), **dan Fase 6**: auto-split editor, Money rules Strict/Flexible,
+undang ortu kedua, halaman Insight, Transactions dengan filter rentang. Sisa kandidat:
+1. **Parent articles + conversation starters** — benihnya sudah ada di kartu Learning
+   (*"Arthur just learned X — a good thing to ask about at dinner"*). Tinggal jadikan konten & jadwal mingguan.
+2. **Progress markers** (§4.2 financial_literacy.md) — checklist observasi ortu + metrik otomatis dari ledger.
+3. **Foto di cerita Give** — saat ini teks saja; foto perlu dipikirkan (upload? kamera? placeholder?).
+4. **Edit data anak** (nama/tier/PIN) & **edit/hapus mission & prize** — semuanya baru bisa create.
+5. **Growth Reward** — bunga simulasi didanai ortu utk Little/Middle awal. Masih menunggu keputusan (M1).
+6. **Rapor Literasi Finansial** (M2) — belum ada di permukaan mana pun.
+
+## G2. Paritas antar permukaan (BARU — hasil audit 28 Juli 2026)
+Matriks lengkap ada di `nummi-status.md` §2. Yang perlu dikerjakan:
+
+**Anak iPad tertinggal dari anak HP:**
+- Tidak ada **toggle bahasa** 🌐.
+- Tidak ada **"Write back"** (anak membalas cerita Give dari ortu) — padahal itu penutup lingkaran Fase 5.
+- Aktivitas hanya punya rentang 3/7 hari, tanpa pemilih rentang tanggal penuh.
+- Missions lebih ringkas: tidak ada progress "Chapter 1 of 6", event THR, atau panel "Your active lesson".
+
+**Anak (kedua permukaan):**
+- **Pemilih tier dimatikan** — fungsi `harness()` di app anak diawali `return null;` sehingga hanya mode
+  Middle yang bisa didemokan, walaupun logika Little & Teen ada di kode. Perlu keputusan: MVP cuma Middle,
+  atau ketiganya bisa didemokan? (D5 di `nummi-status.md`)
+
+**Ortu HP tertinggal dari ortu Web:** halaman Insight versi ringkas, tidak ada dashboard lintas-anak
+(*"From all your children"*) dan *"Rules, per child"*. Sebagian ini mungkin memang benar — layar kecil
+bukan tempat membaca tren. **Perlu diputuskan sengaja**, bukan dibiarkan sebagai kebetulan.
+
+---
+
+## T. BACKLOG TEKNIS — Scheduler & feed harga (BARU, konsekuensi model "ortu = bank")
+Grow kini simulasi, tapi **harganya riil**. Mockup pakai harga statis + tombol demo; produksi butuh:
+
+**Sumber data — hati-hati memilih:**
+- **Valas**: JANGAN scraping Google Finance — melanggar ToS & rapuh. Pakai **kurs Bank Indonesia**
+  (JISDOR utk USD; kurs transaksi BI utk SGD/EUR) — resmi, gratis, dan lebih kredibel untuk produk
+  finansial anak Indonesia. Alternatif: API kurs berlisensi.
+- **Emas**: Antam (logammulia.com) **tidak punya API** → perlu scraping, rapuh terhadap perubahan halaman.
+  Butuh harga **jual DAN buyback** (spread ~9% adalah bagian dari pelajaran, jangan disederhanakan jadi satu harga).
+
+**Yang harus ditangani scheduler:**
+- Jadwal harian + zona waktu (WIB).
+- **Akhir pekan & hari libur**: tidak ada harga baru → pakai harga terakhir + **tampilkan tanggalnya** ke user.
+- **Kegagalan fetch**: jangan diam-diam pakai harga basi tanpa keterangan. Perlu status "terakhir diperbarui X".
+- **Caching** + jangan panggil sumber per-request user.
+- **Pembulatan**: emas skala anak = miligram (Rp 21.000 ≈ 14,5 mg). Format mg <1 g, gram ≥1 g.
+- **Audit trail**: simpan harga historis — kalau harga berubah, nilai lama anak harus tetap bisa dijelaskan.
+
+**Scheduler kedua — reset mingguan (Fase 4):**
+- Job mingguan harus kembali "available" tiap awal minggu, dan flag "materi minggu ini" harus direset.
+  Di mockup ini masih tombol demo "▶ Start a new week". Perlu: definisi awal minggu (Senin? hari anak daftar?),
+  zona waktu, dan apa yang terjadi kalau anak tak buka app berminggu-minggu (jangan menumpuk klaim retroaktif).
+
+**Catatan produk terkait:**
+- Rate deposito TIDAK dari feed — ditetapkan ortu (dia bank-nya). Hanya emas & valas yang ikut feed.
+- Risiko pasar ada di ortu (lihat handoff). Kalau nanti dianggap terlalu berisiko, opsi mitigasi:
+  cap nominal Grow per anak, atau opsi "saya benar-benar membeli asetnya" (ter-hedge).
+
+---
+
+## H2. Pajak perawatan mockup — masih berlaku, malah membesar
+*(Catatan ini lahir saat masih ada 2 mockup. Sekarang ada 5. Isinya jadi lebih penting, bukan kurang.)*
+- **Tidak ada yang live-linked** — lima berkas terpisah, angka disamakan manual. Audit 28 Juli 2026
+  membuktikan biayanya nyata: target dream, request pending, dan rasio auto-split sudah menyimpang
+  antar permukaan tanpa ada yang menyadari (lihat X2–X4). Daftar angka **kanonik** kini ada di
+  `nummi-handoff.md` — kalau ada permukaan yang berbeda, permukaan itu yang salah.
+- **Design system untuk lima permukaan** — tiap komponen baru berpotensi butuh versi anak-HP, anak-iPad,
+  ortu-HP, ortu-web, dan console. Untuk solo founder ini pajak yang menumpuk cepat. Sebagian sudah terasa:
+  iPad tertinggal dari HP anak (lihat G2). **Sebelum menambah fitur baru, kejar paritas dulu** — kalau tidak,
+  jarak antar permukaan melebar lebih cepat daripada kemampuan merawatnya.
+- **Riwayat**: `celengan-home-mockup.html` & `celengan-parent-mockup.html` sudah digantikan lima mockup
+  aktif. Simpan sebagai arsip keputusan, jangan diedit lagi.
+- **Pola bug CSS berulang 3×** — akar yang sama, muncul tiga kali:
+  1. *Login berantakan*: mengganti blok CSS login ikut menghapus definisi dasar `.field` (label kehilangan
+     `display:block`, input kehilangan `width:100%`).
+  2. *Tombol Send/Take/Create account polos*: definisi dasar `.cta` ikut terhapus dari blok yang sama;
+     plus `.cta.disabled` kalah urutan dari `.cta.danger` (tombol nonaktif tampil merah seolah aktif).
+  3. *Topbar Home anak rusak*: halaman Me memakai nama class `.badges` yang **sudah dipakai** pil
+     streak/bintang di topbar → pil dipaksa jadi grid 3 kolom. Diperbaiki jadi `.badgegrid`.
+  **Pelajaran**: catatan pengingat saja terbukti tidak cukup (kejadian ke-3 terjadi SETELAH catatan ini dibuat).
+  Yang berhasil: **audit otomatis** — scan semua base class rule yang terdefinisi ganda di tiap file.
+  Jadikan ini langkah verifikasi rutin, bukan niat baik. Juga: sebelum menimpa blok CSS besar, grep dulu
+  selector-nya dipakai di mana; setelah edit, cek computed style & urutan cascade untuk kombinasi class.
+
+---
+
+### Sudah selesai / terkunci (bukan backlog, sekadar catatan)
+- Model A: uang selalu di satu tempat; kategori = label; sub-wallet nyata.
+- Grow mendanai dream lewat Harvest (pindah beneran), bukan tag.
+- 3 tier usia (Little / Middle / Teen) dengan model data identik; beda tampilan & izin.
+- Sort tier-aware; auto-split = aturan ortu (remaja edit dalam batas).
+- Nav: Home / Wallets / (+) / Missions / **Me**; hub aksi di tombol tengah. *("Trophies" diganti "Me" — nama lama menjanjikan piala padahal isinya avatar+badge+tema+bahasa+buddies.)*
+- Wallets: pocket-grid collapsible (accordion), header kategori kartu besar.
+- Home mode Little: blok "My dreams" DAN "Today's mission" sama-sama disembunyikan (mengikuti aturan tanpa sub-wallet/dream di Little). *(sebelumnya Backlog E)*
+- Money-movement matrix *(sebelumnya Backlog D)*: flow **Add money** & **Move money** sudah dibangun dari
+  Detail sub-wallet Spend/Save/Give — pilih wallet lawan → isi jumlah (ketik manual atau stepper +/− Rp 10.000)
+  → konfirmasi → saldo update live di Wallets, Detail, dan Home. Grow otomatis tidak ikut (exception asimetris,
+  masih via Create/Harvest terpisah). **Refinement dari draft awal**: Unsorted sengaja **tidak** disertakan
+  di flow generic ini — tetap khusus lewat Sort penuh.
+- **Flow Grow lengkap** *(menutup Backlog H)*: Move dihapus dari semua Grow (Harvest satu-satunya jalan keluar).
+  Time Deposit harvest 3-opsi (cash out / roll over / take profit, dgn tenor 3/6/12 bln); Gold harvest dgn layar
+  konfirmasi naik/turun + Cancel; Forex per-mata-uang (USD/SGD/EUR, maks 3 wallet) dgn Add money (beli, sumber
+  rupiah bebas termasuk Unsorted) + Harvest. Tujuan Harvest dikunci ke wallet Save. Semua submit → state pending
+  "⏳ Waiting for grown-up" yang bisa di-tap untuk simulasi approval (uang pindah beneran saat approved).
+  Kurs & Gold spot masih statis (placeholder, nanti backend harian).
+- **Cash out + infrastruktur pending**: flow Cash out (sumber non-Grow & non-Unsorted, nominal via stepper +/− Rp 10.000,
+  3 metode opsional [Transfer e-wallet / Give me cash / Buy it for me] yang disembunyikan di Little, alasan **wajib**).
+  Semua request (Cash out/Grow/Harvest) masuk store `REQUESTS` terpusat → 3 lapis awareness: badge kartu Grow,
+  banner "N requests waiting" di Home (semua tier), dan layar **Requests** (antrean penuh, tap baris = simulasi approval).
+  Ini sekaligus fondasi sisi-anak untuk Approval Inbox ortu (Backlog G).
+- **Halaman Missions** (kerangka UI, konten sampel): daily state-aware + event (THR) + 6 chapter,
+  pasangan Learn→Practice dgn gembok, lesson flow (panel → kuis interaktif → kalimat kunci → stars),
+  tier-aware (Little 2+1 / Middle 3+2 / Teen 3+3), Practice "Sort" deep-link ke flow Sort asli lalu auto-selesai.
+- **Halaman Me** (rename dari "Trophies"): avatar+tier pill, stats, badges grid, **theme picker 5 warna**
+  (brand/aksen saja — warna kategori tetap, karena itu alat belajar), toggle bahasa EN/ID (placeholder), buddies.
+- **Sisi Orang Tua Fase 1** (`celengan-parent-mockup.html`, file terpisah): Login 2-pintu (ortu email+password,
+  anak email-ortu+PIN 6-digit), Dashboard dgn switcher multi-anak (ring+legend sama bahasa dgn kid app),
+  **Requests** = approval inbox 2-langkah (Needs OK → To do → Done, approve ≠ payment) + jawaban ketiga
+  "Talk about it". Aturan potong uang dikunci: Spend/Unsorted/Free savings boleh, dream/Give/Grow terlindungi.
+  Nada visual: login hangat/playful (sama dgn kid app), interior ringkas/padat (ikon garis, angka tabular,
+  legend %+nominal) dgn palet tetap cerah (bukan abu/gelap) — warna kategori & status identik kid app.
+  Missions & Settings = placeholder roadmap (bukan kosong).
+- **Sisi Orang Tua Fase 2**: **Send money** (nominal + tag sumber wajib: Allowance/THR/Birthday/Prize/
+  From family/Other + catatan opsional — selalu mendarat di Unsorted, bukan langsung ke kategori).
+  **Take money** (kantong terlindungi tetap terlihat tapi digembok dgn sebab spesifik, bukan disembunyikan;
+  alasan wajib simetris dgn anak; pratinjau notifikasi kata-per-kata yang akan anak terima). **Add a child**
+  (nama, bulan+tahun lahir saja, tier disarankan otomatis dari usia tapi bisa di-override tanpa
+  menghakimi, PIN 6-digit). Data model direfactor jadi sub-wallet per anak (bukan cuma total kategori)
+  supaya aturan proteksi Take money bisa ditegakkan per-wallet.
+- **Perbaikan lintas-app**: notifikasi/strip pending di Dashboard ortu jadi per-anak (bukan gabungan semua
+  anak); pemisah ribuan ("50,000") di semua input nominal, di kid app maupun parent app.
+- **Sisi Orang Tua Fase 3**: Settings jadi nyata — **Allowance schedule** (auto-credit tanpa konfirmasi,
+  frekuensi + hari, pratinjau tanggal berikutnya, tombol demo), **Your bank rates** (ortu tetapkan bunga
+  per tenor → request deposito bisa di-approve 1 tap), **Today's prices** (emas jual/buyback + 3 kurs +
+  tombol simulasi hari berikutnya), **Manage investments** (detail per instrumen + countdown TD).
+- **REVISI BESAR — Grow jadi simulasi, ortu = bank** *(mengubah asumsi awal; detail lengkap di handoff)*:
+  tak ada kewajiban ortu benar-benar beli aset (mustahil di skala uang anak: deposito min. jutaan, emas
+  Antam min. 0,5 g). Harga tetap riil dari feed (Antam jual/buyback, kurs harian ±1% spread); rate deposito
+  ditetapkan ortu. **Konsekuensi**: (a) "Approve ≠ Fulfilled" kini hanya untuk Cash out — Grow/Harvest
+  approve = selesai seketika, tahap "To do" & form "Record what you did" dihapus; (b) nilai ditandai di
+  harga jual → emas mulai ~-9%, valas ~-2% (spread = pelajaran, ada kartu penjelas di layar Harvest emas);
+  (c) emas skala realistis dlm mg (Rp 21.000 ≈ 14,5 mg); (d) risiko pasar ditanggung ortu → ada disclosure;
+  (e) alasan asimetri Grow berubah dari "fisika aset riil" jadi "kebijakan ortu-sebagai-bank".
+  Angka contoh direkalkulasi: total Arthur **484.711** (dulu 485.750), disamakan di kedua mockup.
+- **Fase 4 — Missions, Prizes & ekonomi reward** *(detail lengkap di handoff)*:
+  **Dua mata uang** (⭐ kurikulum→kosmetik, 💎 chores→hadiah nyata) + **tiga gerbang** (⭐lifetime≥100 buka
+  sistem chores; Chapter 2 buka achievement & hadiah besar ≥25💎; materi mingguan buka **penukaran** — bukan
+  perolehan, supaya kontribusi keluarga tetap tak bersyarat). **⭐ dipisah lifetime vs saldo** (konsekuensi paksa:
+  kalau tidak, beli avatar akan mengunci ulang chores). Sisi anak: "Jobs from home", Prizes, avatar shop.
+  Sisi ortu: kartu **Learning** (tracker + status gerbang + benih conversation starter), **Jobs builder terpandu**
+  (3 jenis; kontribusi = 💎 saja, opsi uang tak muncul), **Prizes** + pratinjau "berapa lama untuk dapat".
+- **Bug lama diperbaiki**: kartu "Rp 50.000 just arrived!" di Home anak ternyata **teks statis** — tak ikut
+  berubah saat Unsorted berubah, padahal ring-nya berubah, jadi kartu & ring bisa saling bertentangan.
+  Sekarang sinkron dari `UNSORTED` dan otomatis hilang saat nol.
+- **Bug CSS ke-3 diperbaiki**: `.badges` halaman Me bentrok dgn `.badges` topbar Home → pil streak/bintang
+  dipaksa jadi grid 3 kolom. Rename jadi `.badgegrid`. **Audit class ganda otomatis kini jadi langkah rutin.**
+- **Fase 5 — Give flow, minus-point, & bersih-bersih bug** *(detail lengkap di handoff)*:
+  **Give dapat flow sendiri** — "Cash out" diganti "Give it away" (6 causes kultural + tulis sendiri),
+  Give dihapus dari sumber Cash out biasa, dan lingkaran ditutup lewat state machine ke-5: approve → To do
+  **+ form cerita wajib** sebelum bisa ditutup, anak bisa membalas di "Where my giving went".
+  **Minus-point raid dream** akhirnya dibangun: ⭐−15 flat, memotong SALDO saja (bukan lifetime — supaya
+  tak mengunci ulang chores), peringatan tampil sebelum konfirmasi.
+  **Streak dihapus total** (bukan diperbaiki — ditolak sbg konsep, lihat Backlog B).
+  **2 bug lama ditemukan & diperbaiki**: kartu "Rp 50,000 just arrived!" di Home ternyata teks statis,
+  tak ikut UNSORTED (bisa bertentangan dgn ring) — sekarang sinkron & hilang otomatis saat 0; topbar ⭐
+  hardcoded "240" sementara halaman Me bilang "120" — sekarang disambungkan ke STARS asli.
+
+---
+
+## M. Monetisasi & Premium — item tertunda (spec utama di `premium-setting.md`)
+
+Keputusan pembagian Free/Pro sudah **disepakati & ditulis di `premium-setting.md`**. Yang tersisa di backlog:
+
+- **M1. Growth Reward (`GROW_REWARD`) — `[BLOCKED — butuh build]`.** SATU-satunya keputusan premium yang menambah
+  scope nyata (mekanik bunga tabungan simulasi + scheduler bulanan "Hari Tumbuh" + layar rate ortu di "Your bank
+  rates"). Free, COGS nol, tier-aware (Little ~5%/bln; Middle/Teen ~1–2%/bln, TD wajib > GR). Berperan sebagai
+  **penyebut** yang membuat Time Deposit punya arti (menutup bug: uang diam di Save saat ini menghasilkan nol).
+  Mendarat proporsional ke wallet Save penghasil (bukan Someday/Unsorted). Aturan tangga + cap wajib. Detail §5.
+- **M2. Rapor Literasi Finansial (Pro) — formula-first.** 3 lapis (angka deterministik → rubrik konstanta 5 dimensi
+  → narasi template; LLM maksimal lapis 3, tak pernah sentuh angka — C3). Cadence per-semester. Metrik sumber sudah
+  ada di `financial_literacy.md` §7. Detail §6.
+- **M3. Akun ortu kedua = kolom `sender_id`/`actor_id` + `parent.displayName` (free text).** Cost ~nol, tapi belum
+  dibangun di mockup. Jual identitas, bukan akses (§4).
+- **M4. Gating flags** `PLAN`/`isPro`/`LIMITS` di app ortu (§3). **Constraint C1**: app anak render dari kapabilitas
+  aktif, BUKAN dari plan — tidak ada `<ProLock/>` di app anak. GR bukan bagian flag `grow`.
+- **M5. Slot iklan (app ortu saja, C2)** P1–P4 + daftar-tidak (§7). Belum ada inventory/komponen.
+- **M6. Paywall flow + pembayaran — ⚠️ DIKOREKSI.** Rencana lama ("QRIS/GoPay/transfer via checkout web")
+  **batal untuk iOS**: storefront Indonesia tidak dapat pengecualian anti-steering, pengecualian Reader App
+  tidak berlaku, dan jalur pembayaran luar membawa risiko terminasi akun. Yang berlaku: **Apple IAP** (Program
+  Usaha Kecil 15%) untuk iOS — **pasar utama**; **Google Play Billing + User Choice Billing** untuk Android
+  (Xendit/Mayar sah, hemat ~4%). Momen paywall tetap: setelah Sort pertama berhasil (§8).
+- **M7. Arsitektur entitlement (BARU).** Empat tabel — `entitlements`, `iap_receipts`, `schools`,
+  `school_members` — dengan satu resolver `isPro(user)`. Aturan UX yang sudah dikunci: **tombol upgrade
+  tidak pernah tampil untuk pengguna sekolah**, dan kolom kode sekolah dikubur di Settings.
+- **M8. Model harga belum final (BLOKER KEPUTUSAN).** `premium-setting.md` mengunci one-time Rp 399.000.
+  Risiko struktural sekali-bayar (pendapatan sekali vs kewajiban seumur pemakaian) sudah teridentifikasi;
+  usulan hibrida (slot founding-member seumur hidup terbatas → langganan) belum diputuskan.
+
+## N. Family Circle (ditunda — pernah diusulkan, ditolak untuk v1)
+Undang keluarga besar (kakek/nenek/om/tante) untuk lihat dream & ikut nyumbang (tetap butuh konfirmasi ortu,
+jangan rusak Model A). Growth loop + kultural. **Keputusan v1: TIDAK** — Ghozy menilai keluarga besar mungkin
+kurang peduli & menambah kompleksitas. Simpan kalau nanti data bilang sebaliknya.
+
+## O. B2B sekolah — ⚠️ DILURUSKAN (dulu terbaca bertentangan dengan console)
+Dua pernyataan yang tampak bertabrakan sebenarnya menjawab pertanyaan berbeda. Versi yang benar:
+
+**Strategi go-to-market: JANGAN dikejar aktif.** Kurikulum (`financial_literacy*.md`) sudah ~80% siap jadi
+bahan B2B dan "Rapor Literasi Finansial" adalah bahasa yang sekolah paham — tapi Ghozy pegawai kantoran tanpa
+waktu untuk sales cycle. Masuk hanya kalau partner datang sendiri. Ganti strategi: **webinar/paket edukasi**
+(B2B versi solo — rekam sekali, jual selamanya; puncak Ramadan/THR & Juli/tahun-ajaran). Ini juga mesin
+revenue berulang yang menutup lubang sekali-bayar.
+
+**Jalur teknis: SIAP, dan itu tidak bertentangan.** Console sudah memodelkan plan Sekolah, tabel kursi, dan
+peran Admin sekolah; arsitektur entitlement sudah punya tabel `schools` & `school_members` (lihat M7). Jalurnya
+**Enterprise Services (Pedoman App Store 3.1.3(c))** — diprovisikan sepenuhnya di luar app store, jadi tidak
+melanggar aturan IAP. Aturan UX yang sudah dikunci: **tombol upgrade tidak pernah tampil untuk pengguna
+sekolah**, kolom kode sekolah dikubur di Settings.
+
+*Ringkasnya: pintunya dibuat dan dipasang, tapi tidak ada yang berdiri di depannya menawarkan.*
+
+## P. OTP berbasis versi (opsi cadangan, jangan dipikirkan sekarang)
+Kalau lubang revenue front-loaded OTP jadi masalah: "Celengan Pro 2026" milik selamanya, versi major berikutnya
+beli lagi dgn diskon upgrade (pola Sketch/Fantastical). Catat saja.
+
+## Q. Affiliate versi aman (kalau tetap mau — ditolak untuk sekarang)
+BUKAN di dream anak (membunuh premis: sabar/menunda/butuh-vs-ingin). Hanya di **momen fulfilment ortu** (app ortu,
+setelah cash-out di-approve, saat ortu sudah pasti beli). Ekonomi kecil (komisi 1–5%). Sudah tercakup sbg slot P2 di §7.
+
+---
+
+## R. Backlog Console (rincian di `nummi_console.md`)
+Console punya backlog sendiri karena permukaannya berbeda sifat (operator, lintas-keluarga, bukan produk):
+**C-1** sambungkan ke data nyata · **C-2** autentikasi & peran sungguhan · **C-3** samakan jendela metrik
+7 vs 14 hari · **C-4** ekspor CSV · **C-5** mode dukungan harus jadi kebijakan sisi server (row-level
+security), bukan penyembunyian di sisi klien · **C-6** jejak audit kebal-hapus · **C-7** validasi ambang
+status 14/21/30 hari dengan data nyata.
+
+Yang perlu diketahui dari console **oleh sisi produk**: metrik utara = keluarga aktif mingguan dengan
+**siklus uang lengkap** (bukan DAU — mengejar DAU bertentangan dengan misi), metrik kepercayaan =
+**utang janji** (`approve → belum ditandai Done`), dan **pemeriksa invarian harian** yang menegakkan
+janji produk: `Unsorted + Spend + Save + Give + Grow = Total`, nol gembok Pro di app anak, nol slot iklan
+di app anak, nol tombol upgrade untuk pengguna sekolah. Baris ledger yang tidak nol = **insiden P0**.
+
+---
+
+## D. Keputusan yang menunggu (bukan pekerjaan build — tapi memblokir yang lain)
+Rincian & rekomendasi ada di `nummi-status.md` §5. Ringkasnya:
+
+| # | Keputusan | Kenapa memblokir |
+|---|---|---|
+| **D1** | Bahasa produk (Indonesia vs Inggris) | semua copy di 5 permukaan bergantung padanya |
+| **D2** | Tabel istilah final kategori × tier | brand, design system, dan mockup saat ini bertiga berbeda |
+| **D3** | Model harga (sekali-bayar vs hibrida) | menentukan bentuk paywall, entitlement, dan proyeksi |
+| **D4** | Distribusi (native/Expo vs PWA) | memblokir mulainya M1 |
+| **D5** | Little & Teen masuk MVP atau tidak | menentukan besar cakupan app anak |
