@@ -1,0 +1,88 @@
+/** Tipe domain Nummi. Tidak ada logika di sini — hanya bentuk data. */
+
+export type Category = 'spend' | 'save' | 'give' | 'grow';
+export type Tier = 'little' | 'middle' | 'teen';
+
+/** Unsorted bukan kategori — ia tempat mendarat sebelum anak memberi tugas pada uangnya. */
+export type Pocket = Category | 'unsorted';
+
+export type WalletKind =
+  | 'unsorted'
+  | 'envelope'      // di bawah spend
+  | 'dream'         // di bawah save, punya target
+  | 'free_savings'  // di bawah save, catch-all. Nama sementara (backlog F)
+  | 'give_pool'
+  | 'instrument';   // di bawah grow: time_deposit | gold | forex
+
+export interface Wallet {
+  id: string;
+  childId: string;
+  name: string;
+  category: Pocket;
+  kind: WalletKind;
+  /** hanya untuk kind 'dream' */
+  targetAmount?: number;
+}
+
+/**
+ * Baris ledger. APPEND-ONLY (ADR-0014) — tidak pernah di-UPDATE atau DELETE.
+ * `fromWalletId === null` berarti uang masuk dari luar (allowance, Send money, reward).
+ */
+export interface LedgerEntry {
+  id: string;
+  childId: string;
+  fromWalletId: string | null;
+  toWalletId: string | null;
+  amount: number;
+  reason: LedgerReason;
+  createdAt: string;
+}
+
+export type LedgerReason =
+  | 'allowance' | 'send_money' | 'take_money' | 'reward_money'
+  | 'sort' | 'move' | 'cash_out'
+  | 'grow_in' | 'harvest' | 'give_away';
+
+export type RequestKind =
+  | 'cash_out' | 'give_away' | 'prize' | 'mission_claim'
+  | 'grow_in' | 'harvest';
+
+export type RequestStatus = 'needs_ok' | 'approved' | 'declined' | 'talk_about_it';
+
+/**
+ * DUA KOLOM, BUKAN SATU ENUM (ADR-0002).
+ * Menggabungkannya adalah kesalahan yang sangat wajar — dan membunuh keputusan "approve ≠ fulfil".
+ */
+export type Fulfilment = 'not_applicable' | 'todo' | 'done';
+
+export interface MoneyRequest {
+  id: string;
+  childId: string;
+  kind: RequestKind;
+  amount: number;
+  sourceWalletId?: string;
+  /** wajib untuk cash_out, opsional untuk give_away — jangan pajaki kemurahan hati (ADR-0006) */
+  reason?: string;
+  status: RequestStatus;
+  fulfilment: Fulfilment;
+  /** wajib sebelum request Give bisa ditutup (ADR-0006) */
+  fulfilmentStory?: string;
+  decidedByParentId?: string;
+}
+
+export type RuleMode = 'flexible' | 'strict';
+
+export interface AutoSplit {
+  enabled: boolean;
+  /** persen per kategori, 0-100 */
+  ratios: Partial<Record<Category, number>>;
+  /** wallet tujuan per kategori, mis. spend -> Snacks */
+  destinations: Partial<Record<Category, string>>;
+}
+
+export interface MoneyRules {
+  childId: string;
+  /** Strict DEFAULT MATI (ADR-0005) */
+  mode: RuleMode;
+  autoSplit: AutoSplit;
+}
