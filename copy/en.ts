@@ -197,6 +197,49 @@ export const en: Dictionary = {
     growProtected: 'Grow only leaves through Harvest',
   },
 
+  settings: {
+    title: 'Settings',
+    allowance: 'Allowance schedule',
+    rates: 'Your bank rates',
+    prices: 'Today’s prices',
+    investments: 'Manage investments',
+    allowanceOn: 'On',
+    allowanceOff: 'Off',
+    amount: 'How much',
+    frequency: 'How often',
+    day: 'Which day',
+    nextDates: 'Next three',
+    // Sudah dijadwalkan ortu sendiri — meminta ortu menyetujui keputusannya sendiri tiap
+    // minggu hanya melatih menekan "ya" tanpa membaca.
+    noApprovalNeeded: 'Lands automatically. No approval each time.',
+    landsInUnsorted: 'It lands in Unsorted, same as money you send by hand.',
+    ratesTitle: 'Your bank rates',
+    ratesHint: 'You are the bank. These are the rates your child earns on a Time Deposit.',
+    ratesUpsideDown: 'Longer tenors pay less here. Real deposits reward waiting — worth a second look.',
+    oneTapApprove: 'With rates set, a deposit request is a one-tap approval.',
+    pricesTitle: 'Today’s prices',
+    goldSell: 'Gold — buy',
+    goldBuyback: 'Gold — sell back',
+    spread: 'Gap {pct}%',
+    fx: 'Currencies',
+    pricesFrom: 'From {date}',
+    investmentsTitle: 'Manage investments',
+    matured: 'Ready to harvest',
+    daysLeft: '{days} days to go',
+    startedOn: 'Started {date}',
+    placeholderDates: 'Seed dates are placeholders — maturity comes from the ledger until real dates land in S1b.',
+    amountRequired: 'Set an amount first',
+    dayOutOfRange: 'Pick a valid day (monthly is capped at 28)',
+    ratesNegative: 'Rates cannot be negative',
+    ratesTooHigh: 'That rate looks like a typo',
+  },
+
+  frequency: { weekly: 'Every week', biweekly: 'Every two weeks', monthly: 'Every month' },
+  weekday: {
+    '0': 'Sunday', '1': 'Monday', '2': 'Tuesday', '3': 'Wednesday',
+    '4': 'Thursday', '5': 'Friday', '6': 'Saturday',
+  },
+
   sort: {
     title: 'Sort your money',
     // Angkanya TIDAK PERNAH ditulis mati — datang dari money_rules milik ortu.

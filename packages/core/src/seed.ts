@@ -128,6 +128,32 @@ export const SEED_ECONOMY = {
   chaptersTotal: 6,
 };
 
+/**
+ * Jadwal uang saku kanonik. Mendarat di Unsorted, tanpa persetujuan (sudah dijadwalkan ortu).
+ * Hari 1 = Senin.
+ */
+export const SEED_ALLOWANCE = {
+  enabled: true,
+  amount: 50_000,
+  frequency: 'weekly' as const,
+  day: 1,
+};
+
+/** "Hari ini" untuk seed — supaya pratinjau tanggal tidak bergantung jam mesin. */
+export const SEED_TODAY = '2026-07-28';
+
+/**
+ * ⚠️ CATATAN: `createdAt` setiap baris ledger di atas memakai tanggal placeholder yang SAMA
+ * (2026-07-01). Konsekuensinya, jatuh tempo deposito TIDAK bisa disimpulkan dari tanggal:
+ * 6 bulan dari 1 Juli jatuh di Desember, padahal bunga Rp750 sudah tercatat dan saldo seed
+ * memang dimaksudkan "sudah jatuh tempo".
+ *
+ * Aturan yang berlaku, sama dengan `grow.ts`: **ledger yang berwenang.** Bunga yang sudah
+ * tercatat berarti jatuh tempo. Hitung mundur berbasis tanggal baru bisa dipercaya setelah
+ * S1b memberi tanggal mulai yang sungguhan per instrumen.
+ */
+export const SEED_TD_START = '2026-07-01';
+
 /** Harga contoh. Di produksi datang dari scheduler (backlog T), bukan dari sini. */
 export const SEED_PRICES = {
   goldSellPerGram: 1_450_000,

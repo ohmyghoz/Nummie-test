@@ -16,10 +16,20 @@ npm run parent:build
 ```
 
 **Sudah ada:** Dashboard (switcher + ring + strip pending **per-anak** + utang janji) ·
-**Approval inbox 5-jalur** · Send money · Take money · Money rules.
+**Approval inbox 5-jalur** · Send money · Take money · Money rules ·
+**Settings** (jadwal uang saku · bunga bank · harga hari ini · kelola investasi).
 
-**Belum ada:** Add a child · Settings (allowance, bank rates, harga harian) · Missions/Jobs/Prizes
-builder · Insight · Transactions · undang ortu kedua.
+Nav: Dashboard / Requests / Send / Settings. **Money rules sengaja TIDAK di nav** — ia setelan
+**per-anak**, dicapai dari kartu anak di Dashboard; Settings adalah setelan tingkat akun.
+
+**Belum ada:** Add a child · Missions/Jobs/Prizes builder · Insight · Transactions ·
+undang ortu kedua.
+
+⚠️ **Hitung mundur deposito belum bisa dipercaya.** Setiap baris ledger di seed memakai
+`createdAt` placeholder yang sama (`2026-07-01`), jadi tanggal bilang "153 hari lagi" sementara
+bunga Rp750 sudah tercatat dan seed memang memaksudkan "sudah jatuh tempo". Sesuai prinsip
+`core/grow.ts`, **ledger yang berwenang**: bunga tercatat = jatuh tempo. Hitung mundur berbasis
+tanggal baru sahih setelah S1b memberi tanggal mulai sungguhan per instrumen.
 
 **Belum persisten** — keputusan di inbox menampilkan hasilnya lewat `@nummi/core`, tapi belum
 menulis ledger. Penulisan menunggu S1b.

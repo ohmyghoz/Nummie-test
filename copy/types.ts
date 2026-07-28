@@ -81,6 +81,20 @@ export interface Dictionary {
 
   takeLock: Record<'dreamProtected' | 'giveProtected' | 'growProtected', string>;
 
+  settings: Record<
+    'title' | 'allowance' | 'rates' | 'prices' | 'investments'
+    | 'allowanceOn' | 'allowanceOff' | 'amount' | 'frequency' | 'day' | 'nextDates'
+    | 'noApprovalNeeded' | 'landsInUnsorted'
+    | 'ratesTitle' | 'ratesHint' | 'ratesUpsideDown' | 'oneTapApprove'
+    | 'pricesTitle' | 'goldSell' | 'goldBuyback' | 'spread' | 'fx' | 'pricesFrom'
+    | 'investmentsTitle' | 'matured' | 'daysLeft' | 'startedOn' | 'placeholderDates'
+    | 'amountRequired' | 'dayOutOfRange' | 'ratesNegative' | 'ratesTooHigh',
+    string
+  >;
+
+  frequency: Record<'weekly' | 'biweekly' | 'monthly', string>;
+  weekday: Record<'0' | '1' | '2' | '3' | '4' | '5' | '6', string>;
+
   sort: Record<
     'title' | 'autoSplitHint' | 'lockedTitle' | 'lockedBody' | 'preview' | 'confirm'
     | 'leftInUnsorted',

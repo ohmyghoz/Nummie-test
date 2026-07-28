@@ -20,14 +20,18 @@ export function TopBar({ parentName }: { parentName: string }) {
   );
 }
 
-export type NavKey = 'dashboard' | 'inbox' | 'send' | 'rules';
+export type NavKey = 'dashboard' | 'inbox' | 'send' | 'settings';
 
+/**
+ * Money rules TIDAK di nav: ia setelan PER-ANAK, dicapai dari kartu anak di Dashboard.
+ * Settings di nav karena ia setelan tingkat akun (uang saku, rate, harga, investasi).
+ */
 export function Nav({ active, pending }: { active: NavKey; pending: number }) {
   const items = [
     { key: 'dashboard', href: '/', icon: '🏠', label: dict.parent.dashboard },
     { key: 'inbox', href: '/requests', icon: '📥', label: dict.parent.inbox, badge: pending },
     { key: 'send', href: '/send', icon: '💸', label: dict.parent.send },
-    { key: 'rules', href: '/rules', icon: '⚖️', label: dict.parent.rules },
+    { key: 'settings', href: '/settings', icon: '⚙️', label: dict.settings.title },
   ] as const;
 
   return (

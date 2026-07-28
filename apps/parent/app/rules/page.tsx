@@ -101,7 +101,7 @@ export default async function RulesPage({
           </p>
         </div>
       </main>
-      <Nav active="rules" pending={pending} />
+      <Nav active="settings" pending={pending} />
     </>
   );
 }

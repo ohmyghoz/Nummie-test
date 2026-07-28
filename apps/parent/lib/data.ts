@@ -9,8 +9,12 @@
 import {
   CHILD_ARTHUR,
   POCKETS,
+  SEED_ALLOWANCE,
   SEED_LEDGER,
+  SEED_PRICES,
   SEED_REQUESTS,
+  SEED_TD_START,
+  SEED_TODAY,
   SEED_RULES,
   SEED_WALLETS,
   pocketBalances,
@@ -19,8 +23,10 @@ import {
   takeTargets,
   totalBalance,
   walletBalances,
+  type AllowanceSchedule,
   type MoneyRequest,
   type MoneyRules,
+  type Prices,
   type Pocket,
   type TakeTarget,
   type Tier,
@@ -28,7 +34,7 @@ import {
 } from '@nummi/core';
 
 export { POCKETS };
-export type { MoneyRequest, Pocket, TakeTarget, Wallet };
+export type { AllowanceSchedule, MoneyRequest, Pocket, Prices, TakeTarget, Wallet };
 
 export interface ChildView {
   id: string;
@@ -47,11 +53,18 @@ export interface ChildView {
   rules: MoneyRules;
   takeTargets: TakeTarget[];
   unsortedWallet?: Wallet;
+  allowance: AllowanceSchedule;
+  /** instrumen Grow + modal & nilai sekarang, keduanya dari ledger */
+  investments: { wallet: Wallet; rupiahIn: number; valueNow: number }[];
 }
 
 export interface ParentData {
   parentName: string;
   children: ChildView[];
+  prices: Prices;
+  /** "hari ini" dari seed — pratinjau tanggal tidak boleh bergantung jam mesin */
+  today: string;
+  tdStart: string;
 }
 
 function buildChild(): ChildView {
@@ -75,13 +88,30 @@ function buildChild(): ChildView {
     rules: SEED_RULES,
     takeTargets: takeTargets(wallets),
     unsortedWallet: sendLandsIn(wallets),
+    allowance: SEED_ALLOWANCE,
+    // Modal & nilai KEDUANYA dari ledger — harga hanya menjelaskan (lihat core/grow.ts).
+    investments: wallets
+      .filter((w) => w.category === 'grow')
+      .map((wallet) => ({
+        wallet,
+        rupiahIn: SEED_LEDGER
+          .filter((e) => e.reason === 'grow_in' && e.toWalletId === wallet.id)
+          .reduce((sum, e) => sum + e.amount, 0),
+        valueNow: byWallet[wallet.id] ?? 0,
+      })),
   };
 }
 
 export function getParentData(): ParentData {
   // Multi-anak sudah jadi bentuk datanya sejak awal: strip pending harus PER-ANAK,
   // bukan gabungan semua anak (perbaikan lintas-app yang sudah dikunci).
-  return { parentName: 'Ayah', children: [buildChild()] };
+  return {
+    parentName: 'Ayah',
+    children: [buildChild()],
+    prices: SEED_PRICES,
+    today: SEED_TODAY,
+    tdStart: SEED_TD_START,
+  };
 }
 
 export function findChild(data: ParentData, id?: string): ChildView {
