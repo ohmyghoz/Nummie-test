@@ -6,8 +6,10 @@
   "workspaces": ["packages/*", "apps/*"],
   "scripts": {
     "test": "npm run test --workspace @nummi/core",
-    "typecheck": "npm run typecheck --workspace @nummi/core && npm run typecheck --workspace @nummi/console",
+    "typecheck": "npm run typecheck --workspace @nummi/core && npm run typecheck --workspace @nummi/console && npm run typecheck --workspace @nummi/kid",
     "console:dev": "npm run dev --workspace @nummi/console",
-    "console:build": "npm run build --workspace @nummi/console"
+    "console:build": "npm run build --workspace @nummi/console",
+    "kid:dev": "npm run dev --workspace @nummi/kid -- --port 3100",
+    "kid:build": "npm run build --workspace @nummi/kid"
   }
 }

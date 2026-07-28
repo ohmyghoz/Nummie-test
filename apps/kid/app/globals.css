@@ -1,0 +1,92 @@
+/* App anak — responsif HP + iPad dalam satu basis kode.
+   Warna kategori semantik (Spend/Save/Give/Grow/Unsorted) DIWARISI dan tidak pernah diubah:
+   ia alat belajar, bukan pilihan gaya. Nada lebih hangat dari console.
+   Nol slot iklan (I4). Nol gembok Pro (I3) — fitur non-aktif tidak dirender sama sekali. */
+:root {
+  --canvas: #fff9f2; --surface: #ffffff; --surface-2: #fffdfa;
+  --ink: #241c46; --ink-2: #55507a; --ink-3: #8a85a6;
+  --line: #f0e8f8;
+  --brand: #6c4ce0; --brand-tint: #ede7fc;
+  --spend: #ff7a4d; --spend-tint: #ffede5;
+  --save: #2ca6e0;  --save-tint: #e2f2fb;
+  --give: #f056a0;  --give-tint: #fce6f1;
+  --grow: #2fc078;  --grow-tint: #e1f6ec;
+  --unsorted: #8a7cf0; --unsorted-tint: #ece9fc;
+  --sun: #ffb020;
+  --ui: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --r-lg: 22px; --r-md: 16px;
+  --sh: 0 2px 10px rgba(36, 28, 70, .06);
+  --sh-2: 0 10px 30px rgba(36, 28, 70, .1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--ui); background: var(--canvas); color: var(--ink); line-height: 1.5; -webkit-text-size-adjust: 100%; }
+a { color: inherit; text-decoration: none; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* shell: HP dulu, iPad lewat breakpoint — bukan basis kode kedua */
+.wrap { max-width: 460px; margin: 0 auto; padding: 18px 16px 96px; }
+@media (min-width: 820px) {
+  .wrap { max-width: 900px; padding: 28px 28px 110px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+}
+
+/* brand — X6: app anak dulu satu-satunya permukaan tanpa brand */
+.brandbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.coin { width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle at 32% 28%, #ffd56a, #f0a81c); display: grid; place-items: center; font-weight: 800; color: #6b4a05; box-shadow: 0 2px 8px rgba(255, 176, 32, .4); flex: 0 0 auto; }
+.wordmark { font-size: 19px; font-weight: 800; letter-spacing: -.01em; }
+.hi { margin-left: auto; font-size: 13px; color: var(--ink-3); font-weight: 600; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--sh); padding: 18px; margin-bottom: 14px; }
+.card h2 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); margin-bottom: 12px; }
+
+/* total + ring */
+.totalbox { text-align: center; padding: 6px 0 2px; }
+.totalbox .k { font-size: 13px; color: var(--ink-3); font-weight: 600; }
+.totalbox .v { font-size: 38px; font-weight: 800; letter-spacing: -.02em; margin-top: 2px; }
+.ring { display: flex; height: 16px; border-radius: 999px; overflow: hidden; margin: 16px 0 12px; background: var(--line); }
+.ring span { display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px 16px; }
+.legend .item { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.legend .dot { width: 10px; height: 10px; border-radius: 4px; flex: 0 0 auto; }
+.legend .amt { color: var(--ink); font-weight: 700; }
+
+/* kartu "uang baru datang" — SINKRON dari Unsorted, hilang otomatis saat nol.
+   Dulu ini teks statis dan bisa bertentangan dengan ring (bug lama). */
+.arrived { background: linear-gradient(135deg, #fff3d7, #ffe9c2); border: 1px solid #ffdca0; border-radius: var(--r-lg); padding: 18px; margin-bottom: 14px; }
+.arrived .big { font-size: 20px; font-weight: 800; }
+.arrived .sub { font-size: 13.5px; color: #7a5a12; margin-top: 3px; }
+.cta { display: inline-block; margin-top: 12px; background: var(--brand); color: #fff; font-weight: 700; font-size: 15px; padding: 11px 20px; border-radius: 999px; box-shadow: 0 6px 18px rgba(108, 76, 224, .35); }
+
+/* banner request */
+.banner { display: flex; align-items: center; gap: 10px; background: var(--brand-tint); border-radius: var(--r-md); padding: 12px 14px; font-size: 13.5px; font-weight: 600; color: #4a32a8; margin-bottom: 14px; }
+
+/* wallet rows */
+.pocket { margin-bottom: 16px; }
+.pocket .head { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
+.pocket .head .dot { width: 12px; height: 12px; border-radius: 4px; }
+.pocket .head .nm { font-size: 15px; font-weight: 800; }
+.pocket .head .tot { margin-left: auto; font-weight: 800; }
+.row { display: flex; align-items: center; gap: 10px; padding: 11px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); margin-bottom: 7px; }
+.row .nm { font-weight: 600; font-size: 14.5px; }
+.row .amt { margin-left: auto; font-weight: 700; }
+.row .meta { font-size: 12px; color: var(--ink-3); font-weight: 600; }
+.bar { height: 7px; border-radius: 999px; background: var(--line); overflow: hidden; margin-top: 7px; }
+.bar span { display: block; height: 100%; }
+.muted { color: var(--ink-3); font-size: 13.5px; }
+
+/* sort */
+.slot { display: flex; align-items: center; gap: 11px; padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--r-md); margin-bottom: 8px; background: var(--surface); }
+.slot .dot { width: 12px; height: 12px; border-radius: 4px; flex: 0 0 auto; }
+.slot .nm { font-weight: 700; font-size: 14.5px; }
+.slot .pct { font-size: 12px; color: var(--ink-3); font-weight: 700; }
+.slot .amt { margin-left: auto; font-weight: 800; }
+.lockbox { background: var(--unsorted-tint); border: 1px solid #d9d2fb; border-radius: var(--r-md); padding: 14px; margin-bottom: 14px; }
+.lockbox .t { font-weight: 800; font-size: 14.5px; margin-bottom: 3px; }
+.lockbox .b { font-size: 13.5px; color: var(--ink-2); }
+.pill { display: inline-block; font-size: 11.5px; font-weight: 800; border-radius: 999px; padding: 3px 10px; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink-2); }
+
+/* nav bawah */
+.nav { position: fixed; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, .96); border-top: 1px solid var(--line); display: flex; justify-content: center; gap: 6px; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); backdrop-filter: blur(8px); }
+.nav a { flex: 1; max-width: 130px; text-align: center; font-size: 11.5px; font-weight: 700; color: var(--ink-3); padding: 7px 4px; border-radius: 12px; }
+.nav a.on { color: var(--brand); background: var(--brand-tint); }
+.nav .ic { display: block; font-size: 18px; margin-bottom: 1px; }

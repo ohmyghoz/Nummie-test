@@ -42,9 +42,49 @@ export const id: Dictionary = {
     waitingForGrownUp: 'Menunggu orang tua',
   },
 
+  nav: {
+    home: 'Beranda',
+    wallets: 'Dompet',
+    add: 'Tambah',
+    missions: 'Misi',
+    me: 'Aku',
+  },
+
+  home: {
+    greeting: 'Hai, {child}',
+    totalLabel: 'Semua uangku',
+    justArrived: '{amount} baru masuk!',
+    sortItNow: 'Beri tugas',
+    nothingToSort: 'Semua uangmu sudah punya tugas. Keren.',
+    myDreams: 'Impianku',
+    requestsWaiting: '{count} menunggu orang tua',
+    toGo: 'kurang {amount}',
+  },
+
+  wallets: {
+    title: 'Dompetku',
+    target: 'Target {amount}',
+    reached: 'Tercapai!',
+    emptyPocket: 'Belum ada isinya',
+    lockedByGrow: 'Uang di sini keluar lewat Harvest saja',
+  },
+
+  requests: {
+    title: 'Menunggu orang tua',
+    empty: 'Tidak ada yang menunggu.',
+    waiting: 'Menunggu izin',
+    approved: 'Sudah diizinkan — belum dilakukan',
+    storyNeeded: 'Orang tuamu masih berutang cerita',
+  },
+
   sort: {
     title: 'Beri tugas untuk uangmu',
     autoSplitHint: '{spend}% Pakai / {save}% Simpan / {give}% Berbagi',
+    lockedTitle: 'Orang tuamu yang mengatur pembagian ini',
+    lockedBody: 'Kamu bisa melihat ke mana setiap rupiah pergi, tapi kali ini belum bisa menggesernya.',
+    preview: 'Beginilah hasilnya nanti',
+    confirm: 'Sudah pas',
+    leftInUnsorted: '{amount} tetap di Uang Baru',
   },
 
   rules: {

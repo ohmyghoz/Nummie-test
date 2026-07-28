@@ -23,7 +23,23 @@ export interface Dictionary {
     string
   >;
 
-  sort: Record<'title' | 'autoSplitHint', string>;
+  nav: Record<'home' | 'wallets' | 'add' | 'missions' | 'me', string>;
+
+  home: Record<
+    'greeting' | 'totalLabel' | 'justArrived' | 'sortItNow' | 'nothingToSort'
+    | 'myDreams' | 'requestsWaiting' | 'toGo',
+    string
+  >;
+
+  wallets: Record<'title' | 'target' | 'reached' | 'emptyPocket' | 'lockedByGrow', string>;
+
+  requests: Record<'title' | 'empty' | 'waiting' | 'approved' | 'storyNeeded', string>;
+
+  sort: Record<
+    'title' | 'autoSplitHint' | 'lockedTitle' | 'lockedBody' | 'preview' | 'confirm'
+    | 'leftInUnsorted',
+    string
+  >;
 
   /** Pesan mode Strict menjelaskan KENAPA terkunci, bukan sekadar tombol yang mati. */
   rules: Record<

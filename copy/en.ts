@@ -40,10 +40,52 @@ export const en: Dictionary = {
     waitingForGrownUp: 'Waiting for a grown-up',
   },
 
+  nav: {
+    home: 'Home',
+    wallets: 'Wallets',
+    add: 'Add',
+    missions: 'Missions',
+    me: 'Me',
+  },
+
+  home: {
+    greeting: 'Hi, {child}',
+    totalLabel: 'All my money',
+    justArrived: '{amount} just arrived!',
+    sortItNow: 'Give it a job',
+    nothingToSort: 'Everything has a job. Nice.',
+    myDreams: 'My dreams',
+    requestsWaiting: '{count} waiting for a grown-up',
+    toGo: '{amount} to go',
+  },
+
+  wallets: {
+    title: 'My wallets',
+    target: 'Target {amount}',
+    reached: 'Reached!',
+    emptyPocket: 'Nothing here yet',
+    // Grow tidak punya Move — Harvest satu-satunya jalan keluar (ADR-0003).
+    lockedByGrow: 'Money here leaves through Harvest only',
+  },
+
+  requests: {
+    title: 'Waiting for a grown-up',
+    empty: 'Nothing waiting.',
+    waiting: 'Needs OK',
+    approved: 'Said yes — not done yet',
+    storyNeeded: 'Your grown-up still owes you the story',
+  },
+
   sort: {
     title: 'Sort your money',
     // Angkanya TIDAK PERNAH ditulis mati — datang dari money_rules milik ortu.
     autoSplitHint: '{spend}% Spend / {save}% Save / {give}% Give',
+    // Mode Strict menjelaskan KENAPA terkunci, bukan sekadar tombol yang mati.
+    lockedTitle: 'Your grown-up set this split',
+    lockedBody: 'You can see where every rupiah goes, but you cannot move it this time.',
+    preview: 'Here is where it lands',
+    confirm: 'Looks good',
+    leftInUnsorted: '{amount} stays unsorted',
   },
 
   rules: {
