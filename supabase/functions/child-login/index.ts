@@ -54,9 +54,14 @@ Deno.serve(async (req: Request) => {
   await clearFailures(childId, ip);
 
   // 3. Terbitkan JWT dengan claim yang dibaca auth_role_kind() / auth_child_id() / auth_family_id().
+  // CATATAN: namanya BUKAN SUPABASE_JWT_SECRET. Supabase mereservasi prefix `SUPABASE_`
+  // untuk secrets — `supabase secrets set SUPABASE_...` ditolak, dan JWT secret tidak
+  // termasuk yang di-inject otomatis (hanya URL, ANON_KEY, SERVICE_ROLE_KEY, DB_URL).
+  // Memakai nama berprefix itu membuat nilainya undefined saat runtime.
+  //   supabase secrets set CHILD_JWT_SECRET=<jwt secret proyek>
   const key = await crypto.subtle.importKey(
     'raw',
-    new TextEncoder().encode(Deno.env.get('SUPABASE_JWT_SECRET')!),
+    new TextEncoder().encode(Deno.env.get('CHILD_JWT_SECRET')!),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign'],

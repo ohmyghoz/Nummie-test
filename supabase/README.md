@@ -8,11 +8,22 @@ Region: **Singapore** (latensi Indonesia).
 | `migrations/0002_rls.sql` | row-level security + trigger append-only ledger |
 | `migrations/0003_child_login_attempts.sql` | bahan rate limiting login anak |
 | `functions/child-login/` | Edge Function: kode keluarga + PIN → JWT ber-claim |
+| `seed.sql` | data uji kanonik (cermin `packages/core/src/seed.ts`) — jalankan **setelah** migrasi |
 
 ```bash
 supabase db push
+supabase secrets set CHILD_JWT_SECRET=<jwt secret proyek>   # WAJIB sebelum deploy
 supabase functions deploy child-login
 ```
+
+> **Nama secret-nya `CHILD_JWT_SECRET`, bukan `SUPABASE_JWT_SECRET`.** Supabase mereservasi
+> prefix `SUPABASE_` untuk secrets, dan JWT secret tidak termasuk yang di-inject otomatis
+> (hanya `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL`).
+> Memakai nama berprefix itu membuat penandatanganan token gagal diam-diam saat runtime.
+
+> **Cek dulu jenis JWT proyekmu.** `child-login` menandatangani **HS256** dengan JWT secret
+> lama. Proyek yang memakai *JWT signing key* asimetris (ECC/RSA) akan menolak token itu, dan
+> login anak mati total. Lihat **Settings → API → JWT Keys** sebelum deploy.
 
 ## Dua jenis pengguna
 
@@ -37,7 +48,28 @@ Menguji dengan keluarga sungguhan berarti data anak sungguhan. Untuk fase protot
 - nama samaran, bukan nama asli;
 - lahir hanya bulan + tahun (sudah jadi constraint skema, bukan sekadar niat baik);
 - tanpa foto — sekaligus alasan bagus untuk menunda item backlog "foto di cerita Give";
-- bisa dihapus atas permintaan (`delete from families` merambat lewat `on delete cascade`).
+- ⚠️ **bisa dihapus atas permintaan — BELUM BENAR.** Lihat di bawah.
+
+### ⚠️ Penghapusan data saat ini MUSTAHIL
+
+Berkas ini dulu menjanjikan `delete from families` merambat lewat `on delete cascade`.
+**Itu tidak berhasil.** Trigger append-only (`0002_rls.sql`) memasang `before delete on
+ledger_entries` yang selalu `raise exception`, dan trigger BEFORE DELETE tetap menyala saat
+cascade. Jadi rantai `families → children → ledger_entries` selalu meledak dan seluruh
+penghapusan di-rollback.
+
+Akibatnya janji privasi "bisa dihapus atas permintaan" tidak bisa dipenuhi — justru oleh
+penegak ADR-0014. **Belum diperbaiki: butuh keputusan produk**, karena menyentuh ADR-0014.
+Usulan paling ringan (sejarah tetap kebal di operasi normal, purge harus dinyalakan sadar
+per-transaksi):
+
+```sql
+if tg_op = 'DELETE'
+   and coalesce(current_setting('nummi.purge', true), '') = 'on'
+then return old; end if;
+```
+
+lalu penghapusan resmi jadi `set local nummi.purge = 'on';` sebelum `delete from families …`.
 
 ## Pemeriksa harian
 
