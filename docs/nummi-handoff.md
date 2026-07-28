@@ -111,13 +111,14 @@ saja. Kelima mockup aktif **tidak live-linked** satu sama lain — angka disamak
   - **Teen (Gr7–9)**: seperti Middle + anak boleh edit rasio auto-split dalam batas ortu.
 - **Sort**: tier-aware. Auto-split = aturan ortu (default 40% Spend / 40% Save / 20% Give). Grow dikecualikan dari Sort.
 - **Perpindahan uang (mode Flexible)**: transfer bebas antar semua pocket biasa; Grow pengecualian (lihat backlog D — flow Add money/Move money sudah dibangun untuk Spend/Save/Give; **Unsorted sengaja tidak ikut**, tetap khusus lewat Sort).
-- **Localization — BELUM DIPUTUSKAN, ini blocker (D1)**: kondisi nyata sekarang tidak konsisten.
-  Mockup anak & ortu berbahasa **Inggris**; console berbahasa **Indonesia**; app ortu **mencampur**
-  keduanya di beberapa layar (mis. "Detail permintaan", "Undang pasangan"); `nummi-product-design-system.md`
-  §13.1 justru sudah **mengunci istilah Indonesia per tier**. Teks bebas yang ditulis anak (alasan cash-out,
-  alasan Give) memang sengaja Indonesia dan itu benar. Yang belum diputuskan: bahasa **UI**-nya.
-  Rekomendasi: Indonesia sebagai bahasa produk (tier Little belum membaca Inggris), Inggris sebagai
-  bahasa kedua. Setelah diputuskan, satu tabel istilah kategori × tier dikunci dan semua turunan mengikuti.
+- **Localization — ✅ DIPUTUSKAN: bahasa UI = Inggris** ([ADR-0016](decisions/0016-bahasa-produk-inggris.md)).
+  Console tetap **Indonesia** (permukaan operator, bukan produk). Teks bebas yang ditulis anak
+  (alasan cash-out, alasan & cerita Give) memang sengaja Indonesia dan itu benar — itu tulisan
+  pengguna, bukan copy. `nummi-product-design-system.md` §13.1 yang mengunci istilah Indonesia per
+  tier kini **menyimpang dari keputusan** dan harus dibaca sebagai usulan, bukan aturan.
+  Yang tersisa jadi pekerjaan biasa, bukan blocker: app ortu masih **mencampur** ID di beberapa
+  layar ("Detail permintaan", "Undang pasangan") — rapikan ke Inggris lewat `copy/`.
+  D2 (apakah istilah berubah menurut tier) masih terbuka, tapi kini menyempit ke sisi Inggris saja.
 - **Request/approval terpusat**: semua aksi yang butuh OK ortu (Cash out, Grow/beli, Harvest) mendaftar ke satu store `REQUESTS`. Awareness anak lewat 3 lapis: badge di kartu Grow (lokal) → banner "N requests waiting" di Home (semua tier, di bawah Unsorted) → layar **Requests** (antrean penuh). Di mockup, approval ortu disimulasikan (tap badge kartu atau tap baris Requests). Store ini = cermin sisi-anak dari Approval Inbox ortu (Backlog G).
 
 ## Navigasi & UI yang sudah dibangun (di mockup)
@@ -298,7 +299,8 @@ masih tombol demo) · Edit/hapus mission & prize yang sudah dibuat (baru bisa cr
 - JS satu IIFE; validasi dengan `node --check`. Angka & aksi sebagian placeholder (form Create belum tervalidasi; Cash-out/Harvest/Grow-in masih toast — butuh approval-flow beneran, lihat Backlog G & H).
 
 ## Langkah berikutnya (urutan yang disarankan)
-1. **Keputusan D1 + D2** — bahasa produk & tabel istilah final. Semua copy bergantung pada ini.
+1. ~~Keputusan D1~~ ✅ **selesai — Inggris** (ADR-0016). Tersisa **D2** (tabel istilah final),
+   yang kini menyempit ke sisi Inggris saja.
 2. **Bersih-bersih kontradiksi K3–K7** (format rupiah, target dream, request pending, rasio seed,
    badge streak yatim) — mekanis, murah, menghilangkan angka yang saling bertentangan antar layar.
 3. **Turunkan Fase 6 ke app anak** — auto-split & money rules ditegakkan di sisi anak, bukan cuma diatur ortu.

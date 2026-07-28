@@ -64,8 +64,8 @@ Pakai `str_replace` / edit terarah. Jangan menulis ulang berkas utuh untuk mengu
 
 ### 4. Bahasa
 
-**Percakapan & dokumen: Indonesia.** String UI saat ini masih Inggris (D1 belum diputuskan) —
-itu disengaja, jangan "diperbaiki" sendiri. Lihat aturan copy di bawah.
+**Percakapan & dokumen: Indonesia.** String UI **Inggris** — itu keputusan terkunci (ADR-0016),
+bukan pekerjaan yang belum selesai. Jangan "diterjemahkan" sendiri. Lihat aturan copy di bawah.
 
 ---
 
@@ -88,9 +88,13 @@ Baris ledger yang membuat I1 tidak nol = **insiden P0**.
 
 ---
 
-## Aturan copy (penting — D1 masih terbuka)
+## Aturan copy (D1 sudah diputuskan: **Inggris** — ADR-0016)
 
 - **Tidak boleh ada string UI yang di-hardcode di komponen.** Semuanya lewat `copy/`.
+  Aturan ini lahir untuk membuat D1 murah, dan **tetap berlaku setelah D1 dijawab** — itu yang
+  menjaga keputusan bahasa tetap bisa dibalik dengan mengganti isi kamus.
+- `copy/id.ts` tidak dihapus. `Dictionary` mewajibkan kedua bahasa memenuhi bentuk yang sama,
+  jadi sisi Indonesia tetap dijaga tipe, bukan dibiarkan busuk.
 - Istilah kategori diakses lewat lookup `[tier][kategori]`, tidak pernah ditulis mati — karena D2
   (apakah istilah berubah menurut tier) belum diputuskan.
 - Nominal **selalu** lewat `formatRp()` dari `packages/core`. Format terkunci: `Rp50.000`
@@ -127,7 +131,7 @@ mengimpor dari `apps/*`.
 
 | # | Keputusan | Aturan sementara |
 |---|---|---|
-| **D1** | Bahasa produk | port Inggris apa adanya, semua lewat `copy/` |
+| ~~D1~~ | ~~Bahasa produk~~ | ✅ **diputuskan: Inggris** (ADR-0016) |
 | **D2** | Tabel istilah kategori × tier | lookup, bukan teks mati |
 | **D3** | Model harga | `isPro()` sudah ada; bentuk paywall belum dibangun |
 | **D4** | Distribusi (native/Expo vs PWA) | **web = prototipe validasi, BUKAN jawaban D4** |

@@ -31,8 +31,9 @@ lengkap ada di `nummi-status.md`.*
   Sisa: mockup iPad dan dua mockup arsip.
 - **X9. Instruksi Project masih menunjuk mockup usang** (`celengan-home-mockup.html`) — ganti ke
   lima berkas aktif, kalau tidak setiap sesi baru mengedit berkas yang salah.
-- **X10. Ejaan Inggris tidak konsisten** ("Practice" HP vs "Practise" iPad) — gugur sendiri kalau
-  keputusan bahasa (D1) jatuh ke Indonesia.
+- **X10. Ejaan Inggris tidak konsisten** ("Practice" HP vs "Practise" iPad) — ⚠️ **naik prioritas,
+  tidak gugur.** Asumsi lamanya: gugur sendiri kalau D1 jatuh ke Indonesia. D1 jatuh ke **Inggris**
+  (ADR-0016), jadi ini harus benar-benar diperbaiki: pilih satu varian, tegakkan di `copy/en.ts`.
 
 ---
 
@@ -344,7 +345,7 @@ Rincian & rekomendasi ada di `nummi-status.md` §5. Ringkasnya:
 
 | # | Keputusan | Kenapa memblokir |
 |---|---|---|
-| **D1** | Bahasa produk (Indonesia vs Inggris) | semua copy di 5 permukaan bergantung padanya |
+| ~~D1~~ | ~~Bahasa produk~~ | ✅ **diputuskan: Inggris** (ADR-0016) — tidak lagi memblokir |
 | **D2** | Tabel istilah final kategori × tier | brand, design system, dan mockup saat ini bertiga berbeda |
 | **D3** | Model harga (sekali-bayar vs hibrida) | menentukan bentuk paywall, entitlement, dan proyeksi |
 | **D4** | Distribusi (native/Expo vs PWA) | memblokir mulainya M1 |

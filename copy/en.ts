@@ -1,7 +1,10 @@
 /**
- * Kamus Inggris — port apa adanya dari mockup (keputusan 28 Juli 2026).
- * Ini BUKAN pernyataan bahwa D1 sudah dijawab. Lihat docs/decisions/OPEN-keputusan-tertunda.md.
+ * Kamus Inggris — KAMUS AKTIF produk (ADR-0016 menutup D1).
  * Diisi bertahap saat setiap layar dipindahkan dari legacy/ ke apps/.
+ *
+ * Catatan saat mengisi: ejaan harus konsisten satu varian (backlog X10 — "Practice" vs
+ * "Practise" pernah berbeda antar permukaan). Dulu diasumsikan gugur kalau D1 jatuh ke
+ * Indonesia; karena D1 jatuh ke Inggris, konsistensi itu sekarang wajib ditegakkan di sini.
  */
 import type { Dictionary } from './types.js';
 

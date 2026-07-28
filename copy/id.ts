@@ -1,6 +1,10 @@
 /**
- * Kamus Indonesia. Console sudah 100% Indonesia dan app ortu sudah mencampur — keduanya jadi
- * bahan awal di sini. D1 belum diputuskan; kamus ini siap dipakai kapan pun jawabannya turun.
+ * Kamus Indonesia — CADANGAN, bukan kamus aktif. Bahasa produk = Inggris (ADR-0016 menutup D1).
+ *
+ * Sengaja tetap dipelihara, bukan dihapus: `Dictionary` mewajibkan kedua bahasa memenuhi bentuk
+ * yang sama, jadi berkas ini dijaga tipe dan tidak membusuk diam-diam. Itu yang membuat ADR-0016
+ * tetap murah dibalik kalau D5 memasukkan Little (KG B–Grade 2), yang memang belum bisa membaca
+ * Inggris — pemicu peninjauan ulang yang sudah dicatat di ADR-nya.
  *
  * Catatan: teks bebas yang ditulis anak (alasan cash-out, alasan Give) memang berbahasa Indonesia
  * apa adanya dan TIDAK terpengaruh D1. Jangan disimpan di sini.

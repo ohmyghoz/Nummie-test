@@ -1,4 +1,4 @@
-# Keputusan yang MASIH TERBUKA (D1–D5)
+# Keputusan yang MASIH TERBUKA (D2–D5)
 
 **Jangan menjawab salah satu dari ini lewat kode.** Kalau sebuah tugas memaksanya, hentikan dan tanyakan.
 
@@ -6,17 +6,15 @@ Rincian dan rekomendasi ada di `../nummi-status.md` §5.
 
 ---
 
-## D1 — Bahasa produk (Indonesia vs Inggris)
+## ~~D1 — Bahasa produk~~ ✅ DIPUTUSKAN
 
-Mockup berbahasa Inggris; design system §13.1 mengunci istilah Indonesia; console 100% Indonesia;
-app ortu mencampur keduanya. Pasar Indonesia.
+**Tetap Inggris.** Lihat [ADR-0016](0016-bahasa-produk-inggris.md).
 
-**Rekomendasi:** Indonesia sebagai bahasa produk, Inggris sebagai bahasa kedua. Alasannya bukan
-sekadar pasar — anak KG B–Grade 2 belum membaca Inggris, dan tier Little justru yang paling
-bergantung pada label.
+Ringkasnya: rekomendasi awal (Indonesia) bersandar pada anak KG B–Grade 2 yang belum bisa membaca
+Inggris — tapi cakupan prototipe saat ini **Middle saja** (D5), jadi argumen itu menjawab masalah
+yang belum dimiliki. Semua string tetap lewat `copy/`, jadi keputusan ini tetap murah dibalik.
 
-**Aturan sementara di repo:** port Inggris apa adanya, tapi **semua string lewat `copy/`**. Setelah
-D1 diputuskan, biayanya tinggal mengganti isi kamus.
+**Ditinjau ulang kalau** D5 memasukkan Little ke cakupan.
 
 ---
 
@@ -26,6 +24,10 @@ D1 diputuskan, biayanya tinggal mengganti isi kamus.
 sudah disetujui memberi label dwibahasa berpasangan (SPEND/PAKAI · SAVE/SIMPAN · GIVE/BERBAGI ·
 GROW/BERTUMBUH), persis sama dengan brand system §5.2 dan persis sama dengan kalimat posisi resmi.
 Yang menyimpang hanya design system §13.1.
+
+**Menyempit setelah ADR-0016.** Karena bahasa produk = Inggris, yang perlu dikunci tinggal sisi
+Inggrisnya (SPEND · SAVE · GIVE · GROW), dan itu sudah cocok antara lembar karakter, brand system
+§5.2, dan mockup. Sisi Indonesia tetap dijaga tipe di `copy/id.ts` supaya pembalikan tetap murah.
 
 Yang benar-benar perlu diputuskan tinggal: **apakah istilahnya berubah menurut tier atau tidak.**
 Argumen untuk tidak berubah: warna kategori sudah dikunci sebagai alat belajar yang tak pernah

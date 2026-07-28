@@ -26,11 +26,14 @@ kelihatannya lebih masuk akal.
 | [0013](0013-web-first-d4-tetap-terbuka.md) | Prototipe web = alat validasi, bukan jawaban distribusi |
 | [0014](0014-ledger-append-only.md) | Ledger append-only, saldo diturunkan |
 | [0015](0015-console-duluan-tipis.md) | Console dibangun duluan dan tipis |
+| [0016](0016-bahasa-produk-inggris.md) | Bahasa produk tetap Inggris (menutup D1) |
 
 ## Terbuka — jangan dijawab lewat kode
 
-[`OPEN-keputusan-tertunda.md`](OPEN-keputusan-tertunda.md) — D1 bahasa · D2 istilah · D3 harga ·
+[`OPEN-keputusan-tertunda.md`](OPEN-keputusan-tertunda.md) — D2 istilah · D3 harga ·
 D4 distribusi · D5 tier.
+
+~~D1 bahasa~~ → sudah diputuskan, lihat [ADR-0016](0016-bahasa-produk-inggris.md).
 
 ## Menambah ADR baru
 

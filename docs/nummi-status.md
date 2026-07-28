@@ -106,7 +106,7 @@ Diurutkan dari yang paling mahal kalau dibiarkan.
 
 | # | Kontradiksi | Di mana | Usulan |
 |---|---|---|---|
-| **K1** | **Bahasa UI**: seluruh mockup berbahasa Inggris; `nummi-product-design-system.md` §13.1 justru mengunci istilah Indonesia per tier (Pakai/Belanja/Pengeluaran, dst.); console 100% Indonesia; app ortu mencampur ID di beberapa layar ("Detail permintaan", "Undang pasangan") | semua | **butuh keputusanmu** — lihat §5 |
+| ~~**K1**~~ | ~~**Bahasa UI**~~ ✅ **selesai** — D1 diputuskan ke **Inggris** ([ADR-0016](decisions/0016-bahasa-produk-inggris.md)). Console tetap Indonesia (permukaan operator, bukan produk). Yang tersisa: app ortu masih mencampur ID di beberapa layar ("Detail permintaan", "Undang pasangan") — itu sekarang **bug copy**, bukan lagi keputusan tertunda | app ortu | rapikan ke Inggris lewat `copy/` |
 | **K2** | **Istilah kategori tidak sinkron**: positioning brand memakai *Pakai/Simpan/Berbagi/Bertumbuh*; design system §13.1 memakai *Belanja/Impian/Bertumbuh* untuk Middle; mockup memakai *Spend/Save/Give/Grow* | brand vs design system vs mockup | pilih satu set per tier, tulis di satu tabel, semua turunan mengikuti |
 | **K3** | **Format rupiah**: brand §17 mengunci `Rp50.000`; semua mockup produk memakai `Rp 10,000`; console sudah benar; bahkan antar-mockup anak beda (`Rp 900.000.` vs `Rp 900,000.`) | 4 mockup produk | sudah diputuskan di brand — tinggal ditegakkan. Satu titik ubah: fungsi `rp()` / `fmt()` |
 | **K4** | **Target dream berbeda antar app**: anak = BMX Rp300.000, Headphones Rp100.000; ortu = BMX Rp400.000, Headphones Rp60.000 | anak vs ortu | pakai angka app anak (sesuai handoff), perbaiki sisi ortu |
@@ -117,7 +117,7 @@ Diurutkan dari yang paling mahal kalau dibiarkan.
 | **K9** | **Jalur pembayaran**: `premium-setting.md` §8 menulis *"QRIS/GoPay/transfer via checkout web bukan opsional"*. Temuan App Store berikutnya membatalkan itu untuk iOS (storefront Indonesia tidak dapat pengecualian anti-steering) | premium-setting vs riset toko app | tulis ulang §8 — lihat §6 di bawah |
 | **K10** | **B2B sekolah**: backlog O bilang *"jangan dikejar"*; console sudah punya plan Sekolah, tabel kursi, peran Admin sekolah, dan jalur Enterprise Services | backlog vs console | dua-duanya bisa benar kalau ditulis benar: **tidak dikejar aktif, tapi jalurnya siap kalau datang** |
 | **K11** | **Nama produk di berkas**: `Celengan_iPad_…`, `celengan-*.md`, `celengan-*.html` masih memakai nama lama | nama berkas | rename saat merge berikutnya |
-| **K12** | **Ejaan Inggris tidak konsisten**: "Practice with my real money" (HP) vs "Practise…" (iPad) | anak HP vs iPad | jadi tidak relevan kalau K1 diputuskan ke Indonesia |
+| **K12** | **Ejaan Inggris tidak konsisten**: "Practice with my real money" (HP) vs "Practise…" (iPad) | anak HP vs iPad | ⚠️ **naik prioritas.** Dulu diasumsikan gugur sendiri kalau D1 jatuh ke Indonesia. D1 jatuh ke **Inggris** (ADR-0016), jadi ini sekarang harus benar-benar diperbaiki: pilih satu varian, tegakkan di `copy/en.ts` |
 | **K13** | **Jendela metrik console** 7 hari vs 14 hari antara Ikhtisar & kartu status | console | sudah tercatat sebagai C-3 |
 | **K14** | **"Approve ≠ Fulfilled" bertabrakan dengan tabelnya sendiri**: `nummi-handoff.md` menulis judul *"HANYA untuk Cash out"*, lalu tabel tepat di bawahnya mencantumkan prize → To do dan Give → To do + cerita wajib. Handoff juga menulis *"empat jalur"* untuk tabel berisi **lima** baris | handoff (internal) | **tabelnya yang benar** — judulnya lahir di konteks revisi Grow (*"di antara flow Grow, hanya cash out"*) tapi terbaca sebagai aturan global. Cocok dengan backlog G ("approval inbox 5-jalur"). Sudah diluruskan di `decisions/0002-approve-bukan-fulfil.md`. ⚠️ Kalau tersalin salah ke skema sebagai **satu** enum (bukan dua kolom), keputusan "approve ≠ fulfil" mati diam-diam |
 
@@ -128,10 +128,11 @@ Diurutkan dari yang paling mahal kalau dibiarkan.
 Ini bukan pekerjaan build — ini keputusan yang, selama belum diambil, membuat setiap pekerjaan
 berikutnya berisiko dikerjakan dua kali.
 
-**D1 — Bahasa produk.** Mockup Inggris, design system Indonesia, pasar Indonesia. Rekomendasi:
-**Indonesia sebagai bahasa produk, Inggris sebagai bahasa kedua.** Alasannya bukan sekadar pasar:
-anak KG B–Grade 2 belum membaca Inggris, dan tier Little justru yang paling bergantung pada label.
-Konsekuensi: semua copy mockup ditulis ulang (besar, tapi makin mahal kalau ditunda).
+**~~D1 — Bahasa produk.~~ ✅ DIPUTUSKAN: tetap Inggris** ([ADR-0016](decisions/0016-bahasa-produk-inggris.md)).
+Rekomendasi di dokumen ini sebelumnya Indonesia, bersandar pada anak KG B–Grade 2 yang belum bisa
+membaca Inggris. Argumen itu benar tapi **tidak berlaku untuk cakupan yang sedang diuji** — pemilih
+tier dimatikan, jadi hanya **Middle** yang bisa didemokan (D5). Semua string tetap lewat `copy/`,
+sehingga keputusan ini murah dibalik. **Ditinjau ulang kalau D5 memasukkan Little.**
 
 **D2 — Satu tabel istilah final.** Setelah D1, kunci satu tabel: kategori × tier × istilah. Tabel itu
 jadi rujukan tunggal brand, design system, dan semua mockup.
@@ -196,7 +197,8 @@ Kalau memang masih relevan, unggah; kalau sudah mati, catat matinya supaya tidak
 
 ## 8. Urutan yang saya sarankan
 
-1. **Putuskan D1 + D2** (bahasa & istilah). Semua copy bergantung pada ini.
+1. ~~Putuskan D1~~ ✅ **selesai — Inggris** (ADR-0016). Tersisa **D2** (apakah istilah berubah
+   menurut tier), yang kini menyempit ke sisi Inggris saja.
 2. **Bersihkan K3–K7** — murah, mekanis, dan menghilangkan angka yang saling bertentangan antar layar.
 3. **Turunkan Fase 6 ke sisi anak** (auto-split & money rules ditegakkan di app anak).
 4. **Tutup paritas iPad** (§2) atau putuskan iPad keluar dari cakupan MVP.
