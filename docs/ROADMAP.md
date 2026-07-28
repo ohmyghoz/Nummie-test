@@ -7,10 +7,10 @@ peta jalan yang berpura-pura sebaliknya tidak berguna.
 |---|---|---|---|
 | **S0** | Repo, `CLAUDE.md`, ADR, arsip lima mockup | ½ hari | ✅ selesai |
 | **S0.5** | Lima mockup lama live di Vercel apa adanya | 1 jam | ⏳ tinggal push |
-| **S1a** | `packages/core` — ledger, invariant, split, rules, format, seed | 1–2 akhir pekan | 🟡 kerangka + 27 test hijau |
-| **S1b** | Skema Supabase + RLS + auth anak | 2–3 akhir pekan | 🟡 migrasi & Edge Function ditulis, belum dijalankan |
-| **S1c** | Console tipis di atas data nyata (C-1) | 1 akhir pekan | ❌ |
-| **S2** | App anak, responsif HP + iPad, Fase 6 ditegakkan | 3–4 akhir pekan | ❌ |
+| **S1a** | `packages/core` — ledger, invariant, split, rules, format, seed | 1–2 akhir pekan | ✅ **69 test hijau** — + requests (ADR-0002), economy (ADR-0004), sort |
+| **S1b** | Skema Supabase + RLS + auth anak | 2–3 akhir pekan | 🟡 migrasi, RLS, Edge Function & `seed.sql` siap — **belum dijalankan** (menunggu project Supabase) |
+| **S1c** | Console tipis di atas data nyata (C-1) | 1 akhir pekan | ✅ dibangun di atas seed kanonik; tinggal ditukar ke view saat S1b jalan |
+| **S2** | App anak, responsif HP + iPad, Fase 6 ditegakkan | 3–4 akhir pekan | 🟡 **siklus uang jalan** (Home · Wallets · Sort · Requests) dan **Fase 6 ditegakkan**. Belum: Missions · Me · Add/Move · Give · Grow/Harvest |
 | **S3** | App ortu **HP saja** (web ditunda) | 3–4 akhir pekan | ❌ |
 
 Totalnya sekitar **tiga bulan akhir pekan** sampai ketiga permukaan jalan di atas data nyata.

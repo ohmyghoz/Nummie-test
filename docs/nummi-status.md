@@ -61,8 +61,8 @@ Legenda: ✅ ada · ⚠️ ada tapi timpang · ❌ tidak ada · — tidak releva
 | Send / Take money | — | — | ✅ | ✅ | — |
 | Allowance schedule | — | — | ✅ | ✅ | — |
 | Your bank rates + Today's prices | — | — | ✅ | ✅ | ✅ feed |
-| **Auto-split editor** (Backlog A) | ⚠️ hardcode 40/40/20 | ⚠️ sama | ✅ | ✅ | ❌ |
-| **Money rules: Strict/Flexible** (Backlog C) | ❌ | ❌ | ✅ | ✅ | ❌ |
+| **Auto-split editor** (Backlog A) | ✅ dibaca dari `money_rules` (`apps/kid`) | ⚠️ mockup lama | ✅ | ✅ | ❌ |
+| **Money rules: Strict/Flexible** (Backlog C) | ✅ ditegakkan (`apps/kid`) | ⚠️ mockup lama | ✅ | ✅ | ❌ |
 | **Undang ortu ke-2** (Pro) | — | — | ✅ | ✅ | ❌ |
 | Halaman Insight / "What the numbers are telling you" | — | — | ⚠️ sebagian | ✅ | ✅ |
 | Rapor Literasi Finansial | — | — | ❌ | ❌ | ❌ |
@@ -92,7 +92,7 @@ Legenda: ✅ ada · ⚠️ ada tapi timpang · ❌ tidak ada · — tidak releva
 | 3 | Settings nyata: allowance, bank rates, harga harian, manage investments | ✅ selesai |
 | 4 | Ekonomi ⭐/💎, tiga gerbang, Jobs builder, Prizes, avatar shop | ✅ selesai |
 | 5 | Give flow + cerita wajib, minus-point raid dream, streak dihapus | ✅ selesai |
-| **6** | **Auto-split editor + Money rules (Strict/Flexible) + ortu ke-2 + Insight** | ⚠️ **selesai di sisi ortu, belum di sisi anak** |
+| **6** | **Auto-split editor + Money rules (Strict/Flexible) + ortu ke-2 + Insight** | ✅ **ditegakkan di kedua sisi.** Sisi anak menyusul di `apps/kid`: rasio dibaca dari `money_rules` (A-sisa-1) dan Strict benar-benar mengunci + menjelaskan kenapa (C) |
 | 7 | Rapor Literasi, Growth Reward, paywall, iklan | ❌ belum mulai |
 
 **Fase 6 ternyata sudah dibangun** — memo lama masih menyebutnya "spec'd, belum dibangun". Yang benar:

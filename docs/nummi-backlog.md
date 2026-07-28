@@ -42,8 +42,9 @@ lengkap ada di `nummi-status.md`.*
 per kategori, validasi "Ratio is over 100%", sisa rasio boleh tersisa di mode Flexible (mendarat di
 Unsorted) tapi wajib habis di mode Strict.
 **Yang tersisa:**
-- **A-sisa-1 (mendesak).** App anak belum tahu-menahu — masih menampilkan teks mati
-  *"40% Spend / 40% Save / 20% Give default"*. Rasio yang diatur ortu harus muncul & berlaku di layar Sort anak.
+- ~~**A-sisa-1 (mendesak).**~~ ✅ **selesai** — `apps/kid` layar Sort membaca rasio dari `money_rules`
+  lewat `sortPlan()` (`packages/core/src/sort.ts`). Tidak ada lagi teks mati "40/40/20"; test
+  membuktikannya dengan rasio non-default (10/70/20), bukan cuma dengan angka seed.
 - **A-sisa-2.** Level 2 (rasio di dalam kategori) belum ada sama sekali — lihat rinciannya di bawah.
 - **A-sisa-3.** Tier Teen boleh mengedit rasio dalam batas ortu — belum ada di app anak.
 
@@ -76,13 +77,13 @@ ditulis apa adanya (Flexible = anak bebas menyortir ulang Unsorted & Spend; Stri
 uang tidak bisa keluar dari tugas yang sudah diberikan). Yang berlaku di kedua mode: cash-out selalu butuh
 persetujuan, dream & Give tidak bisa dibatalkan tanpa ortu, Grow tidak bisa ditarik sepihak.
 
-**⚠️ Ini gap paling mahal di seluruh backlog.** App anak tidak mengenal konsep mode sama sekali —
-tidak ada `rules`, `strict`, atau turunannya di kodenya. Artinya ortu bisa menyalakan Strict dan tidak
-terjadi apa-apa. **Aturan yang tidak ditegakkan lebih buruk daripada aturan yang belum ada**, karena ortu
-mengira anaknya dibatasi padahal tidak.
+✅ **GAP INI SUDAH DITUTUP** (dulu gap paling mahal di seluruh backlog). App anak kini mengenal mode:
+`sortPlan()` mengunci slot di Strict, `canChildMoveFrom()` menegakkan izin per-wallet, dan layar Sort
+menampilkan pesan yang menjelaskan **kenapa** terkunci — bukan tombol mati.
+
 **Yang tersisa:**
-- Terjemahkan mode ke perilaku app anak: gembok pada Move money, sumber Sort yang boleh diubah,
-  dan pesan yang menjelaskan **kenapa** terkunci (bukan sekadar tombol mati).
+- Penegakan yang sama perlu ikut ke flow **Add/Move money** dan **Give** saat keduanya dibangun
+  (belum ada di irisan `apps/kid` sekarang).
 - Default per tier + kemampuan ortu meng-override. Catatan riset yang sudah dikunci:
   **Strict default mati** — riset literasi finansial memperingatkan bahaya mencabut pengambilan
   keputusan nyata dari anak.
