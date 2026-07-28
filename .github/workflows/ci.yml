@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push: { branches: [main] }
+  pull_request:
+
+jobs:
+  core:
+    name: packages/core — invariant & format
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install
+      - run: npm run typecheck
+      # Invariant I1 dan aturan kantong terlindungi diperiksa di sini.
+      # Kegagalan di job ini bukan "test merah biasa" — itu janji produk yang bocor.
+      - run: npm test
