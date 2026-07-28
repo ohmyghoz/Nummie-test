@@ -10,7 +10,7 @@ peta jalan yang berpura-pura sebaliknya tidak berguna.
 | **S1a** | `packages/core` — ledger, invariant, split, rules, format, seed | 1–2 akhir pekan | ✅ **69 test hijau** — + requests (ADR-0002), economy (ADR-0004), sort |
 | **S1b** | Skema Supabase + RLS + auth anak | 2–3 akhir pekan | 🟡 migrasi, RLS, Edge Function & `seed.sql` siap — **belum dijalankan** (menunggu project Supabase) |
 | **S1c** | Console tipis di atas data nyata (C-1) | 1 akhir pekan | ✅ dibangun di atas seed kanonik; tinggal ditukar ke view saat S1b jalan |
-| **S2** | App anak, responsif HP + iPad, Fase 6 ditegakkan | 3–4 akhir pekan | 🟡 Home · Wallets · **Sort** · **Give** (+ cerita) · **Grow/Harvest** · Requests. Fase 6 ditegakkan. Belum: Missions · Me · Add/Move · Forex per-mata-uang. **Belum persisten** — semua flow berhenti di "menunggu orang tua" sampai S1b jalan |
+| **S2** | App anak, responsif HP + iPad, Fase 6 ditegakkan | 3–4 akhir pekan | 🟢 **semua permukaan berdiri**, nav kanonik (Home/Wallets/(+)/Missions/Me): Sort · Move · Give (+cerita) · Grow/Harvest · Requests · Missions · Me. Fase 6 ditegakkan. Belum: isi pelajaran (kuis), Prizes/Jobs, Forex per-mata-uang. **Belum persisten** — semua flow berhenti di "menunggu orang tua" sampai S1b jalan |
 | **S3** | App ortu **HP saja** (web ditunda) | 3–4 akhir pekan | ❌ |
 
 Totalnya sekitar **tiga bulan akhir pekan** sampai ketiga permukaan jalan di atas data nyata.
