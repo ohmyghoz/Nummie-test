@@ -111,6 +111,12 @@ export interface Dictionary {
   rewardKind: Record<RewardKind, string>;
   tierName: Record<'little' | 'middle' | 'teen', string>;
 
+  txn: Record<
+    'title' | 'moneyIn' | 'moneyOut' | 'moved' | 'net' | 'count' | 'empty'
+    | 'movedHint' | 'range7d' | 'range30d' | 'range90d' | 'rangeAll' | 'fromOutside',
+    string
+  >;
+
   frequency: Record<'weekly' | 'biweekly' | 'monthly', string>;
   weekday: Record<'0' | '1' | '2' | '3' | '4' | '5' | '6', string>;
 

@@ -18,13 +18,13 @@ npm run parent:build
 **Sudah ada:** Dashboard (switcher + ring + strip pending **per-anak** + utang janji) ·
 **Approval inbox 5-jalur** · Send money · Take money · Money rules ·
 **Settings** (jadwal uang saku · bunga bank · harga hari ini · kelola investasi) ·
-**Add a child** · **Jobs & Prizes builder**.
+**Add a child** · **Jobs & Prizes builder** · **Transactions** (filter rentang).
 
 Nav: Dashboard / Requests / Send / Settings. **Money rules sengaja TIDAK di nav** — ia setelan
 **per-anak**, dicapai dari kartu anak di Dashboard; Settings adalah setelan tingkat akun.
 Add a child dan Jobs juga dicapai dari Dashboard.
 
-**Belum ada:** Insight · Transactions · undang ortu kedua · Learning tracker.
+**Belum ada:** Insight · undang ortu kedua · Learning tracker.
 
 ⚠️ **Hitung mundur deposito belum bisa dipercaya.** Setiap baris ledger di seed memakai
 `createdAt` placeholder yang sama (`2026-07-01`), jadi tanggal bilang "153 hari lagi" sementara

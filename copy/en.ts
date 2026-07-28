@@ -288,6 +288,20 @@ export const en: Dictionary = {
   rewardKind: { gems: 'Gems', money: 'Money' },
   tierName: { little: 'Little', middle: 'Middle', teen: 'Teen' },
 
+  txn: {
+    title: 'Transactions',
+    moneyIn: 'Came in',
+    moneyOut: 'Went out',
+    moved: 'Moved around',
+    net: 'Held now',
+    count: '{count} entries',
+    empty: 'Nothing in this range.',
+    // Perpindahan internal tidak mengubah total — ringkasan tidak boleh menyiratkan sebaliknya.
+    movedHint: 'Moving money between pockets does not make your child richer or poorer.',
+    range7d: '7 days', range30d: '30 days', range90d: '90 days', rangeAll: 'All',
+    fromOutside: 'from outside',
+  },
+
   frequency: { weekly: 'Every week', biweekly: 'Every two weeks', monthly: 'Every month' },
   weekday: {
     '0': 'Sunday', '1': 'Monday', '2': 'Tuesday', '3': 'Wednesday',

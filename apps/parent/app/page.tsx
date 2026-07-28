@@ -76,6 +76,7 @@ export default async function DashboardPage() {
                 <a className="btn" href={`/rules?child=${child.id}`}>{dict.parent.rules}</a>
                 <a className="btn" href={`/settings?child=${child.id}`}>{dict.settings.title}</a>
                 <a className="btn" href={`/jobs?child=${child.id}`}>{dict.jobs.title}</a>
+                <a className="btn" href={`/transactions?child=${child.id}`}>{dict.txn.title}</a>
                 <a className="btn ghost" href="/children/new">{dict.addChild.title}</a>
               </div>
             </div>

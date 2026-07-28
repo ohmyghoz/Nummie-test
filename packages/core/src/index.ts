@@ -11,6 +11,7 @@ export * from './parent.js';
 export * from './settings.js';
 export * from './onboarding.js';
 export * from './jobs.js';
+export * from './transactions.js';
 export * from './economy.js';
 export * from './shop.js';
 export * from './missions.js';

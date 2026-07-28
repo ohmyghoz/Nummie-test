@@ -282,6 +282,19 @@ export const id: Dictionary = {
   rewardKind: { gems: 'Permata', money: 'Uang' },
   tierName: { little: 'Kecil', middle: 'Menengah', teen: 'Remaja' },
 
+  txn: {
+    title: 'Transaksi',
+    moneyIn: 'Masuk',
+    moneyOut: 'Keluar',
+    moved: 'Dipindah-pindah',
+    net: 'Dipegang sekarang',
+    count: '{count} baris',
+    empty: 'Tidak ada apa-apa di rentang ini.',
+    movedHint: 'Memindahkan uang antar kantong tidak membuat anakmu lebih kaya atau lebih miskin.',
+    range7d: '7 hari', range30d: '30 hari', range90d: '90 hari', rangeAll: 'Semua',
+    fromOutside: 'dari luar',
+  },
+
   frequency: { weekly: 'Tiap minggu', biweekly: 'Tiap dua minggu', monthly: 'Tiap bulan' },
   weekday: {
     '0': 'Minggu', '1': 'Senin', '2': 'Selasa', '3': 'Rabu',
