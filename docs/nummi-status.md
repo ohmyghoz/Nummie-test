@@ -119,6 +119,7 @@ Diurutkan dari yang paling mahal kalau dibiarkan.
 | **K11** | **Nama produk di berkas**: `Celengan_iPad_…`, `celengan-*.md`, `celengan-*.html` masih memakai nama lama | nama berkas | rename saat merge berikutnya |
 | **K12** | **Ejaan Inggris tidak konsisten**: "Practice with my real money" (HP) vs "Practise…" (iPad) | anak HP vs iPad | ⚠️ **naik prioritas.** Dulu diasumsikan gugur sendiri kalau D1 jatuh ke Indonesia. D1 jatuh ke **Inggris** (ADR-0016), jadi ini sekarang harus benar-benar diperbaiki: pilih satu varian, tegakkan di `copy/en.ts` |
 | **K13** | **Jendela metrik console** 7 hari vs 14 hari antara Ikhtisar & kartu status | console | sudah tercatat sebagai C-3 |
+| **K15** | **Panjang PIN anak disebut tiga angka berbeda**: komentar skema bilang *"4 digit = 10.000 kombinasi (ADR-0012)"* (`0001_init.sql:42`), Edge Function bilang *"PIN 4–6 digit"* (`child-login/index.ts:11`), backlog bilang 6. Tidak ada constraint yang menegakkan apa pun — `pin_hash` menerima panjang berapa pun, dan seed sudah terlanjur memakai **6 digit** | skema vs Edge Function vs backlog | pilih satu, lalu tegakkan di Edge Function (bukan di skema — yang tersimpan cuma hash). Perhatikan: parameter rate limiting di ADR-0012 dihitung dari asumsi 4 digit |
 | **K14** | **"Approve ≠ Fulfilled" bertabrakan dengan tabelnya sendiri**: `nummi-handoff.md` menulis judul *"HANYA untuk Cash out"*, lalu tabel tepat di bawahnya mencantumkan prize → To do dan Give → To do + cerita wajib. Handoff juga menulis *"empat jalur"* untuk tabel berisi **lima** baris | handoff (internal) | **tabelnya yang benar** — judulnya lahir di konteks revisi Grow (*"di antara flow Grow, hanya cash out"*) tapi terbaca sebagai aturan global. Cocok dengan backlog G ("approval inbox 5-jalur"). Sudah diluruskan di `decisions/0002-approve-bukan-fulfil.md`. ⚠️ Kalau tersalin salah ke skema sebagai **satu** enum (bukan dua kolom), keputusan "approve ≠ fulfil" mati diam-diam |
 
 ---
@@ -204,3 +205,33 @@ Kalau memang masih relevan, unggah; kalau sudah mati, catat matinya supaya tidak
 4. **Tutup paritas iPad** (§2) atau putuskan iPad keluar dari cakupan MVP.
 5. **Bawa brand masuk ke app anak** (wordmark + maskot) setelah K8 diselesaikan.
 6. **D3 + D4** sebelum baris kode produksi pertama.
+
+---
+
+## 9. Keadaan database (29 Juli 2026) — S1b hidup
+
+Project `lrjkhlaxixdbvxdpuqte`. Migrasi **0001–0005** jalan, seed kanonik masuk, dan angkanya
+direkonsiliasi terhadap `packages/core`: total Arthur **Rp484.711**, I1 tegak, `ledger_orphans`
+kosong. Rincian & cara mengujinya ada di `supabase/README.md`.
+
+**Dua cacat keamanan ditemukan dan ditutup sebelum app disambungkan** — keduanya lahir dari perilaku
+Postgres, bukan dari policy yang salah tulis:
+
+- **View melewati RLS.** `wallet_balances` (satu-satunya sumber saldo) berjalan dengan hak pemilik
+  view, sehingga JWT keluarga mana pun bisa membaca saldo seluruh keluarga. Ditutup di `0004`.
+- **RLS sisi ortu rekursif total.** `auth_family_id()` membaca `parents`, yang policy-nya memanggil
+  `auth_family_id()` — terbukti `54001 stack depth limit exceeded`. Karena fungsi itu dipakai hampir
+  semua policy, seluruh sisi ortu mati. Ditutup di `0004`.
+
+Pelajarannya sama untuk keduanya, dan layak diingat: **keduanya tidak terlihat selama tabel kosong**.
+Uji akses selalu dengan role sungguhan (`set local role authenticated` + claim JWT), tidak pernah
+dengan koneksi service role — service role membuat semuanya tampak baik-baik saja.
+
+**Yang masih menghalangi uji ortu–anak sungguhan:**
+
+| # | Hal | Kenapa memblokir |
+|---|---|---|
+| 1 | `child-login` belum di-deploy | tanpa ini anak **tidak punya cara masuk sama sekali**. Butuh `CHILD_JWT_SECRET` lewat CLI, dan cek **Settings → API → JWT Keys** dulu: fungsi ini menandatangani HS256, project ber-signing-key asimetris akan menolaknya |
+| 2 | Belum ada baris `parents` | `parents.id` mereferensi `auth.users`, jadi ortu harus mendaftar lewat Supabase Auth dulu. Perintah penautannya di kaki `seed.sql` |
+| 3 | Ketiga app belum menyentuh Supabase | `apps/kid`, `apps/parent`, `apps/console` masih membaca `lib/data.ts`. Semua flow tetap berhenti di "menunggu orang tua" sampai ini dikerjakan |
+| 4 | Penghapusan data masih mustahil | trigger append-only membatalkan `delete from families`. Janji privasi belum bisa dipenuhi — butuh keputusan produk karena menyentuh ADR-0014 (`supabase/README.md`) |

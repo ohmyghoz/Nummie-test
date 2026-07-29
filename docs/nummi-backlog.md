@@ -156,6 +156,29 @@ Grow kini simulasi, tapi **harganya riil**. Mockup pakai harga statis + tombol d
 
 ---
 
+## U. BACKLOG TEKNIS — sisa Supabase setelah S1b hidup (29 Juli 2026)
+
+Database sudah berdiri, terisi seed kanonik, dan isolasi RLS-nya diuji per-role
+(`docs/nummi-status.md` §9). Yang tersisa, urut dari yang paling memblokir:
+
+- **U-1 · Deploy `child-login`.** Tanpa ini anak tidak punya jalan masuk. Dua prasyarat yang bisa
+  bikin gagal diam-diam: secret **harus** bernama `CHILD_JWT_SECRET` (prefix `SUPABASE_` ditolak),
+  dan project **harus** masih memakai JWT secret HS256 — signing key asimetris akan menolak token
+  yang diterbitkan fungsi ini. Cek **Settings → API → JWT Keys** sebelum deploy.
+- **U-2 · Sambungkan app ke Supabase.** Klien + `.env`, lalu `lib/data.ts` ditukar query nyata
+  permukaan demi permukaan. Ini pekerjaan S2/S3 yang sebenarnya, bukan permukaan baru.
+- **U-3 · Tautkan ortu pertama.** `parents.id` mereferensi `auth.users` → ortu daftar lewat Auth
+  dulu; perintahnya sudah ada di kaki `seed.sql`.
+- **U-4 · Penghapusan data (privasi).** `delete from families` mustahil karena trigger append-only.
+  **Butuh keputusan produk, bukan tambalan** — menyentuh ADR-0014. Usulan paling ringan (purge yang
+  harus dinyalakan sadar per-transaksi) ada di `supabase/README.md`.
+- **U-5 · Helper auth ke schema non-publik.** `auth_family_id()` & `can_see_child()` terekspos sebagai
+  RPC karena berada di `public`. `anon` sudah dicabut (`0005`); `authenticated` tidak bisa dicabut
+  tanpa mematikan RLS. Menghilangkannya sepenuhnya butuh pindah schema + tulis ulang semua policy —
+  kebersihan, bukan kebocoran. Kerjakan kalau ada waktu luang, bukan sebelum uji pengguna.
+
+---
+
 ## H2. Pajak perawatan mockup — masih berlaku, malah membesar
 *(Catatan ini lahir saat masih ada 2 mockup. Sekarang ada 5. Isinya jadi lebih penting, bukan kurang.)*
 - **Tidak ada yang live-linked** — lima berkas terpisah, angka disamakan manual. Audit 28 Juli 2026

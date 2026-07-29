@@ -29,13 +29,54 @@ npx skills add supabase/agent-skills
 environment (403 pada CONNECT), dan alur OAuth-nya butuh browser. Keduanya hambatan lingkungan,
 bukan konfigurasi yang salah.
 
-| Berkas | Isi |
-|---|---|
-| `migrations/0001_init.sql` | tabel, constraint, view saldo, resolver `is_pro()`, pemeriksa invarian |
-| `migrations/0002_rls.sql` | row-level security + trigger append-only ledger |
-| `migrations/0003_child_login_attempts.sql` | bahan rate limiting login anak |
-| `functions/child-login/` | Edge Function: kode keluarga + PIN → JWT ber-claim |
-| `seed.sql` | data uji kanonik (cermin `packages/core/src/seed.ts`) — jalankan **setelah** migrasi |
+| Berkas | Isi | Di remote |
+|---|---|---|
+| `migrations/0001_init.sql` | tabel, constraint, view saldo, resolver `is_pro()`, pemeriksa invarian | ✅ jalan |
+| `migrations/0002_rls.sql` | row-level security + trigger append-only ledger | ✅ jalan |
+| `migrations/0003_child_login_attempts.sql` | bahan rate limiting login anak | ✅ jalan |
+| `migrations/0004_view_security_invoker.sql` | view pakai hak pemanggil + putus rekursi RLS | ✅ jalan |
+| `migrations/0005_rpc_surface.sql` | cabut EXECUTE helper definer dari `anon` | ✅ jalan |
+| `functions/child-login/` | Edge Function: kode keluarga + PIN → JWT ber-claim | ❌ **belum di-deploy** |
+| `seed.sql` | data uji kanonik (cermin `packages/core/src/seed.ts`) — jalankan **setelah** migrasi | ✅ jalan (`NUMMI1`) |
+
+## Keadaan sekarang (29 Juli 2026)
+
+Seed sudah masuk dan **direkonsiliasi**: `invariant_check` untuk Arthur = **Rp484.711**, pecahannya
+`50.000 / 95.000 / 240.000 / 40.000 / 59.711`, `negative_wallets` 0, `ledger_orphans` kosong.
+Angka yang sama dihasilkan `packages/core` (172 test hijau). Itulah gunanya punya dua sumber.
+
+Kode keluarga **`NUMMI1`**, PIN anak **`135790`** — data uji, ganti sebelum keluarga sungguhan.
+
+Yang **belum**: `child-login` belum di-deploy, dan belum ada baris di `parents` (ortu harus daftar
+lewat Supabase Auth dulu — perintah penautannya ada di kaki `seed.sql`).
+
+## Dua jebakan yang sudah ditemukan dan ditutup (jangan diulang)
+
+**1. View tidak mewarisi RLS.** `wallet_balances` adalah satu-satunya sumber saldo. Dibuat dengan
+default Postgres, ia berjalan dengan hak *pemilik* view — jadi JWT keluarga mana pun yang menembak
+`/rest/v1/wallet_balances` akan membaca saldo **seluruh keluarga**, melewati RLS yang sudah benar di
+`wallets` dan `ledger_entries`. Ditutup di `0004` dengan `security_invoker = on` di keempat view.
+
+**2. Policy yang memanggil fungsi yang membaca tabelnya sendiri = rekursi.** `parents_read` memanggil
+`auth_family_id()`, yang membaca `parents`, yang memicu `parents_read` lagi. Bukan teori — `select
+count(*) from parents` sebagai role `authenticated` mengembalikan `54001 stack depth limit exceeded`.
+Karena `auth_family_id()` dipakai hampir semua policy, **seluruh sisi ortu mati**. Ditutup di `0004`
+dengan menjadikan `auth_family_id()` & `can_see_child()` SECURITY DEFINER + `search_path` terkunci.
+
+Keduanya tak terlihat selama tabel kosong dan belum ada klien. Kalau kamu menambah view atau helper
+baru, ujilah dengan role sungguhan, bukan dengan koneksi service role:
+
+```sql
+begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"nummi_role":"child","child_id":"…","family_id":"…","role":"authenticated"}';
+  select count(*) from wallet_balances;   -- harus HANYA milik anak itu
+rollback;
+```
+
+Advisor akan tetap melaporkan bahwa `authenticated` boleh memanggil kedua helper definer itu.
+Disengaja — policy dievaluasi sebagai role pemanggil, jadi mencabutnya justru mematikan RLS.
+Lihat catatan di `0005_rpc_surface.sql`.
 
 ```bash
 supabase db push
