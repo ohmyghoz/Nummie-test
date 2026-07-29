@@ -47,7 +47,7 @@ Yang tersisa kemudian adalah pertimbangan biaya, dan arahnya jelas:
   ("Practice" di HP vs "Practise" di iPad) tadinya diasumsikan gugur sendiri kalau D1 jatuh ke
   Indonesia. Karena D1 jatuh ke Inggris, **inkonsistensi itu sekarang harus benar-benar
   diperbaiki** — pilih satu varian dan tegakkan di kamus.
-- **D2 jadi lebih ringan, tapi belum tertutup.** Sisi Inggris dari lembar karakter
+- **D2 jadi lebih ringan, dan akhirnya ditutup 29 Juli 2026 oleh ADR-0017.** Sisi Inggris dari lembar karakter
   (SPEND · SAVE · GIVE · GROW) sudah cocok dengan mockup dan brand system §5.2. Yang masih perlu
   diputuskan tinggal: **apakah istilah berubah menurut tier.** Lookup `[tier][kategori]` tetap wajib.
 

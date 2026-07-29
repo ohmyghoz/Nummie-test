@@ -4,7 +4,8 @@
  * Aturan yang berlaku di seluruh berkas ini:
  *  - nominal SELALU lewat `formatRp()` (X1) — tidak pernah `Rp 10,000`
  *  - teks SELALU dari `copy/` — tidak ada string yang di-hardcode
- *  - nama kategori lewat lookup `[tier][kategori]` (D2 masih terbuka)
+ *  - nama kategori lewat lookup `[tier][kategori]` (D2 dijawab: sama lintas tier, ADR-0017 —
+ *    bentuk lookup-nya tetap, itu yang menjaga keputusannya murah dibalik)
  *  - NOL gembok Pro & NOL slot iklan (I3, I4)
  */
 import { formatRp, type Pocket, type Tier } from '@nummi/core';

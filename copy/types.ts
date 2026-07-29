@@ -15,9 +15,14 @@ export interface Dictionary {
   brand: { name: string; tagline: string; positioning: string };
 
   /**
-   * Lookup [tier][category]. D2 belum memutuskan apakah istilah berubah menurut tier —
-   * bentuk ini membuat kedua jawaban sama murahnya. JANGAN pernah menulis nama kategori
-   * sebagai teks mati di komponen.
+   * Lookup [tier][category]. D2 sudah dijawab: istilahnya **sama untuk ketiga tier**
+   * (ADR-0017), jadi ketiga nilainya identik hari ini.
+   *
+   * Bentuk Record<Tier, …> tetap dipertahankan dengan sengaja. Risiko yang diambil sadar di
+   * ADR-0017 adalah Teen merasa "Save"/"Give" kekanak-kanakan; kalau uji pengguna membuktikannya,
+   * bentuk inilah yang membuat jalan keluarnya berupa edit kamus, bukan sisir komponen.
+   *
+   * JANGAN pernah menulis nama kategori sebagai teks mati di komponen.
    */
   category: Record<Tier, CategoryTerms>;
 

@@ -118,7 +118,7 @@ saja. Kelima mockup aktif **tidak live-linked** satu sama lain — angka disamak
   tier kini **menyimpang dari keputusan** dan harus dibaca sebagai usulan, bukan aturan.
   Yang tersisa jadi pekerjaan biasa, bukan blocker: app ortu masih **mencampur** ID di beberapa
   layar ("Detail permintaan", "Undang pasangan") — rapikan ke Inggris lewat `copy/`.
-  D2 (apakah istilah berubah menurut tier) masih terbuka, tapi kini menyempit ke sisi Inggris saja.
+  D2 ikut selesai 29 Juli 2026: istilah **sama lintas tier** (ADR-0017).
 - **Request/approval terpusat**: semua aksi yang butuh OK ortu (Cash out, Grow/beli, Harvest) mendaftar ke satu store `REQUESTS`. Awareness anak lewat 3 lapis: badge di kartu Grow (lokal) → banner "N requests waiting" di Home (semua tier, di bawah Unsorted) → layar **Requests** (antrean penuh). Di mockup, approval ortu disimulasikan (tap badge kartu atau tap baris Requests). Store ini = cermin sisi-anak dari Approval Inbox ortu (Backlog G).
 
 ## Navigasi & UI yang sudah dibangun (di mockup)
@@ -299,7 +299,7 @@ masih tombol demo) · Edit/hapus mission & prize yang sudah dibuat (baru bisa cr
 - JS satu IIFE; validasi dengan `node --check`. Angka & aksi sebagian placeholder (form Create belum tervalidasi; Cash-out/Harvest/Grow-in masih toast — butuh approval-flow beneran, lihat Backlog G & H).
 
 ## Langkah berikutnya (urutan yang disarankan)
-1. ~~Keputusan D1~~ ✅ **selesai — Inggris** (ADR-0016). Tersisa **D2** (tabel istilah final),
+1. ~~Keputusan D1 & D2~~ ✅ **selesai** — Inggris (ADR-0016), istilah sama lintas tier (ADR-0017).
    yang kini menyempit ke sisi Inggris saja.
 2. **Bersih-bersih kontradiksi K3–K7** (format rupiah, target dream, request pending, rasio seed,
    badge streak yatim) — mekanis, murah, menghilangkan angka yang saling bertentangan antar layar.

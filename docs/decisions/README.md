@@ -30,7 +30,7 @@ kelihatannya lebih masuk akal.
 
 ## Terbuka — jangan dijawab lewat kode
 
-[`OPEN-keputusan-tertunda.md`](OPEN-keputusan-tertunda.md) — D2 istilah · D3 harga ·
+[`OPEN-keputusan-tertunda.md`](OPEN-keputusan-tertunda.md) — D3 harga ·
 D4 distribusi · D5 tier.
 
 ~~D1 bahasa~~ → sudah diputuskan, lihat [ADR-0016](0016-bahasa-produk-inggris.md).

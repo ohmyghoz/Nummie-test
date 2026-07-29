@@ -24,7 +24,9 @@ export const en: Dictionary = {
       'Nummi adalah aplikasi Parent as Banking untuk anak belajar memakai, menyimpan, berbagi dan mengelola uangnya.',
   },
 
-  // Sama untuk ketiga tier sampai D2 memutuskan sebaliknya.
+  // Sama untuk ketiga tier — DIPUTUSKAN (ADR-0017), bukan lagi keadaan sementara.
+  // Bentuk Record<Tier, …> sengaja dipertahankan walau ketiganya identik: itu yang membuat
+  // keputusan ini bisa dibalik dengan mengedit kamus, bukan menyisir komponen.
   category: { little: CATEGORY_EN, middle: CATEGORY_EN, teen: CATEGORY_EN },
 
   common: {

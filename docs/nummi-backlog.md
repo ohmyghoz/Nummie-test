@@ -380,7 +380,7 @@ Rincian & rekomendasi ada di `nummi-status.md` §5. Ringkasnya:
 | # | Keputusan | Kenapa memblokir |
 |---|---|---|
 | ~~D1~~ | ~~Bahasa produk~~ | ✅ **diputuskan: Inggris** (ADR-0016) — tidak lagi memblokir |
-| **D2** | Tabel istilah final kategori × tier | brand, design system, dan mockup saat ini bertiga berbeda |
+| ~~D2~~ | ~~Tabel istilah final kategori × tier~~ | ✅ **sama lintas tier** (ADR-0017) |
 | **D3** | Model harga (sekali-bayar vs hibrida) | menentukan bentuk paywall, entitlement, dan proyeksi |
 | **D4** | Distribusi (native/Expo vs PWA) | memblokir mulainya M1 |
 | **D5** | Little & Teen masuk MVP atau tidak | menentukan besar cakupan app anak |

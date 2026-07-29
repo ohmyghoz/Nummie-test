@@ -95,8 +95,9 @@ Baris ledger yang membuat I1 tidak nol = **insiden P0**.
   menjaga keputusan bahasa tetap bisa dibalik dengan mengganti isi kamus.
 - `copy/id.ts` tidak dihapus. `Dictionary` mewajibkan kedua bahasa memenuhi bentuk yang sama,
   jadi sisi Indonesia tetap dijaga tipe, bukan dibiarkan busuk.
-- Istilah kategori diakses lewat lookup `[tier][kategori]`, tidak pernah ditulis mati — karena D2
-  (apakah istilah berubah menurut tier) belum diputuskan.
+- Istilah kategori diakses lewat lookup `[tier][kategori]`, tidak pernah ditulis mati. D2 sudah
+  dijawab (**sama lintas tier**, ADR-0017) dan ketiga nilainya kini identik — **strukturnya tetap
+  tidak boleh dibongkar.** Itu yang menjaga keputusannya murah dibalik kalau uji Teen membantahnya.
 - Nominal **selalu** lewat `formatRp()` dari `packages/core`. Format terkunci: `Rp50.000`
   (brand §17). Jangan pernah `Rp 50,000`.
 - Teks bebas yang ditulis anak (alasan cash-out, alasan Give) memang berbahasa Indonesia —
@@ -132,7 +133,7 @@ mengimpor dari `apps/*`.
 | # | Keputusan | Aturan sementara |
 |---|---|---|
 | ~~D1~~ | ~~Bahasa produk~~ | ✅ **diputuskan: Inggris** (ADR-0016) |
-| **D2** | Tabel istilah kategori × tier | lookup, bukan teks mati |
+| ~~D2~~ | ~~Tabel istilah kategori × tier~~ | ✅ **diputuskan: sama lintas tier** (ADR-0017) |
 | **D3** | Model harga | `isPro()` sudah ada; bentuk paywall belum dibangun |
 | **D4** | Distribusi (native/Expo vs PWA) | **web = prototipe validasi, BUKAN jawaban D4** |
 | **D5** | Little & Teen masuk MVP? | tier = feature flag, jangan hapus kodenya |

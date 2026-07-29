@@ -1281,16 +1281,36 @@ Rules:
 
 # 13. Content Design
 
-## 13.1 Naming by tier
+## 13.1 Category naming — SAMA untuk ketiga tier
 
-| Model | Little | Middle | Teen |
-|---|---|---|---|
-| Unsorted | Uang baru | Belum dibagi | Belum dialokasikan |
-| Spend | Pakai | Belanja | Pengeluaran |
-| Save | Simpan | Impian | Tabungan |
-| Give | Berbagi | Berbagi | Donasi/Berbagi |
-| Grow | Dijaga orang tua | Bertumbuh | Investasi tercatat |
-| Harvest | Ambil hasil | Cairkan hasil | Cairkan investasi |
+> **Diputuskan 29 Juli 2026 ([ADR-0017](decisions/0017-istilah-kategori-sama-lintas-tier.md)),
+> menutup D2.** Bagian ini dulu memberi istilah berbeda per tier (Middle: *Belanja/Impian*, Teen:
+> *Pengeluaran/Tabungan/Investasi*) dan merupakan **satu-satunya** sumber yang menyimpang dari
+> brand §5.2, lembar karakter yang disetujui, dan kalimat posisi resmi. Sekarang mengikuti ketiganya.
+
+| Model | Inggris (string UI, ADR-0016) | Indonesia (pasangan kamus) |
+|---|---|---|
+| Unsorted | **Unsorted** | Uang Baru |
+| Spend | **Spend** | Pakai |
+| Save | **Save** | Simpan |
+| Give | **Give** | Berbagi |
+| Grow | **Grow** | Bertumbuh |
+
+Harvest bukan kategori melainkan tindakan, jadi ia tidak ada di lookup `[tier][kategori]`. Kamus
+Indonesia **mempertahankan "Harvest"** sebagai istilah (`copy/id.ts`), dengan "dipanen" sebagai kata
+kerjanya — bukan salah terjemah, melainkan supaya namanya sama di mata anak dan ortu.
+
+**Kenapa tidak berubah menurut tier:** warna kategori sudah dikunci sebagai alat belajar yang tak
+pernah berubah (§5.2 brand). Kalau warnanya jangkar tapi namanya bergeser tiap naik tier, anak yang
+lulus dari Middle ke Teen harus belajar ulang nama benda yang sama — dan justru dialah yang sudah
+punya kebiasaan paling melekat pada nama lamanya.
+
+**Yang tetap boleh berbeda menurut tier:** nada kalimat, panjang penjelasan, dan tingkat detail
+angka. Yang tidak boleh berbeda: **nama kategorinya**.
+
+⚠️ Istilah ini **tidak pernah ditulis mati di komponen** — selalu lewat lookup `[tier][kategori]`
+di `copy/`. Ketiga nilainya identik hari ini; strukturnya yang menjaga keputusan ini tetap murah
+dibalik kalau uji pengguna Teen membantahnya.
 
 ## 13.2 Sentence rules
 

@@ -1,4 +1,4 @@
-# Keputusan yang MASIH TERBUKA (D2–D5)
+# Keputusan yang MASIH TERBUKA (D3–D5)
 
 **Jangan menjawab salah satu dari ini lewat kode.** Kalau sebuah tugas memaksanya, hentikan dan tanyakan.
 
@@ -18,23 +18,21 @@ yang belum dimiliki. Semua string tetap lewat `copy/`, jadi keputusan ini tetap 
 
 ---
 
-## D2 — Satu tabel istilah final (kategori × tier)
+## ~~D2 — Satu tabel istilah final (kategori × tier)~~ ✅ DIPUTUSKAN
 
-**Ini lebih ringan dari kelihatannya — dua dari tiga sumber sudah sepakat.** Lembar karakter yang
-sudah disetujui memberi label dwibahasa berpasangan (SPEND/PAKAI · SAVE/SIMPAN · GIVE/BERBAGI ·
-GROW/BERTUMBUH), persis sama dengan brand system §5.2 dan persis sama dengan kalimat posisi resmi.
-Yang menyimpang hanya design system §13.1.
+**Sama untuk ketiga tier.** Lihat [ADR-0017](0017-istilah-kategori-sama-lintas-tier.md).
 
-**Menyempit setelah ADR-0016.** Karena bahasa produk = Inggris, yang perlu dikunci tinggal sisi
-Inggrisnya (SPEND · SAVE · GIVE · GROW), dan itu sudah cocok antara lembar karakter, brand system
-§5.2, dan mockup. Sisi Indonesia tetap dijaga tipe di `copy/id.ts` supaya pembalikan tetap murah.
+`Unsorted · Spend · Save · Give · Grow` — pasangan Indonesia `Uang Baru · Pakai · Simpan · Berbagi ·
+Bertumbuh`. Design system §13.1 sudah ditulis ulang mengikuti; ia satu-satunya sumber yang menyimpang.
 
-Yang benar-benar perlu diputuskan tinggal: **apakah istilahnya berubah menurut tier atau tidak.**
-Argumen untuk tidak berubah: warna kategori sudah dikunci sebagai alat belajar yang tak pernah
-berubah — istilahnya sebaiknya mengikuti logika yang sama, kalau tidak anak yang naik tier harus
-belajar ulang nama benda yang sama.
+Alasannya bersandar pada keputusan yang sudah ada: warna kategori dikunci sebagai alat belajar yang
+tak pernah berubah, jadi namanya mengikuti logika yang sama. Risiko yang diambil sadar: Teen bisa
+merasa "Save"/"Give" kekanak-kanakan.
 
-**Aturan sementara di repo:** istilah diakses lewat lookup `[tier][kategori]`, tidak pernah teks mati.
+**Aturan yang TETAP berlaku:** istilah diakses lewat lookup `[tier][kategori]`, tidak pernah teks
+mati — ketiga nilainya identik, tapi bentuknya yang menjaga keputusan ini murah dibalik.
+
+**Ditinjau ulang kalau** D5 memasukkan Teen dan uji pengguna menunjukkan penolakan nyata.
 
 ---
 

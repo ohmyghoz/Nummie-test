@@ -107,7 +107,7 @@ Diurutkan dari yang paling mahal kalau dibiarkan.
 | # | Kontradiksi | Di mana | Usulan |
 |---|---|---|---|
 | ~~**K1**~~ | ~~**Bahasa UI**~~ ✅ **selesai** — D1 diputuskan ke **Inggris** ([ADR-0016](decisions/0016-bahasa-produk-inggris.md)). Console tetap Indonesia (permukaan operator, bukan produk). Yang tersisa: app ortu masih mencampur ID di beberapa layar ("Detail permintaan", "Undang pasangan") — itu sekarang **bug copy**, bukan lagi keputusan tertunda | app ortu | rapikan ke Inggris lewat `copy/` |
-| **K2** | **Istilah kategori tidak sinkron**: positioning brand memakai *Pakai/Simpan/Berbagi/Bertumbuh*; design system §13.1 memakai *Belanja/Impian/Bertumbuh* untuk Middle; mockup memakai *Spend/Save/Give/Grow* | brand vs design system vs mockup | pilih satu set per tier, tulis di satu tabel, semua turunan mengikuti |
+| ~~**K2**~~ | ~~**Istilah kategori tidak sinkron**~~ ✅ **selesai 29 Juli 2026** ([ADR-0017](decisions/0017-istilah-kategori-sama-lintas-tier.md)). Satu set untuk ketiga tier: `Unsorted · Spend · Save · Give · Grow`. Design system §13.1 ditulis ulang — ia satu-satunya yang menyimpang | brand · design system · copy | ✅ `copy/` sudah sesuai, tidak ada perubahan kode |
 | **K3** | **Format rupiah**: brand §17 mengunci `Rp50.000`; semua mockup produk memakai `Rp 10,000`; console sudah benar; bahkan antar-mockup anak beda (`Rp 900.000.` vs `Rp 900,000.`) | 4 mockup produk | sudah diputuskan di brand — tinggal ditegakkan. Satu titik ubah: fungsi `rp()` / `fmt()` |
 | **K4** | **Target dream berbeda antar app**: anak = BMX Rp300.000, Headphones Rp100.000; ortu = BMX Rp400.000, Headphones Rp60.000 | anak vs ortu | pakai angka app anak (sesuai handoff), perbaiki sisi ortu |
 | **K5** | **Request pending berbeda**: anak menunggu cash out Rp20.000 dari Snacks; ortu menampilkan Rp25.000 dari Snacks | anak vs ortu | samakan ke Rp25.000 (versi ortu lebih lengkap: ada alasan tertulis) |
@@ -135,8 +135,11 @@ membaca Inggris. Argumen itu benar tapi **tidak berlaku untuk cakupan yang sedan
 tier dimatikan, jadi hanya **Middle** yang bisa didemokan (D5). Semua string tetap lewat `copy/`,
 sehingga keputusan ini murah dibalik. **Ditinjau ulang kalau D5 memasukkan Little.**
 
-**D2 — Satu tabel istilah final.** Setelah D1, kunci satu tabel: kategori × tier × istilah. Tabel itu
-jadi rujukan tunggal brand, design system, dan semua mockup.
+**~~D2 — Satu tabel istilah final.~~ ✅ DIPUTUSKAN: sama lintas tier**
+([ADR-0017](decisions/0017-istilah-kategori-sama-lintas-tier.md)). `Unsorted · Spend · Save · Give ·
+Grow`, pasangan Indonesia `Uang Baru · Pakai · Simpan · Berbagi · Bertumbuh`. Design system §13.1 —
+satu-satunya sumber yang menyimpang — sudah ditulis ulang mengikuti. Lookup `[tier][kategori]` tetap
+dipertahankan walau ketiganya identik; itu yang menjaga keputusan ini murah dibalik.
 
 > **Bukti yang sudah ada dan sering terlewat:** lembar karakter yang sudah disetujui
 > (`panduan_karakter_nummi_yang_ceria.png`) memberi label kategorinya **dwibahasa berpasangan** —
@@ -144,7 +147,7 @@ jadi rujukan tunggal brand, design system, dan semua mockup.
 > kategori di brand system §5.2, dan persis sama dengan kalimat posisi resmi. Yang menyimpang justru
 > **design system §13.1** (Belanja/Impian/Pengeluaran/Tabungan untuk Middle & Teen).
 >
-> Artinya D2 mungkin lebih ringan dari kelihatannya: dua dari tiga sumber sudah sepakat. Yang perlu
+> Bukti itulah yang akhirnya dipakai ADR-0017: dua dari tiga sumber sudah sepakat. Yang perlu
 > diputuskan tinggal **apakah istilahnya berubah menurut tier atau tidak.** Argumen untuk tidak berubah:
 > warna kategori sudah kamu kunci sebagai alat belajar yang tak pernah berubah — istilahnya sebaiknya
 > mengikuti logika yang sama, kalau tidak anak yang naik tier harus belajar ulang nama benda yang sama.
@@ -198,8 +201,8 @@ Kalau memang masih relevan, unggah; kalau sudah mati, catat matinya supaya tidak
 
 ## 8. Urutan yang saya sarankan
 
-1. ~~Putuskan D1~~ ✅ **selesai — Inggris** (ADR-0016). Tersisa **D2** (apakah istilah berubah
-   menurut tier), yang kini menyempit ke sisi Inggris saja.
+1. ~~Putuskan D1 & D2~~ ✅ **selesai** — Inggris (ADR-0016) dan istilah kategori sama lintas tier
+   (ADR-0017). Keputusan copy tidak lagi memblokir apa pun.
 2. **Bersihkan K3–K7** — murah, mekanis, dan menghilangkan angka yang saling bertentangan antar layar.
 3. **Turunkan Fase 6 ke sisi anak** (auto-split & money rules ditegakkan di app anak).
 4. **Tutup paritas iPad** (§2) atau putuskan iPad keluar dari cakupan MVP.
