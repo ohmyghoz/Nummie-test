@@ -162,18 +162,13 @@ Database berdiri, terisi seed kanonik, isolasi RLS diuji per-role, dan login ana
 (`docs/nummi-status.md` §9). Yang tersisa, urut dari yang paling memblokir:
 
 - ~~**U-1 · Deploy `child-login`**~~ ✅ **selesai 29 Juli 2026.** v2 ACTIVE, diuji ujung ke ujung.
-- **U-7 · Layar login anak belum punya jalan masuk yang utuh.** `child-login` menuntut **`childId`**
-  (UUID), bukan cuma kode keluarga + PIN — dan anak jelas tidak mengetik UUID. Berarti perlu langkah
-  "pilih anak" sebelum PIN, sementara daftar anak per kode keluarga **belum punya jalur baca yang
-  sah**: RLS `children_read` menuntut token yang justru belum terbit pada saat itu. Tiga arah, dan
-  pilihannya bukan sepele karena menyentuh berapa banyak yang boleh diketahui orang asing yang cuma
-  menebak kode keluarga:
-  1. Endpoint publik tipis (Edge Function) yang mengembalikan **nama depan + avatar saja** untuk satu
-     kode keluarga — ramah anak, tapi kode keluarga jadi bocoran daftar anak.
-  2. Anak mengetik kode keluarga **+ PIN** saja, lalu `child-login` mencari sendiri anak mana yang
-     PIN-nya cocok dalam keluarga itu — tanpa daftar, tapi PIN jadi harus unik per keluarga.
-  3. QR / deep link dari app ortu — paling aman, paling ribet untuk uji pertama.
-  Rate limiting yang sekarang berbasis `child_id` + IP juga perlu ditinjau ulang kalau opsi 2 dipilih.
+- ~~**U-7 · Jalan masuk anak**~~ ✅ **selesai 29 Juli 2026 — opsi 2 dipilih**: kode keluarga + PIN
+  saja, tanpa memilih anak lebih dulu. Ditolak: endpoint publik berisi nama anak (kode keluarga jadi
+  bocoran daftar anak) dan QR dari app ortu (paling aman, terlalu berat untuk uji pertama). Server
+  **gagal-tertutup** kalau dua anak sama-sama cocok — tidak menebak. Ikut terkunci: PIN 6 digit &
+  unik per keluarga (K15), dan rate limiting dikunci ulang ke keluarga. Rinciannya di
+  [ADR-0012 §Amandemen](decisions/0012-auth-anak-kode-keluarga-pin.md).
+  **Yang tersisa dari U-7: layar login-nya sendiri belum dibangun** — itu bagian dari U-2.
 - **U-6 · Lunasi utang JWT HS256.** Login anak menumpang JWT secret legacy yang statusnya sudah
   `Previously used` (`9835f01e-…`); project sendiri sudah pindah ke ES256. **Jangan pernah revoke
   kunci itu** sebelum ini selesai — satu klik mematikan login semua anak serentak. Jalan keluar:

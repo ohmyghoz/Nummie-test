@@ -1,5 +1,5 @@
 import {
-  PIN_MAX_LENGTH, PIN_MIN_LENGTH, STARTER_WALLETS,
+  PIN_LENGTH, STARTER_WALLETS,
   ageFrom, suggestTier, validateChild, type Tier,
 } from '@nummi/core';
 import { getParentData } from '../../../lib/data';
@@ -13,6 +13,10 @@ const ERROR_COPY: Record<string, string> = {
   'child.birthMonthInvalid': dict.addChild.birthMonthInvalid,
   'child.birthYearInvalid': dict.addChild.birthYearInvalid,
   'child.pinDigitsOnly': dict.addChild.pinDigitsOnly,
+  // Belum bisa benar-benar terpicu di sini: keunikan PIN diperiksa `family_pin_taken()` di
+  // Postgres, dan layar ini masih membaca `lib/data.ts` (backlog U-2). Dipetakan sekarang
+  // supaya saat disambungkan tidak ada errorKey yang jatuh tanpa copy.
+  'child.pinTaken': dict.addChild.pinTaken,
 };
 
 export default async function AddChildPage({
@@ -85,9 +89,9 @@ export default async function AddChildPage({
           <div className="card">
             <label className="sub">{dict.addChild.pin}</label>
             <input className="field" type="text" inputMode="numeric" name="pin"
-              defaultValue={pin} style={{ marginTop: 5 }} />
+              maxLength={PIN_LENGTH} defaultValue={pin} style={{ marginTop: 5 }} />
             <p className="sub" style={{ marginTop: 6 }}>
-              {fill(dict.addChild.pinHint, { min: PIN_MIN_LENGTH, max: PIN_MAX_LENGTH })}
+              {fill(dict.addChild.pinHint, { length: PIN_LENGTH })}
             </p>
           </div>
 
@@ -99,7 +103,7 @@ export default async function AddChildPage({
         {check && !check.ok && check.errorKey && (
           <div className="errbox" style={{ marginTop: 12 }}>
             {check.errorKey === 'child.pinLength'
-              ? fill(dict.addChild.pinLength, { min: PIN_MIN_LENGTH, max: PIN_MAX_LENGTH })
+              ? fill(dict.addChild.pinLength, { length: PIN_LENGTH })
               : ERROR_COPY[check.errorKey]}
           </div>
         )}

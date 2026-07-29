@@ -96,7 +96,8 @@ export interface Dictionary {
   addChild: Record<
     'title' | 'name' | 'birth' | 'month' | 'year' | 'tier' | 'tierSuggested' | 'tierOverride'
     | 'pin' | 'pinHint' | 'privacy' | 'submit' | 'starterWallets' | 'created'
-    | 'nameRequired' | 'birthMonthInvalid' | 'birthYearInvalid' | 'pinLength' | 'pinDigitsOnly',
+    | 'nameRequired' | 'birthMonthInvalid' | 'birthYearInvalid' | 'pinLength' | 'pinDigitsOnly'
+    | 'pinTaken',
     string
   >;
 

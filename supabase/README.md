@@ -37,21 +37,35 @@ bukan konfigurasi yang salah.
 | `migrations/0004_view_security_invoker.sql` | view pakai hak pemanggil + putus rekursi RLS | ✅ jalan |
 | `migrations/0005_rpc_surface.sql` | cabut EXECUTE helper definer dari `anon` | ✅ jalan |
 | `migrations/0006_verify_child_pin.sql` | verifikasi PIN di Postgres (pgcrypto), service role saja | ✅ jalan |
-| `functions/child-login/` | Edge Function: kode keluarga + PIN → JWT ber-claim | ✅ **v2, ACTIVE** |
+| `migrations/0007_login_by_family_pin.sql` | `find_child_by_pin()` + `family_pin_taken()`, rate limit per keluarga | ✅ jalan |
+| `functions/child-login/` | Edge Function: kode keluarga + PIN → JWT ber-claim | ✅ **v4, ACTIVE** |
 | `seed.sql` | data uji kanonik (cermin `packages/core/src/seed.ts`) — jalankan **setelah** migrasi | ✅ jalan (`NUMMI1`) |
 
 ## Keadaan sekarang (29 Juli 2026)
 
 Seed sudah masuk dan **direkonsiliasi**: `invariant_check` untuk Arthur = **Rp484.711**, pecahannya
 `50.000 / 95.000 / 240.000 / 40.000 / 59.711`, `negative_wallets` 0, `ledger_orphans` kosong.
-Angka yang sama dihasilkan `packages/core` (172 test hijau). Itulah gunanya punya dua sumber.
+Angka yang sama dihasilkan `packages/core` (174 test hijau). Itulah gunanya punya dua sumber.
 
 Kode keluarga **`NUMMI1`**, PIN anak **`135790`** — data uji, ganti sebelum keluarga sungguhan.
 
-**Login anak hidup dan sudah diuji ujung ke ujung.** Kode keluarga diterima huruf kecil, PIN salah
-dan kode keluarga salah sama-sama `401` dengan pesan seragam, token berumur 12 jam, dan token itu
-dipakai menembak `/rest/v1/wallet_balances` mengembalikan **11 baris, total 484.711** — angka yang
-sama dengan `packages/core`. Tiga sumber independen, satu angka.
+**Login anak hidup dan sudah diuji ujung ke ujung.** Payload-nya **hanya** `{ familyCode, pin }` —
+tidak ada `childId` (ADR-0012 §A1). Kode keluarga diterima huruf kecil, PIN salah dan kode keluarga
+salah sama-sama `401` dengan pesan seragam, token berumur 12 jam, dan token itu dipakai menembak
+`/rest/v1/wallet_balances` mengembalikan **11 baris, total 484.711** — angka yang sama dengan
+`packages/core`. Tiga sumber independen, satu angka.
+
+```bash
+curl -X POST "$URL/functions/v1/child-login" \
+  -H "apikey: $PUBLISHABLE_KEY" -H "Authorization: Bearer $PUBLISHABLE_KEY" \
+  -H 'content-type: application/json' \
+  -d '{"familyCode":"NUMMI1","pin":"135790"}'
+```
+
+**PIN wajib unik dalam satu keluarga.** Kalau dua anak sama-sama cocok, `find_child_by_pin()`
+mengembalikan nol baris dan login GAGAL — server tidak menebak. Keunikan tidak bisa dijaga unique
+constraint (salt bcrypt berbeda tiap baris), jadi penegakannya di waktu tulis lewat
+`family_pin_taken()`.
 
 Yang **belum**: belum ada baris di `parents` (ortu harus daftar lewat Supabase Auth dulu — perintah
 penautannya ada di kaki `seed.sql`), dan belum ada app yang menyentuh semua ini.
@@ -84,7 +98,7 @@ Semua yang di atas dikerjakan lewat MCP + dashboard, tanpa `supabase` CLI terpas
 CLI (`brew install supabase/tap/supabase`) baru berguna untuk stack lokal dan `db push`.
 Blok perintah di bawah ini disimpan sebagai padanan CLI, bukan sebagai satu-satunya jalan.
 
-## Tiga jebakan yang sudah ditemukan dan ditutup (jangan diulang)
+## Empat jebakan yang sudah ditemukan dan ditutup (jangan diulang)
 
 **1. View tidak mewarisi RLS.** `wallet_balances` adalah satu-satunya sumber saldo. Dibuat dengan
 default Postgres, ia berjalan dengan hak *pemilik* view — jadi JWT keluarga mana pun yang menembak
@@ -105,9 +119,20 @@ dengan memindahkan verifikasi PIN ke Postgres lewat pgcrypto: bcrypt keluar dari
 memakai pgcrypto: `search_path` **wajib** memuat `extensions` — di situlah ekstensinya dipasang,
 bukan di `public`.
 
-Ketiganya tak terlihat sampai sesuatu yang nyata menyentuhnya — dua yang pertama tak terlihat selama
-tabel kosong, yang ketiga hanya muncul saat fungsi benar-benar dipanggil. Kalau kamu menambah view
-atau helper baru, ujilah dengan role sungguhan, bukan dengan koneksi service role:
+**4. `x-forwarded-for` adalah rantai, dan ujungnya berganti tiap permintaan.** Rate limiting login
+anak memakainya utuh sebagai kunci, jadi setiap tebakan tampak datang dari IP baru dan hitungannya
+tidak pernah mencapai ambang. **Tujuh tebakan berturut-turut semuanya lolos.** Kodenya ada sejak
+awal; efeknya tidak pernah ada. Ambil hop **pertama** (`.split(',')[0]`), dan karena hop itu dikirim
+klien dan bisa dipalsukan, tambahkan lapis kedua per-keluarga — lihat ADR-0012 §A3.
+
+Keempatnya lolos pembacaan kode, dan tidak satu pun terlihat sampai ada permintaan sungguhan yang
+menyentuhnya: dua yang pertama tersembunyi selama tabel masih kosong, yang ketiga baru muncul saat
+fungsinya benar-benar dipanggil, dan yang keempat **tidak pernah melempar galat sama sekali** — ia
+cuma diam-diam tidak bekerja. Yang terakhir itu jenis paling berbahaya: satu-satunya cara
+menemukannya adalah menyerang sendiri fiturnya dan memastikan serangan itu **gagal**.
+
+Kalau kamu menambah view atau helper baru, ujilah dengan role sungguhan, bukan dengan koneksi
+service role:
 
 ```sql
 begin;

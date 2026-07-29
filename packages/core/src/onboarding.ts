@@ -17,17 +17,25 @@
 import type { Tier } from './types.js';
 
 /**
- * ⚠️ PANJANG PIN BELUM DIPUTUSKAN — repo menyebut tiga angka berbeda:
- *   - `supabase/migrations/0001_init.sql` : "4 digit = 10.000 kombinasi"
- *   - `supabase/functions/child-login`    : "PIN 4–6 digit"
- *   - `docs/nummi-backlog.md` (Add a child): "PIN 6-digit"
+ * PANJANG PIN: **6 digit, tetap** (K15 diputuskan 29 Juli 2026, ADR-0012 §Amandemen).
  *
- * Rentang di bawah menerima ketiganya, jadi tidak ada yang diputuskan diam-diam di sini.
- * Yang benar-benar penting sudah pasti apa pun jawabannya: **rate limiting wajib** (ADR-0012),
- * karena 4 digit hanya 10.000 kombinasi.
+ * Bukan sekadar merapikan tiga angka yang dulu bertentangan. Yang memaksa keputusannya adalah
+ * cara anak masuk: anak mengetik **kode keluarga + PIN saja**, tanpa memilih dirinya lebih dulu,
+ * lalu server mencari anak mana di keluarga itu yang PIN-nya cocok. Artinya setiap anak menambah
+ * satu PIN yang sah di ruang tebakan yang sama — keluarga 3 anak = 3 kunci untuk satu gembok.
+ *
+ * 6 digit menjadikan ruang itu 1.000.000, bukan 10.000. Digabung rate limiting (ADR-0012),
+ * itu selisih antara "bisa ditebak dalam hitungan hari" dan "tidak layak dicoba".
+ *
+ * Konsekuensi yang ikut terkunci: **PIN wajib unik dalam satu keluarga**. Ini tidak bisa dijaga
+ * constraint — bcrypt memberi salt berbeda tiap baris, jadi dua PIN sama menghasilkan hash
+ * berbeda. Penegakannya di waktu tulis: `pinTakenInFamily` di bawah, dan `family_pin_taken()`
+ * di `supabase/migrations/0007_login_by_family_pin.sql` untuk sisi server.
+ *
+ * ⚠️ Ditinjau ulang kalau D5 memasukkan Little (KG B–Grade 2) — 6 digit untuk anak 5 tahun
+ * adalah pertanyaan yang berbeda, dan jawabannya mungkin bukan PIN sama sekali.
  */
-export const PIN_MIN_LENGTH = 4;
-export const PIN_MAX_LENGTH = 6;
+export const PIN_LENGTH = 6;
 
 /** Batas usia untuk SARAN tier. Bisa ditimpa ortu — lihat catatan 2 di atas. */
 export const LITTLE_MAX_AGE = 8;
@@ -46,7 +54,17 @@ export type ChildErrorKey =
   | 'child.birthMonthInvalid'
   | 'child.birthYearInvalid'
   | 'child.pinLength'
-  | 'child.pinDigitsOnly';
+  | 'child.pinDigitsOnly'
+  | 'child.pinTaken';
+
+/**
+ * Konteks yang hanya diketahui pemanggil. `pinTakenInFamily` sengaja berupa jawaban, bukan
+ * daftar hash: perbandingan bcrypt milik database (`family_pin_taken()`), dan `packages/core`
+ * tidak boleh tahu-menahu soal hashing.
+ */
+export interface ChildValidationContext {
+  pinTakenInFamily?: boolean;
+}
 
 /** Usia dalam tahun penuh dari bulan+tahun lahir. Tanggal tidak pernah dipakai. */
 export function ageFrom(birthMonth: number, birthYear: number, todayISO: string): number {
@@ -66,6 +84,7 @@ export function suggestTier(birthMonth: number, birthYear: number, todayISO: str
 export function validateChild(
   draft: ChildDraft,
   todayISO: string,
+  ctx: ChildValidationContext = {},
 ): { ok: boolean; errorKey?: ChildErrorKey } {
   if (!draft.name.trim()) return { ok: false, errorKey: 'child.nameRequired' };
 
@@ -80,9 +99,10 @@ export function validateChild(
   }
 
   if (!/^\d+$/.test(draft.pin)) return { ok: false, errorKey: 'child.pinDigitsOnly' };
-  if (draft.pin.length < PIN_MIN_LENGTH || draft.pin.length > PIN_MAX_LENGTH) {
-    return { ok: false, errorKey: 'child.pinLength' };
-  }
+  if (draft.pin.length !== PIN_LENGTH) return { ok: false, errorKey: 'child.pinLength' };
+
+  // Diperiksa TERAKHIR: kalau PIN-nya belum berbentuk sah, "sudah dipakai" cuma membingungkan.
+  if (ctx.pinTakenInFamily) return { ok: false, errorKey: 'child.pinTaken' };
 
   return { ok: true };
 }

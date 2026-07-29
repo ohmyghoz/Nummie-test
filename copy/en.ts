@@ -245,7 +245,7 @@ export const en: Dictionary = {
     // Ditimpa tanpa dihakimi: tidak ada peringatan, tidak ada "yakin?".
     tierOverride: 'Change it if you know better. You do.',
     pin: 'PIN',
-    pinHint: '{min}–{max} digits. Your child types this to sign in.',
+    pinHint: '{length} digits. Your child types this to sign in — no username needed.',
     privacy: 'Month and year only — we never ask for the exact date.',
     submit: 'Add {name}',
     starterWallets: 'Starts with',
@@ -253,8 +253,11 @@ export const en: Dictionary = {
     nameRequired: 'A name is needed',
     birthMonthInvalid: 'Pick a month between 1 and 12',
     birthYearInvalid: 'That year looks like a typo',
-    pinLength: 'PIN must be {min}–{max} digits',
+    pinLength: 'PIN must be {length} digits',
     pinDigitsOnly: 'Digits only',
+    // Tidak menyebut anak yang mana: ortu tahu keluarganya sendiri, dan menyebut nama membuat
+    // pesan ini jadi cara memancing siapa saja yang ada di keluarga itu.
+    pinTaken: 'Someone in the family already uses this PIN. Pick another.',
   },
 
   jobs: {

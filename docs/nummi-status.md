@@ -119,7 +119,7 @@ Diurutkan dari yang paling mahal kalau dibiarkan.
 | **K11** | **Nama produk di berkas**: `Celengan_iPad_…`, `celengan-*.md`, `celengan-*.html` masih memakai nama lama | nama berkas | rename saat merge berikutnya |
 | **K12** | **Ejaan Inggris tidak konsisten**: "Practice with my real money" (HP) vs "Practise…" (iPad) | anak HP vs iPad | ⚠️ **naik prioritas.** Dulu diasumsikan gugur sendiri kalau D1 jatuh ke Indonesia. D1 jatuh ke **Inggris** (ADR-0016), jadi ini sekarang harus benar-benar diperbaiki: pilih satu varian, tegakkan di `copy/en.ts` |
 | **K13** | **Jendela metrik console** 7 hari vs 14 hari antara Ikhtisar & kartu status | console | sudah tercatat sebagai C-3 |
-| **K15** | **Panjang PIN anak disebut tiga angka berbeda**: komentar skema bilang *"4 digit = 10.000 kombinasi (ADR-0012)"* (`0001_init.sql:42`), Edge Function bilang *"PIN 4–6 digit"* (`child-login/index.ts:11`), backlog bilang 6. Tidak ada constraint yang menegakkan apa pun — `pin_hash` menerima panjang berapa pun, dan seed sudah terlanjur memakai **6 digit** | skema vs Edge Function vs backlog | pilih satu, lalu tegakkan di Edge Function (bukan di skema — yang tersimpan cuma hash). Perhatikan: parameter rate limiting di ADR-0012 dihitung dari asumsi 4 digit |
+| ~~**K15**~~ | ~~**Panjang PIN anak disebut tiga angka berbeda**~~ ✅ **selesai 29 Juli 2026 — 6 digit tetap** ([ADR-0012 §A2](decisions/0012-auth-anak-kode-keluarga-pin.md)). Yang memaksanya diputuskan bukan kerapian dokumen, melainkan cara anak masuk: karena anak tidak memilih dirinya lebih dulu, **tiap anak menambah satu PIN yang sah** di ruang tebakan yang sama. Ikut terkunci: **PIN wajib unik per keluarga**, ditegakkan di waktu tulis karena salt bcrypt membuat constraint mustahil | skema · Edge Function · core | ✅ ditegakkan di `PIN_LENGTH` + test |
 | **K14** | **"Approve ≠ Fulfilled" bertabrakan dengan tabelnya sendiri**: `nummi-handoff.md` menulis judul *"HANYA untuk Cash out"*, lalu tabel tepat di bawahnya mencantumkan prize → To do dan Give → To do + cerita wajib. Handoff juga menulis *"empat jalur"* untuk tabel berisi **lima** baris | handoff (internal) | **tabelnya yang benar** — judulnya lahir di konteks revisi Grow (*"di antara flow Grow, hanya cash out"*) tapi terbaca sebagai aturan global. Cocok dengan backlog G ("approval inbox 5-jalur"). Sudah diluruskan di `decisions/0002-approve-bukan-fulfil.md`. ⚠️ Kalau tersalin salah ke skema sebagai **satu** enum (bukan dua kolom), keputusan "approve ≠ fulfil" mati diam-diam |
 
 ---
@@ -227,16 +227,29 @@ Pelajarannya sama untuk keduanya, dan layak diingat: **keduanya tidak terlihat s
 Uji akses selalu dengan role sungguhan (`set local role authenticated` + claim JWT), tidak pernah
 dengan koneksi service role — service role membuat semuanya tampak baik-baik saja.
 
-**Login anak hidup** (`child-login` v2, ADR-0012 utuh: kode keluarga + PIN, rate limit, pesan galat
-seragam). Diuji ujung ke ujung — token terbit → `/rest/v1/wallet_balances` mengembalikan 11 baris,
-**Rp484.711**. Verifikasi PIN dipindah ke Postgres (`0006`) setelah `deno.land/x/bcrypt` gagal di
-Edge Runtime; efek sampingnya justru perbaikan: `pin_hash` tidak pernah lagi keluar dari database.
+**Login anak hidup** (`child-login` v4): kode keluarga + PIN saja, tanpa `childId` dan tanpa daftar
+anak (ADR-0012 §A1). Diuji ujung ke ujung — token terbit → `/rest/v1/wallet_balances` mengembalikan
+11 baris, **Rp484.711**. Verifikasi PIN dipindah ke Postgres (`0006`) setelah `deno.land/x/bcrypt`
+gagal di Edge Runtime; efek sampingnya justru perbaikan: `pin_hash` tidak pernah lagi keluar dari
+database.
+
+**Temuan paling mahal hari itu, dan yang paling mudah tidak terlihat:** rate limiting login anak
+**tidak pernah menyala sekali pun** sejak ditulis. Kuncinya memakai `x-forwarded-for` utuh, padahal
+header itu rantai yang hop terakhirnya adalah proxy Supabase sendiri dan berganti tiap permintaan —
+jadi setiap tebakan tampak datang dari IP baru. Tujuh tebakan berturut-turut semuanya lolos. Kodenya
+ada sejak awal; efeknya tidak. Sekarang dua lapis (per-IP dan per-keluarga) dan **dibuktikan
+menyala**: percobaan ke-6 dijawab `429`, dan PIN benar pun tetap ditolak selama terkunci.
+Rinciannya di [ADR-0012 §A3](decisions/0012-auth-anak-kode-keluarga-pin.md).
+
+> Pelajaran yang sama berulang tiga kali dalam satu hari: **fitur keamanan yang tidak pernah diuji
+> dengan permintaan sungguhan sama saja dengan tidak ada.** RLS yang rekursif, view yang melewati
+> RLS, dan rate limit yang tidak pernah menghitung — ketiganya lolos review kode.
 
 **Yang masih menghalangi uji ortu–anak sungguhan:**
 
 | # | Hal | Kenapa memblokir |
 |---|---|---|
-| 1 | **Anak belum punya layar masuk** | `child-login` menuntut `childId` (UUID), dan anak tidak mengetik UUID. Perlu langkah "pilih anak" yang belum punya jalur baca sah. **Keputusan desain**, tiga opsi di backlog **U-7** |
+| 1 | **Layar login anak belum dibangun** | jalurnya sudah ada dan diuji (kode keluarga + PIN, tanpa `childId` — ADR-0012 §A1), tapi belum ada layar yang memanggilnya. Bagian dari **U-2** |
 | 2 | Belum ada baris `parents` | `parents.id` mereferensi `auth.users`, jadi ortu harus mendaftar lewat Supabase Auth dulu. Perintah penautannya di kaki `seed.sql` |
 | 3 | Ketiga app belum menyentuh Supabase | `apps/kid`, `apps/parent`, `apps/console` masih membaca `lib/data.ts`. Semua flow tetap berhenti di "menunggu orang tua" sampai ini dikerjakan |
 | 4 | Penghapusan data masih mustahil | trigger append-only membatalkan `delete from families`. Janji privasi belum bisa dipenuhi — butuh keputusan produk karena menyentuh ADR-0014 (`supabase/README.md`) |

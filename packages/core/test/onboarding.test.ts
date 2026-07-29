@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  PIN_MAX_LENGTH, PIN_MIN_LENGTH, STARTER_WALLETS,
+  PIN_LENGTH, STARTER_WALLETS,
   ageFrom, allowedRewards, defaultReward, suggestTier,
   validateChild, validateJob, validatePrize, weeksToEarn,
 } from '../src/index.js';
@@ -50,11 +50,26 @@ describe('validasi anak baru', () => {
     expect(validateChild(child({ pin: '12ab56' }), TODAY).errorKey).toBe('child.pinDigitsOnly');
   });
 
-  it('PIN menerima 4 sampai 6 digit — ketiga angka di repo lolos, tidak ada yang diputuskan', () => {
-    expect(validateChild(child({ pin: '1'.repeat(PIN_MIN_LENGTH) }), TODAY).ok).toBe(true);
-    expect(validateChild(child({ pin: '1'.repeat(PIN_MAX_LENGTH) }), TODAY).ok).toBe(true);
-    expect(validateChild(child({ pin: '123' }), TODAY).errorKey).toBe('child.pinLength');
+  it('PIN tepat 6 digit — K15 dikunci, 4 dan 5 digit sekarang DITOLAK', () => {
+    expect(PIN_LENGTH).toBe(6);
+    expect(validateChild(child({ pin: '1'.repeat(PIN_LENGTH) }), TODAY).ok).toBe(true);
+    expect(validateChild(child({ pin: '1234' }), TODAY).errorKey).toBe('child.pinLength');
+    expect(validateChild(child({ pin: '12345' }), TODAY).errorKey).toBe('child.pinLength');
     expect(validateChild(child({ pin: '1234567' }), TODAY).errorKey).toBe('child.pinLength');
+  });
+
+  // Konsekuensi login "kode keluarga + PIN" tanpa memilih anak: dua anak ber-PIN sama membuat
+  // pertanyaan "ini siapa?" tidak punya jawaban. Server menolak login yang ambigu; layar ini
+  // mencegahnya lahir sejak awal.
+  it('PIN kembar dalam satu keluarga ditolak', () => {
+    expect(validateChild(child(), TODAY, { pinTakenInFamily: true }).errorKey).toBe('child.pinTaken');
+    expect(validateChild(child(), TODAY, { pinTakenInFamily: false }).ok).toBe(true);
+  });
+
+  it('PIN cacat bentuk dilaporkan sebagai cacat bentuk, bukan sebagai "sudah dipakai"', () => {
+    // urutan pemeriksaan penting: "PIN sudah dipakai" untuk PIN 3 digit cuma membingungkan ortu
+    expect(validateChild(child({ pin: '123' }), TODAY, { pinTakenInFamily: true }).errorKey)
+      .toBe('child.pinLength');
   });
 });
 

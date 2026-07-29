@@ -240,7 +240,7 @@ export const id: Dictionary = {
     tierSuggested: 'Disarankan dari usia',
     tierOverride: 'Ubah kalau kamu lebih tahu. Dan kamu memang lebih tahu.',
     pin: 'PIN',
-    pinHint: '{min}–{max} digit. Anakmu mengetik ini untuk masuk.',
+    pinHint: '{length} digit. Anakmu mengetik ini untuk masuk — tanpa perlu nama pengguna.',
     privacy: 'Bulan dan tahun saja — tanggal persisnya tidak pernah kami minta.',
     submit: 'Tambahkan {name}',
     starterWallets: 'Dimulai dengan',
@@ -248,8 +248,9 @@ export const id: Dictionary = {
     nameRequired: 'Namanya belum diisi',
     birthMonthInvalid: 'Pilih bulan antara 1 dan 12',
     birthYearInvalid: 'Tahunnya sepertinya salah ketik',
-    pinLength: 'PIN harus {min}–{max} digit',
+    pinLength: 'PIN harus {length} digit',
     pinDigitsOnly: 'Angka saja',
+    pinTaken: 'PIN ini sudah dipakai anggota keluarga lain. Pilih yang lain.',
   },
 
   jobs: {
