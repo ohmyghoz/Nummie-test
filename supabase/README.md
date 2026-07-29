@@ -2,6 +2,33 @@
 
 Region: **Singapore** (latensi Indonesia).
 
+**Project ref: `lrjkhlaxixdbvxdpuqte`** → `https://lrjkhlaxixdbvxdpuqte.supabase.co`
+
+> ⚠️ Ada project lain (`qwceygruvwjnbikieglw`) yang sempat dipakai lebih awal dan **sudah tidak
+> berlaku**. Kunci apa pun yang pernah diambil dari sana tidak cocok dengan project ini —
+> jangan dipasang ulang.
+
+## MCP server (dijalankan di mesin sendiri, bukan di sesi remote)
+
+`.mcp.json` di root repo sudah berisi konfigurasinya, jadi `claude mcp add` tidak perlu diulang.
+Yang tersisa hanya autentikasi:
+
+```bash
+claude /mcp          # pilih "supabase", lalu Authenticate
+```
+
+Jalankan di **terminal biasa**, bukan ekstensi IDE — alurnya membuka browser.
+
+Opsional, mempercepat kerja agent di Supabase:
+
+```bash
+npx skills add supabase/agent-skills
+```
+
+**Kenapa tidak bisa dari sesi Claude Code remote:** `mcp.supabase.com` diblokir network policy
+environment (403 pada CONNECT), dan alur OAuth-nya butuh browser. Keduanya hambatan lingkungan,
+bukan konfigurasi yang salah.
+
 | Berkas | Isi |
 |---|---|
 | `migrations/0001_init.sql` | tabel, constraint, view saldo, resolver `is_pro()`, pemeriksa invarian |
