@@ -169,6 +169,16 @@ Database berdiri, terisi seed kanonik, isolasi RLS diuji per-role, dan login ana
   unik per keluarga (K15), dan rate limiting dikunci ulang ke keluarga. Rinciannya di
   [ADR-0012 §Amandemen](decisions/0012-auth-anak-kode-keluarga-pin.md).
   **Yang tersisa dari U-7: layar login-nya sendiri belum dibangun** — itu bagian dari U-2.
+- **U-9 · Saldo negatif belum mustahil, baru dipantau.** Dua klik Confirm yang cepat di layar
+  Sort sama-sama membaca Unsorted 50.000 dan sama-sama menulis — hasilnya Unsorted −50.000.
+  Tidak ada constraint yang mencegahnya; `invariant_check.negative_wallets` hanya **melaporkan**
+  setelah kejadian, dan ledger append-only berarti tidak bisa dibatalkan, hanya ditambal baris
+  pembalik. Ini juga berlaku untuk Move/Give/Grow saat menyusul.
+  **Usulan (butuh persetujuan — migrasi 0010):** trigger `after insert` di `ledger_entries` yang
+  menghitung saldo `from_wallet_id` sesudah baris masuk dan `raise exception` kalau negatif.
+  Menegakkan di database, bukan di app, karena inilah invariant — dan invariant yang dijaga app
+  akan bocor lewat jalur tulis berikutnya yang lupa memeriksanya.
+
 - **U-6 · Lunasi utang JWT HS256.** Login anak menumpang JWT secret legacy yang statusnya sudah
   `Previously used` (`9835f01e-…`); project sendiri sudah pindah ke ES256. **Jangan pernah revoke
   kunci itu** sebelum ini selesai — satu klik mematikan login semua anak serentak. Jalan keluar:

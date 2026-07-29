@@ -48,8 +48,17 @@ silang yang independen — bukan sumber kebenaran kedua yang bisa menyimpang dia
 
 ## Menulis (irisan 2 — Sort saja, sejauh ini)
 
-**Sort sudah benar-benar menulis ledger.** Tombol Confirm dulu `<a href="/">` — layar yang
-berpura-pura sudah menyimpan. Sekarang ia server action `applySort()` di `lib/actions.ts`.
+**Sort sudah benar-benar menulis ledger**, dan sudah dibuktikan dari app yang jalan: Unsorted
+50.000 → 0, Spend +20k, Save +20k, Give +10k, total tetap **484.711** (Sort itu perpindahan
+internal — kalau totalnya berubah, itu justru bug). Ketiga baris ber-`created_at` identik, bukti
+mereka lahir dari satu pernyataan. Klik kedua saat Unsorted kosong tidak menulis apa pun.
+
+Tombol Confirm dulu `<a href="/">` — layar yang berpura-pura sudah menyimpan. Sekarang ia server
+action `applySort()` di `lib/actions.ts`.
+
+⚠️ **Yang BELUM dijaga: dua klik cepat.** Keduanya membaca Unsorted 50.000, keduanya menulis, dan
+saldo Unsorted jadi negatif. Tidak ada constraint yang mencegahnya — `negative_wallets` cuma
+dipantau view, tidak ditegakkan. Lihat backlog U-9.
 
 Move · Give · Grow **masih berhenti di "menunggu orang tua"**. Polanya sudah ada; tinggal diikuti.
 
