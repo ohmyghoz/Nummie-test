@@ -4,6 +4,7 @@ import {
 import { getKidData } from '../../lib/data';
 import { dict, fill } from '../../lib/copy';
 import { Brand, Nav, POCKET_COLOR } from '../../components/ui';
+import { applyMove } from '../../lib/actions';
 
 const ERROR_COPY: Record<string, string> = {
   'move.amountRequired': dict.move.amountRequired,
@@ -120,6 +121,17 @@ export default async function MovePage({
               <span className="dot" style={{ background: POCKET_COLOR[to!.category] }} />
               <span className="nm">{fill(dict.move.after, { wallet: to!.name, amount: formatRp(plan.toAfter) })}</span>
             </div>
+
+            {/* Sampai irisan 2, pratinjau ini adalah ujung jalan — layar yang menunjukkan
+                hasil lalu tidak melakukan apa-apa. Sekarang ia benar-benar memindahkan. */}
+            <form action={applyMove}>
+              <input type="hidden" name="from" value={from!.id} />
+              <input type="hidden" name="to" value={to!.id} />
+              <input type="hidden" name="amount" value={plan.amount} />
+              <button className="cta" type="submit" style={{ border: 'none', font: 'inherit', cursor: 'pointer' }}>
+                {dict.move.confirm}
+              </button>
+            </form>
           </div>
         )}
       </main>

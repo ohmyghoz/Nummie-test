@@ -2,6 +2,7 @@ import { GIVE_CAUSES, formatRp, parseRp, validateGive, type GiveCause } from '@n
 import { getKidData } from '../../lib/data';
 import { dict, fill } from '../../lib/copy';
 import { Brand, Nav } from '../../components/ui';
+import { submitGive } from '../../lib/actions';
 
 const ERROR_COPY: Record<string, string> = {
   'give.amountRequired': dict.give.amountRequired,
@@ -92,12 +93,16 @@ export default async function GivePage({
             </div>
             {/* ADR-0002: mengajukan != disetujui, dan disetujui != tersalurkan. */}
             <p className="muted">{dict.common.waitingForGrownUp}</p>
-            <a
-              className="cta"
-              href={`/give?sent=1&amount=${amount}&cause=${cause}${note ? `&note=${encodeURIComponent(note)}` : ''}`}
-            >
-              {dict.give.submit}
-            </a>
+            {/* Dulu tautan ke `?sent=1` — layar yang mengaku sudah mengirim padahal tidak
+                ada apa pun yang tercatat. Sekarang ia membuat request sungguhan. */}
+            <form action={submitGive}>
+              <input type="hidden" name="amount" value={amount} />
+              <input type="hidden" name="cause" value={cause!} />
+              {note && <input type="hidden" name="note" value={note} />}
+              <button className="cta" type="submit" style={{ border: 'none', font: 'inherit', cursor: 'pointer' }}>
+                {dict.give.submit}
+              </button>
+            </form>
           </div>
         )}
       </main>

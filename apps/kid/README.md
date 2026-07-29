@@ -61,7 +61,19 @@ action `applySort()` di `lib/actions.ts`.
 melihat "Nothing was moved". Diuji sungguhan dengan dua permintaan bersamaan: tepat 3 baris
 tertulis, bukan 6. Penjagaan itu berlaku untuk Move/Give/Grow juga — termasuk yang belum ditulis.
 
-Move · Give · Grow **masih berhenti di "menunggu orang tua"**. Polanya sudah ada; tinggal diikuti.
+**Move dan Give menyusul, dan keduanya membuktikan dua bentuk tulis yang berbeda:**
+
+| Flow | Menulis apa | Kenapa |
+|---|---|---|
+| Sort | **ledger**, banyak baris, satu pernyataan | anak memberi tugas pada uangnya sendiri |
+| Move | **ledger**, satu baris | perpindahan yang memang boleh dilakukan anak (`movePlan`) |
+| Give | **request**, bukan ledger | ADR-0002: mengajukan ≠ disetujui. Uang baru bergerak saat ortu menyetujui, dan barisnya baru bisa ditutup setelah ortu menulis ceritanya (ADR-0006) |
+
+Diuji sungguhan: Move Rp5.000 Snacks → Transport (65.000→60.000, 30.000→35.000, total tetap
+484.711); Give Rp15.000 membuat request `needs_ok`/`todo` sementara **saldo Give tidak bergerak
+sama sekali** dan ledger tidak bertambah. Home anak berubah jadi "2 waiting for a grown-up".
+
+**Grow/Harvest** masih berhenti di layar — polanya sudah ada, tinggal diikuti.
 
 Tiga hal yang dikunci di `lib/actions.ts` dan tidak boleh dilonggarkan:
 

@@ -28,7 +28,7 @@
  */
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { canOpenSort } from '@nummi/core';
+import { GIVE_CAUSES, canOpenSort, movePlan, validateGive, type GiveCause } from '@nummi/core';
 import { getKidData } from './data';
 import { serviceClient } from './supabase';
 
@@ -68,4 +68,98 @@ export async function applySort(): Promise<void> {
   revalidatePath('/sort');
   revalidatePath('/wallets');
   redirect('/');
+}
+
+/**
+ * Move money — menulis ledger LANGSUNG, sama seperti Sort.
+ *
+ * Id wallet memang datang dari formData, dan itu aman justru karena tidak pernah dipercaya:
+ * keduanya dicari di dalam `data.wallets`, yaitu daftar yang dibaca lewat token dan dijaga RLS.
+ * Id milik keluarga lain sederhananya tidak akan ketemu.
+ */
+export async function applyMove(formData: FormData): Promise<void> {
+  const fromId = String(formData.get('from') ?? '');
+  const toId = String(formData.get('to') ?? '');
+  const amount = Number(formData.get('amount') ?? 0);
+
+  const data = await getKidData();   // tanpa mode — lihat aturan 3 di atas
+  const from = data.wallets.find((w) => w.wallet.id === fromId)?.wallet;
+  const to = data.wallets.find((w) => w.wallet.id === toId)?.wallet;
+  if (!from || !to) redirect('/move');
+
+  // Aturan yang sama dengan yang dipakai pratinjau. Kalau server action memutuskan sendiri,
+  // anak bisa melihat "boleh" lalu ditolak — atau lebih buruk, sebaliknya.
+  const plan = movePlan(from, to, amount, data.rules, data.balances);
+  if (!plan.ok) {
+    redirect(`/move?from=${fromId}&to=${toId}&amount=${amount}`);
+  }
+
+  const { error } = await serviceClient().from('ledger_entries').insert({
+    child_id: data.child.id,
+    from_wallet_id: from.id,
+    to_wallet_id: to.id,
+    amount,
+    reason: 'move',
+  });
+
+  if (error) {
+    console.error('applyMove gagal:', error.message);
+    redirect(`/move?from=${fromId}&to=${toId}&amount=${amount}&e=failed`);
+  }
+
+  revalidatePath('/');
+  revalidatePath('/wallets');
+  revalidatePath('/move');
+  redirect('/wallets');
+}
+
+/**
+ * Give — TIDAK menulis ledger. Ia membuat REQUEST (ADR-0002: mengajukan ≠ disetujui, dan
+ * disetujui ≠ tersalurkan). Uangnya baru bergerak saat ortu menyetujui, dan barisnya baru
+ * bisa ditutup setelah ortu menuliskan ceritanya (ADR-0006).
+ *
+ * Catatan yang sengaja dibiarkan apa adanya: dua pengajuan Give yang masing-masing sah bisa
+ * melebihi isi kantong Give kalau digabung, karena request tidak "memesan" saldo. Yang
+ * menangkapnya adalah trigger `no_overdraft` (0010) saat ortu menyetujui yang kedua. Itu benar
+ * secara uang, tapi pengalaman ortunya belum dipikirkan — dicatat untuk irisan 3.
+ */
+export async function submitGive(formData: FormData): Promise<void> {
+  const amount = Number(formData.get('amount') ?? 0);
+  const causeRaw = String(formData.get('cause') ?? '');
+  const note = String(formData.get('note') ?? '').trim() || undefined;
+  const cause = (GIVE_CAUSES as readonly string[]).includes(causeRaw)
+    ? (causeRaw as GiveCause)
+    : undefined;
+
+  const data = await getKidData();
+  const back = `/give?amount=${amount}&cause=${causeRaw}${note ? `&note=${encodeURIComponent(note)}` : ''}`;
+
+  if (!cause || !data.giveWalletId) redirect(back);
+
+  const check = validateGive(
+    { amount, sourceWalletId: data.giveWalletId, cause, note },
+    data.giveBalance,
+  );
+  if (!check.ok) redirect(back);
+
+  const { error } = await serviceClient().from('requests').insert({
+    child_id: data.child.id,
+    kind: 'give_away',
+    amount,
+    source_wallet_id: data.giveWalletId,
+    // Alasan OPSIONAL untuk Give — jangan pajaki kemurahan hati (ADR-0006).
+    reason: note ?? null,
+    status: 'needs_ok',
+    fulfilment: 'todo',
+  });
+
+  if (error) {
+    console.error('submitGive gagal:', error.message);
+    redirect(`${back}&e=failed`);
+  }
+
+  revalidatePath('/give');
+  revalidatePath('/requests');
+  revalidatePath('/');
+  redirect('/give?sent=1');
 }

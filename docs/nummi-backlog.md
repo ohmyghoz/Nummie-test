@@ -187,8 +187,13 @@ Database berdiri, terisi seed kanonik, isolasi RLS diuji per-role, dan login ana
   yang sama persis. Ongkos: satu kolom penghubung `children` → `auth.users`.
 - **U-2 · Sambungkan app ke Supabase.** 🟢 **Irisan 1 selesai** (baca-saja: login kode keluarga +
   PIN, cookie httpOnly, Home/Wallets/Sort/Requests dari database). 🟡 **Irisan 2 sebagian** —
-  **Sort menulis ledger** lewat server action; Move, Give, dan Grow masih berhenti di "menunggu
-  orang tua". Sisa: irisan 3 (app ortu, terhalang U-3).
+  **Sort, Move, dan Give sudah menulis** lewat server action: Sort & Move ke ledger, Give ke
+  `requests` (ADR-0002). **Grow/Harvest** masih berhenti di layar.
+- **U-10 · Request tidak "memesan" saldo.** Dua pengajuan Give yang masing-masing sah bisa
+  melebihi isi kantong Give kalau digabung. Secara uang tidak bahaya — trigger `no_overdraft`
+  (0010) menolak yang kedua saat ortu menyetujuinya. Yang belum dipikirkan adalah **pengalaman
+  ortunya**: ia menekan Approve dan mendapat kegagalan yang bukan salahnya. Diputuskan saat
+  irisan 3 (app ortu), bukan sekarang. Sisa: irisan 3 (app ortu, terhalang U-3).
 - **U-8 · Anak bisa mencetak uang — DITUTUP 29 Juli 2026 (migrasi 0009).** Dicatat karena
   pelajarannya berlaku ke setiap policy berikutnya: `ledger_insert` menjawab *"baris ini milik
   anak itu?"* tapi tidak pernah *"uangnya dari mana?"*. Baris ber-`from_wallet_id = null` = uang
