@@ -54,6 +54,26 @@ export function clientWithToken(token: string): SupabaseClient {
   );
 }
 
+/**
+ * Klien service role — **HANYA untuk menulis, hanya dari server action.**
+ *
+ * Ia melewati RLS sepenuhnya. Itu memang alasannya ada: sejak migrasi 0009, tidak ada peran
+ * ber-RLS yang boleh menulis ke `ledger_entries`, dan penegakan aturan uang pindah ke
+ * `@nummi/core` supaya aturannya cuma punya satu rumah.
+ *
+ * Konsekuensi yang harus selalu diingat siapa pun yang menyentuh berkas ini:
+ * **RLS tidak lagi menahanmu di jalur ini.** Setiap penulisan wajib lebih dulu menentukan
+ * anaknya lewat pembacaan ber-token (yang dijaga RLS), tidak pernah dari input klien.
+ *
+ * `SUPABASE_SECRET_KEY` sengaja TANPA prefix NEXT_PUBLIC_ — dengan begitu Next.js tidak akan
+ * pernah memasukkannya ke bundle browser, bahkan kalau berkas ini salah diimpor.
+ */
+export function serviceClient(): SupabaseClient {
+  return createClient(env('NEXT_PUBLIC_SUPABASE_URL'), env('SUPABASE_SECRET_KEY'), {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
 /** URL Edge Function `child-login` + kunci publiknya, dipakai route handler login. */
 export function loginEndpoint(): { url: string; key: string } {
   return {

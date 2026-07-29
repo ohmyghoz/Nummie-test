@@ -338,6 +338,7 @@ export const en: Dictionary = {
     preview: 'Here is where it lands',
     confirm: 'Looks good',
     leftInUnsorted: '{amount} stays unsorted',
+    saveFailed: 'That did not save. Nothing was moved — try again.',
   },
 
   rules: {

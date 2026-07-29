@@ -2,11 +2,12 @@ import { canOpenSort, formatRp, type RuleMode } from '@nummi/core';
 import { getKidData } from '../../lib/data';
 import { categoryLabel, dict, fill } from '../../lib/copy';
 import { Brand, Nav, POCKET_COLOR } from '../../components/ui';
+import { applySort } from '../../lib/actions';
 
 export default async function SortPage({
   searchParams,
-}: { searchParams: Promise<{ mode?: string }> }) {
-  const { mode } = await searchParams;
+}: { searchParams: Promise<{ mode?: string; e?: string }> }) {
+  const { mode, e } = await searchParams;
   const active = mode === 'strict' || mode === 'flexible' ? (mode as RuleMode) : undefined;
   const data = await getKidData(active);
   const { plan, rules } = data;
@@ -23,6 +24,10 @@ export default async function SortPage({
       <main className="wrap">
         <Brand childName={data.child.name} />
         <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 4 }}>{dict.sort.title}</h1>
+
+        {/* Penyimpanan yang gagal tidak boleh diam. Anak harus tahu uangnya TIDAK berpindah,
+            bukan menebak-nebak kenapa angkanya sama seperti tadi. */}
+        {e === 'failed' && <div className="errbox" style={{ marginTop: 12 }}>{dict.sort.saveFailed}</div>}
 
         {!canOpenSort(data.unsortedBalance) ? (
           <div className="card"><div className="muted">{dict.home.nothingToSort}</div></div>
@@ -64,7 +69,13 @@ export default async function SortPage({
                 </p>
               )}
 
-              <a className="cta" href="/">{dict.sort.confirm}</a>
+              {/* Tombol ini SEKARANG benar-benar menulis ledger (irisan 2). Sebelumnya ia
+                  cuma tautan ke Home — layar yang berpura-pura sudah menyimpan. */}
+              <form action={applySort}>
+                <button className="cta" type="submit" style={{ border: 'none', font: 'inherit', cursor: 'pointer' }}>
+                  {dict.sort.confirm}
+                </button>
+              </form>
             </div>
           </>
         )}

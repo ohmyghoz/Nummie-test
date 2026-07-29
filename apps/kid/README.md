@@ -46,8 +46,29 @@ Missions masih setengah demo.** Itu keadaan yang disengaja untuk irisan pertama,
 Dengan begitu I1 dijaga kode yang sama yang diuji 176 test, dan view di database jadi pemeriksa
 silang yang independen — bukan sumber kebenaran kedua yang bisa menyimpang diam-diam.
 
-**Masih belum menulis.** Semua flow tetap berhenti di "menunggu orang tua"; penulisan ledger
-adalah irisan 2. Yang sudah nyata sekarang: aturannya, validasinya, angkanya, **dan sumbernya**.
+## Menulis (irisan 2 — Sort saja, sejauh ini)
+
+**Sort sudah benar-benar menulis ledger.** Tombol Confirm dulu `<a href="/">` — layar yang
+berpura-pura sudah menyimpan. Sekarang ia server action `applySort()` di `lib/actions.ts`.
+
+Move · Give · Grow **masih berhenti di "menunggu orang tua"**. Polanya sudah ada; tinggal diikuti.
+
+Tiga hal yang dikunci di `lib/actions.ts` dan tidak boleh dilonggarkan:
+
+1. **Identitas anak tidak pernah dari input klien** — selalu dari pembacaan ber-token yang
+   dijaga RLS. `childId` yang datang dari `formData` adalah bug keamanan, bukan kemudahan.
+2. **Aturan uang tidak ditulis ulang di server action** — rencananya dari `sortPlan()` yang
+   sama dengan yang dipakai pratinjau. Kalau keduanya berbeda, anak belajar app-nya berbohong.
+3. **`?mode=` demo tidak pernah ikut ke jalur tulis.** Kalau ikut, anak tinggal menambahkan
+   `?mode=flexible` di URL untuk keluar dari mode Strict yang dipasang ortunya.
+
+Satu `insert` berisi banyak baris = satu pernyataan SQL = **atomik**. Bukan detail gaya: ledger
+append-only (ADR-0014) berarti Sort yang separuh tertulis tidak bisa dibatalkan, hanya ditambal
+baris pembalik. Separuh-jadi harus mustahil, bukan sekadar jarang.
+
+Butuh `SUPABASE_SECRET_KEY` di `apps/kid/.env.local` — sejak migrasi 0009 tidak ada peran
+ber-RLS yang boleh menulis ledger, jadi service key adalah satu-satunya jalan, dan ia hanya
+hidup di server action.
 
 ## Masuk
 

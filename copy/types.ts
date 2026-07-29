@@ -140,7 +140,7 @@ export interface Dictionary {
 
   sort: Record<
     'title' | 'autoSplitHint' | 'lockedTitle' | 'lockedBody' | 'preview' | 'confirm'
-    | 'leftInUnsorted',
+    | 'leftInUnsorted' | 'saveFailed',
     string
   >;
 

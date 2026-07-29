@@ -61,7 +61,7 @@ export interface GrowRow {
 }
 
 export interface KidData {
-  child: { name: string; tier: Tier; avatar: string };
+  child: { id: string; name: string; tier: Tier; avatar: string };
   total: number;
   pockets: Record<Pocket, number>;
   wallets: WalletRow[];
@@ -77,6 +77,8 @@ export interface KidData {
   giveBalance: number;
   /** id wallet Give — dicari lewat `kind`, tidak pernah ditulis mati (id kini UUID) */
   giveWalletId: string;
+  /** id wallet Unsorted — asal semua baris Sort. Sama alasannya: id kini UUID */
+  unsortedWalletId: string;
   givingStories: MoneyRequest[];
   prices: Prices;
   /** saldo per wallet — dipakai flow Move untuk pratinjau */
@@ -189,9 +191,10 @@ export async function getKidData(mode?: RuleMode): Promise<KidData> {
     harvestTargets: harvestDestinations(wallets),
     giveBalance: giveWallet ? byWallet[giveWallet.id] ?? 0 : 0,
     giveWalletId: giveWallet?.id ?? '',
+    unsortedWalletId: unsortedWallet?.id ?? '',
     givingStories: closedGiving(requests),
     prices: SEED_PRICES,
-    child: { name: child.name, tier: child.tier as Tier, avatar: AVATAR_DEFAULT },
+    child: { id: child.id, name: child.name, tier: child.tier as Tier, avatar: AVATAR_DEFAULT },
     total: totalBalance(ledger, wallets),
     pockets,
     wallets: wallets.map((wallet) => ({ wallet, balance: byWallet[wallet.id] ?? 0 })),

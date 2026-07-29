@@ -324,6 +324,7 @@ export const id: Dictionary = {
     preview: 'Beginilah hasilnya nanti',
     confirm: 'Sudah pas',
     leftInUnsorted: '{amount} tetap di Uang Baru',
+    saveFailed: 'Belum tersimpan. Tidak ada uang yang berpindah — coba lagi.',
   },
 
   rules: {
