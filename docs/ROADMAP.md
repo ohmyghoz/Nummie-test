@@ -17,17 +17,18 @@ Totalnya sekitar **tiga bulan akhir pekan** sampai ketiga permukaan jalan di ata
 
 ## Yang tersisa setelah S1b selesai (29 Juli 2026)
 
-Database berdiri, terbukti benar, dan **anak sudah bisa login** — tapi **belum ada satu pun app yang
-menyentuhnya**; ketiganya masih membaca `lib/data.ts`. Jadi urutan berikutnya bukan "bangun permukaan
-baru", melainkan **menyambungkan permukaan yang sudah ada**:
+Database berdiri, terbukti benar, dan **app anak sudah tersambung untuk membaca**. `apps/parent`
+dan `apps/console` masih membaca `lib/data.ts`. Urutan berikutnya bukan "bangun permukaan baru",
+melainkan **menyambungkan permukaan yang sudah ada**:
 
-1. **Klien Supabase + `.env`** di `apps/kid` & `apps/parent`.
-2. **Layar login anak** — ini permukaan yang belum pernah dibangun, dan `child-login` menuntut
-   `childId`, bukan cuma kode keluarga + PIN. Artinya perlu langkah "pilih anak" lebih dulu, dan
-   daftar anak per kode keluarga belum punya jalur baca yang sah (RLS menuntut token yang justru
-   belum ada). **Ini keputusan desain, bukan pekerjaan mekanis** — lihat backlog U-7.
-3. **Tukar `lib/data.ts` → query nyata**, permukaan demi permukaan, dimulai dari yang menutup
-   siklus uang (Home/saldo → Sort → Requests → approval ortu).
+1. ~~Klien Supabase + `.env` + layar login anak + tukar `lib/data.ts`~~ ✅ **selesai untuk
+   `apps/kid` (irisan 1, baca-saja)**: anak masuk dengan kode keluarga + PIN, dan Home/Wallets/
+   Sort/Requests menampilkan angka dari database. Grow & Missions masih setengah demo — lihat
+   `apps/kid/README.md`.
+2. **Irisan 2 — menulis ledger.** Sort, Move, Give, dan Grow masih berhenti di "menunggu orang
+   tua". Ini yang pertama kali menyentuh ADR-0014 (append-only) dari sisi aplikasi.
+3. **Irisan 3 — app ortu.** Terhalang U-3: belum ada baris `parents`, jadi sisi ortu belum punya
+   identitas untuk diuji.
 
 Konsol (S1c) sengaja terakhir: ia memakai service role dan tidak memblokir uji ortu–anak.
 

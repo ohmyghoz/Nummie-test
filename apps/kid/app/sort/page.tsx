@@ -8,7 +8,7 @@ export default async function SortPage({
 }: { searchParams: Promise<{ mode?: string }> }) {
   const { mode } = await searchParams;
   const active = mode === 'strict' || mode === 'flexible' ? (mode as RuleMode) : undefined;
-  const data = getKidData(active);
+  const data = await getKidData(active);
   const { plan, rules } = data;
 
   // A-sisa-1: rasio DIAMBIL dari money_rules ortu, tidak pernah ditulis mati di komponen.

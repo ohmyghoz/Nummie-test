@@ -252,7 +252,7 @@ Rinciannya di [ADR-0012 §A3](decisions/0012-auth-anak-kode-keluarga-pin.md).
 
 | # | Hal | Kenapa memblokir |
 |---|---|---|
-| 1 | **Layar login anak belum dibangun** | jalurnya sudah ada dan diuji (kode keluarga + PIN, tanpa `childId` — ADR-0012 §A1), tapi belum ada layar yang memanggilnya. Bagian dari **U-2** |
+| ~~1~~ | ~~**Layar login anak**~~ | ✅ **selesai 29 Juli 2026.** Anak masuk dengan kode keluarga + PIN, token di cookie httpOnly, dan Home/Wallets/Sort/Requests membaca database. Diuji ujung ke ujung dari browser, termasuk token palsu dan PIN salah |
 | 2 | Belum ada baris `parents` | `parents.id` mereferensi `auth.users`, jadi ortu harus mendaftar lewat Supabase Auth dulu. Perintah penautannya di kaki `seed.sql` |
 | 3 | Ketiga app belum menyentuh Supabase | `apps/kid`, `apps/parent`, `apps/console` masih membaca `lib/data.ts`. Semua flow tetap berhenti di "menunggu orang tua" sampai ini dikerjakan |
 | 4 | Penghapusan data masih mustahil | trigger append-only membatalkan `delete from families`. Janji privasi belum bisa dipenuhi — butuh keputusan produk karena menyentuh ADR-0014 (`supabase/README.md`) |

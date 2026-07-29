@@ -50,6 +50,20 @@ export const en: Dictionary = {
     me: 'Me',
   },
 
+  login: {
+    title: 'Hello!',
+    subtitle: 'Type your family code and your PIN.',
+    familyCode: 'Family code',
+    familyCodeHint: 'The one your grown-up gave you.',
+    pin: 'Your PIN',
+    pinHint: '{length} numbers, only yours.',
+    submit: 'Come in',
+    // Satu pesan untuk semua sebab — sama seperti jawaban server.
+    failed: "That didn't work. Check the code and the PIN, then try again.",
+    lockedOut: 'Too many tries. Wait {minutes} minutes and try again.',
+    askGrownUp: "Forgot your PIN? Ask your grown-up — they can see it in their app.",
+  },
+
   home: {
     greeting: 'Hi, {child}',
     totalLabel: 'All my money',
@@ -136,6 +150,7 @@ export const en: Dictionary = {
     bigPrizesLocked: 'Finish Chapter {n} for the big prizes',
     cosmeticOnly: 'Stars only buy looks — never money, never shortcuts.',
     categoryColoursNeverChange: 'Pocket colours never change. They are how you read your money.',
+    signOut: 'Not you? Sign out',
   },
 
   avatar: {

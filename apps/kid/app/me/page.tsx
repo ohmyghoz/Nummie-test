@@ -11,7 +11,7 @@ const THEME_COLOR: Record<string, string> = {
 };
 
 export default async function MePage() {
-  const data = getKidData();
+  const data = await getKidData();
   const e = data.economy;
   // Belum ada persistensi kepemilikan — avatar berbayar tampil belum terbuka sampai S1b.
   const unlocked: string[] = [];
@@ -90,6 +90,14 @@ export default async function MePage() {
           {/* Warna kategori TIDAK ikut tema — ia alat belajar yang dikunci. */}
           <p className="muted" style={{ marginTop: 10 }}>{dict.me.categoryColoursNeverChange}</p>
         </div>
+
+        {/* App anak sering dipakai di perangkat berbagi. Tanpa jalan keluar, sesi 12 jam
+            berarti siapa pun yang memegang HP berikutnya adalah anak ini. */}
+        <form method="post" action="/api/logout">
+          <button className="pill" type="submit" style={{ border: 'none', font: 'inherit', cursor: 'pointer' }}>
+            {dict.me.signOut}
+          </button>
+        </form>
       </main>
       <Nav active="me" />
     </>

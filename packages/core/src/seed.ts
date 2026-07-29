@@ -30,9 +30,11 @@ export const SEED_WALLETS: Wallet[] = [
 
   { id: 'w_give', childId: CHILD_ARTHUR.id, name: 'Give', category: 'give', kind: 'give_pool' },
 
-  { id: 'w_td',   childId: CHILD_ARTHUR.id, name: 'Time Deposit', category: 'grow', kind: 'instrument' },
-  { id: 'w_gold', childId: CHILD_ARTHUR.id, name: 'Gold',         category: 'grow', kind: 'instrument' },
-  { id: 'w_usd',  childId: CHILD_ARTHUR.id, name: 'US Dollar',    category: 'grow', kind: 'instrument' },
+  // `instrument` bukan hiasan: perilaku ketiganya berbeda (spread emas dijelaskan, deposito
+  // punya jatuh tempo), dan UI membedakannya lewat kolom ini — TIDAK PERNAH lewat id atau nama.
+  { id: 'w_td',   childId: CHILD_ARTHUR.id, name: 'Time Deposit', category: 'grow', kind: 'instrument', instrument: 'time_deposit' },
+  { id: 'w_gold', childId: CHILD_ARTHUR.id, name: 'Gold',         category: 'grow', kind: 'instrument', instrument: 'gold' },
+  { id: 'w_usd',  childId: CHILD_ARTHUR.id, name: 'US Dollar',    category: 'grow', kind: 'instrument', instrument: 'fx' },
 ];
 
 /** Saldo target. Ledger seed di bawah harus menghasilkan angka-angka ini. */

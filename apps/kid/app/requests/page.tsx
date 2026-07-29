@@ -7,7 +7,7 @@ export default async function RequestsPage({
   searchParams,
 }: { searchParams: Promise<{ mode?: string }> }) {
   const { mode } = await searchParams;
-  const data = getKidData(mode === 'strict' || mode === 'flexible' ? (mode as RuleMode) : undefined);
+  const data = await getKidData(mode === 'strict' || mode === 'flexible' ? (mode as RuleMode) : undefined);
   const debtIds = new Set(data.promiseDebt.map((r) => r.id));
   const walletName = new Map(data.wallets.map(({ wallet }) => [wallet.id, wallet.name]));
 

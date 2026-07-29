@@ -28,11 +28,40 @@ app-nya bohong.
 
 **Belum ada:** isi pelajaran (kuis Learn→Practice) · Prizes/Jobs · Forex "Add money" per mata uang.
 
-**Belum persisten.** Semua flow berhenti di layar "menunggu orang tua" dan belum menulis ledger —
-penulisan menunggu S1b (Supabase). Yang sudah nyata: aturannya, validasinya, dan angkanya.
+## Sumber data — SUDAH tersambung Supabase (29 Juli 2026, U-2 irisan 1)
 
-Sumber data: seed kanonik `@nummi/core`, dibungkus di `lib/data.ts` → `getKidData()`.
-Itu titik tukar S1b; UI tidak menyentuh seed langsung.
+`lib/data.ts` → `getKidData()` tetap satu-satunya pintu; **tidak ada halaman yang berubah selain
+menambah `await`.** Yang berubah isinya:
+
+| Dari Supabase (nyata) | Masih dari seed, dan kenapa |
+|---|---|
+| wallet · ledger · `money_rules` · request · `child_economy` | **harga Grow** — feed harga di luar cakupan S1–S3 (backlog T), tabelnya belum ada |
+| | **Missions chapter** — kurikulum belum punya tabel sama sekali |
+| | **avatar anak** — `children` belum punya kolomnya; avatar shop (Fase 4) belum persisten |
+
+Artinya **Home, Wallets, Sort, dan Requests menampilkan angka sungguhan**, sementara **Grow dan
+Missions masih setengah demo.** Itu keadaan yang disengaja untuk irisan pertama, bukan yang terlewat.
+
+**Saldo tetap dihitung `@nummi/core` dari baris ledger**, bukan diambil dari view `wallet_balances`.
+Dengan begitu I1 dijaga kode yang sama yang diuji 176 test, dan view di database jadi pemeriksa
+silang yang independen — bukan sumber kebenaran kedua yang bisa menyimpang diam-diam.
+
+**Masih belum menulis.** Semua flow tetap berhenti di "menunggu orang tua"; penulisan ledger
+adalah irisan 2. Yang sudah nyata sekarang: aturannya, validasinya, angkanya, **dan sumbernya**.
+
+## Masuk
+
+Anak mengetik **kode keluarga + PIN** (ADR-0012 §A1) — tidak ada daftar anak, dan tidak ada
+`childId` yang harus diketik. Server yang mencari siapa dia, dan **menolak kalau dua anak
+ber-PIN sama** daripada menebak.
+
+Token disimpan di **cookie httpOnly**, bukan localStorage: server component tidak bisa membaca
+localStorage, dan app anak dipakai di perangkat berbagi. Ada tombol keluar di layar **Me** —
+tanpa itu, sesi 12 jam berarti siapa pun yang memegang HP berikutnya adalah anak ini.
+
+Butuh `apps/kid/.env.local` (contoh di `.env.example` root). Kalau kosong, app **melempar galat**
+dan tidak diam-diam jatuh ke data seed — app uang yang menampilkan angka demo tanpa memberi tahu
+siapa pun lebih buruk daripada halaman yang tidak mau terbuka.
 
 Mode Strict/Flexible bisa dicoba lewat `?mode=strict` — **alat demo**, bukan fitur produk.
 Di produksi mode datang dari `money_rules` milik ortu.

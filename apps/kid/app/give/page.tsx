@@ -17,7 +17,7 @@ export default async function GivePage({
   searchParams,
 }: { searchParams: Promise<{ amount?: string; cause?: string; note?: string; sent?: string }> }) {
   const sp = await searchParams;
-  const data = getKidData();
+  const data = await getKidData();
 
   // Form dikirim lewat GET — nol JavaScript klien, semua keputusan tetap di server.
   const amount = sp.amount ? parseRp(sp.amount) : 0;
@@ -26,7 +26,7 @@ export default async function GivePage({
   const submitted = sp.amount !== undefined || sp.cause !== undefined;
 
   const check = cause
-    ? validateGive({ amount, sourceWalletId: 'w_give', cause, note }, data.giveBalance)
+    ? validateGive({ amount, sourceWalletId: data.giveWalletId, cause, note }, data.giveBalance)
     : { ok: false, errorKey: 'give.amountRequired' as const };
 
   const ready = submitted && check.ok;

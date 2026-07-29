@@ -7,7 +7,7 @@ export default async function WalletsPage({
   searchParams,
 }: { searchParams: Promise<{ mode?: string }> }) {
   const { mode } = await searchParams;
-  const data = getKidData(mode === 'strict' || mode === 'flexible' ? (mode as RuleMode) : undefined);
+  const data = await getKidData(mode === 'strict' || mode === 'flexible' ? (mode as RuleMode) : undefined);
 
   return (
     <>

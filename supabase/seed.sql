@@ -56,9 +56,11 @@ begin
 
   insert into wallets (child_id, name, category, kind) values (v_child, 'Give', 'give', 'give_pool') returning id into w_give;
 
-  insert into wallets (child_id, name, category, kind) values (v_child, 'Time Deposit', 'grow', 'instrument') returning id into w_td;
-  insert into wallets (child_id, name, category, kind) values (v_child, 'Gold', 'grow', 'instrument') returning id into w_gold;
-  insert into wallets (child_id, name, category, kind) values (v_child, 'US Dollar', 'grow', 'instrument') returning id into w_usd;
+  -- `instrument` wajib untuk kind 'instrument' (0008). UI membedakan ketiganya lewat kolom ini,
+  -- tidak pernah lewat nama atau id — lihat komentar di migrasi itu.
+  insert into wallets (child_id, name, category, kind, instrument) values (v_child, 'Time Deposit', 'grow', 'instrument', 'time_deposit') returning id into w_td;
+  insert into wallets (child_id, name, category, kind, instrument) values (v_child, 'Gold', 'grow', 'instrument', 'gold') returning id into w_gold;
+  insert into wallets (child_id, name, category, kind, instrument) values (v_child, 'US Dollar', 'grow', 'instrument', 'fx') returning id into w_usd;
 
   -- ── ledger (append-only, ADR-0014) ──────────────────────────────────────────
   -- Uang masuk = from null. Perpindahan internal = satu baris ber-from DAN to,

@@ -34,6 +34,18 @@ export interface Dictionary {
 
   nav: Record<'home' | 'wallets' | 'add' | 'missions' | 'me', string>;
 
+  /**
+   * Layar masuk anak (ADR-0012 §A1: kode keluarga + PIN, tanpa memilih anak lebih dulu).
+   * `failed` sengaja SATU pesan untuk semua sebab — kode salah, PIN salah, atau dua anak
+   * ber-PIN sama. Server pun menjawab seragam; kalau layar ini lebih cerewet daripada
+   * server, ia membocorkan apa yang server tutup rapat.
+   */
+  login: Record<
+    'title' | 'subtitle' | 'familyCode' | 'familyCodeHint' | 'pin' | 'pinHint'
+    | 'submit' | 'failed' | 'lockedOut' | 'askGrownUp',
+    string
+  >;
+
   home: Record<
     'greeting' | 'totalLabel' | 'justArrived' | 'sortItNow' | 'nothingToSort'
     | 'myDreams' | 'requestsWaiting' | 'toGo',
@@ -63,7 +75,7 @@ export interface Dictionary {
   me: Record<
     'title' | 'starsBalance' | 'starsLifetime' | 'gems' | 'badges' | 'theme' | 'avatarShop'
     | 'owned' | 'buy' | 'cantAfford' | 'choresLocked' | 'choresOpen' | 'bigPrizesLocked'
-    | 'cosmeticOnly' | 'categoryColoursNeverChange',
+    | 'cosmeticOnly' | 'categoryColoursNeverChange' | 'signOut',
     string
   >;
 

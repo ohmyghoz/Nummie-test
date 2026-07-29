@@ -12,7 +12,15 @@ export type WalletKind =
   | 'dream'         // di bawah save, punya target
   | 'free_savings'  // di bawah save, catch-all. Nama sementara (backlog F)
   | 'give_pool'
-  | 'instrument';   // di bawah grow: time_deposit | gold | forex
+  | 'instrument';   // di bawah grow — jenisnya di `GrowInstrument`
+
+/**
+ * Jenis instrumen Grow. Dulu ini cuma komentar di `WalletKind`, dan UI membedakan ketiganya
+ * lewat id seed yang ditulis mati (`w_gold`, `w_td`). Begitu id jadi UUID dari database,
+ * tebakan itu berhenti bekerja **tanpa melempar galat** — penjelas spread emas hilang diam-diam.
+ * Sekarang ia data, ditegakkan constraint di `supabase/migrations/0008_wallet_instrument.sql`.
+ */
+export type GrowInstrument = 'time_deposit' | 'gold' | 'fx';
 
 export interface Wallet {
   id: string;
@@ -22,6 +30,8 @@ export interface Wallet {
   kind: WalletKind;
   /** hanya untuk kind 'dream' */
   targetAmount?: number;
+  /** WAJIB saat kind 'instrument', dan tidak boleh ada selain itu. */
+  instrument?: GrowInstrument;
 }
 
 /**

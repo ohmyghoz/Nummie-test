@@ -7,7 +7,7 @@ export default async function HomePage({
   searchParams,
 }: { searchParams: Promise<{ mode?: string }> }) {
   const { mode } = await searchParams;
-  const data = getKidData(mode === 'strict' || mode === 'flexible' ? (mode as RuleMode) : undefined);
+  const data = await getKidData(mode === 'strict' || mode === 'flexible' ? (mode as RuleMode) : undefined);
   const qs = mode ? `?mode=${mode}` : '';
 
   const dreams = data.wallets.filter((w) => w.wallet.kind === 'dream');

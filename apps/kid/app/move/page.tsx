@@ -18,7 +18,7 @@ export default async function MovePage({
 }: { searchParams: Promise<{ from?: string; to?: string; amount?: string; mode?: string }> }) {
   const sp = await searchParams;
   const mode = sp.mode === 'strict' || sp.mode === 'flexible' ? (sp.mode as RuleMode) : undefined;
-  const data = getKidData(mode);
+  const data = await getKidData(mode);
 
   const all = data.wallets.map((r) => r.wallet);
   const sources = moveSources(all, data.rules);

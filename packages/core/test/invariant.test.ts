@@ -55,3 +55,22 @@ describe('kesehatan ledger', () => {
     expect(issues.some((i) => i.kind === 'negative_balance')).toBe(true);
   });
 });
+
+describe('instrumen Grow punya identitas sendiri', () => {
+  // Cermin dari constraint `instrument_matches_kind` di 0008_wallet_instrument.sql.
+  // Kalau kedua sisi tidak sepakat, yang pecah adalah UI — dan pecahnya diam-diam.
+  it('instrument ada TEPAT saat kind instrument', () => {
+    for (const w of SEED_WALLETS) {
+      if (w.kind === 'instrument') {
+        expect(w.instrument, `${w.name} instrumen tanpa jenis`).toBeDefined();
+      } else {
+        expect(w.instrument, `${w.name} bukan instrumen tapi punya jenis`).toBeUndefined();
+      }
+    }
+  });
+
+  it('ketiga jenis hadir dan tidak kembar — UI membedakan lewat ini, bukan lewat id', () => {
+    const jenis = SEED_WALLETS.filter((w) => w.kind === 'instrument').map((w) => w.instrument);
+    expect([...jenis].sort()).toEqual(['fx', 'gold', 'time_deposit']);
+  });
+});

@@ -16,7 +16,7 @@ export default async function GrowPage({
   searchParams,
 }: { searchParams: Promise<{ harvest?: string }> }) {
   const { harvest } = await searchParams;
-  const data = getKidData();
+  const data = await getKidData();
   const target = data.grow.find((g) => g.wallet.id === harvest);
 
   return (
@@ -30,7 +30,9 @@ export default async function GrowPage({
 
         {!target ? (
           data.grow.map(({ wallet, position }) => {
-            const isGold = wallet.id === 'w_gold';
+            // Jenis instrumen datang dari data (`instrument`, migrasi 0008), TIDAK PERNAH
+            // dari id atau nama — keduanya berubah bentuk begitu datanya dari Supabase.
+            const isGold = wallet.instrument === 'gold';
             const grams = isGold ? goldWeightGrams(position.rupiahIn, data.prices) : 0;
             return (
               <div className="card" key={wallet.id}>
@@ -77,7 +79,7 @@ export default async function GrowPage({
 
               {/* Deposito yang sudah jatuh tempo punya tiga pilihan (Fase 3).
                   Jatuh tempo disimpulkan dari ledger: bunganya sudah dicatat. */}
-              {target.wallet.id === 'w_td' && target.position.deltaRp > 0 && (
+              {target.wallet.instrument === 'time_deposit' && target.position.deltaRp > 0 && (
                 <>
                   <p className="muted" style={{ margin: '10px 0 8px' }}>✅ {dict.grow.matured}</p>
                   {TD_CHOICES.map(({ key, label }) => {

@@ -178,7 +178,7 @@ export default async function SettingsPage({
             const pos = growPosition(rupiahIn, valueNow);
             // Jatuh tempo diambil dari LEDGER (bunga sudah tercatat), bukan dari tanggal —
             // tanggal seed masih placeholder. Lihat catatan di seed.ts.
-            const maturedByLedger = wallet.id === 'w_td' && pos.deltaRp > 0;
+            const maturedByLedger = wallet.instrument === 'time_deposit' && pos.deltaRp > 0;
             const daysLeft = daysUntilMaturity(data.tdStart, 6, data.today);
             return (
               <div className="row" key={wallet.id}>
@@ -187,7 +187,7 @@ export default async function SettingsPage({
                   <span className="nm">{wallet.name}</span>
                   <span className="sub" style={{ display: 'block' }}>
                     {formatRp(rupiahIn)} → {formatRp(valueNow)} ({pos.deltaPct.toFixed(1)}%)
-                    {wallet.id === 'w_td' && (
+                    {wallet.instrument === 'time_deposit' && (
                       maturedByLedger
                         ? ` · ✅ ${dict.settings.matured}`
                         : ` · ${fill(dict.settings.daysLeft, { days: daysLeft })}`

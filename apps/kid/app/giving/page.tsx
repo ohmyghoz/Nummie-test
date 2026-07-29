@@ -11,7 +11,7 @@ import { Brand, Nav } from '../../components/ui';
  * utang janji — anak berhak tahu bedanya "sudah diizinkan" dan "sudah benar-benar disalurkan".
  */
 export default async function GivingPage() {
-  const data = getKidData();
+  const data = await getKidData();
   const waiting = data.requests.filter(
     (r) => r.kind === 'give_away' && r.status === 'approved' && r.fulfilment === 'todo',
   );

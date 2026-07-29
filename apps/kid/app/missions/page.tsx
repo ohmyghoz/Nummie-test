@@ -7,7 +7,7 @@ import { dict, fill } from '../../lib/copy';
 import { Brand, Nav } from '../../components/ui';
 
 export default async function MissionsPage() {
-  const data = getKidData();
+  const data = await getKidData();
   const mix = lessonMix(data.child.tier);
 
   return (

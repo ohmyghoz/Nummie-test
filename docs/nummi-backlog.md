@@ -175,7 +175,9 @@ Database berdiri, terisi seed kanonik, isolasi RLS diuji per-role, dan login ana
   `child-login` menerbitkan sesi lewat Admin API (bukan menandatangani sendiri) + claim disuntikkan
   lewat custom access token hook. `0002_rls.sql` tidak perlu disentuh — hook menaruh claim di tempat
   yang sama persis. Ongkos: satu kolom penghubung `children` → `auth.users`.
-- **U-2 · Sambungkan app ke Supabase.** Klien + `.env`, lalu `lib/data.ts` ditukar query nyata
+- **U-2 · Sambungkan app ke Supabase.** 🟢 **Irisan 1 selesai 29 Juli 2026** — `apps/kid` baca-saja:
+  login kode keluarga + PIN, cookie httpOnly, Home/Wallets/Sort/Requests dari database. Sisa:
+  irisan 2 (menulis ledger) dan irisan 3 (app ortu, terhalang U-3). Klien + `.env`, lalu `lib/data.ts` ditukar query nyata
   permukaan demi permukaan. Ini pekerjaan S2/S3 yang sebenarnya, bukan permukaan baru.
 - **U-3 · Tautkan ortu pertama.** `parents.id` mereferensi `auth.users` → ortu daftar lewat Auth
   dulu; perintahnya sudah ada di kaki `seed.sql`.

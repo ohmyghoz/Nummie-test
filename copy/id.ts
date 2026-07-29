@@ -50,6 +50,19 @@ export const id: Dictionary = {
     me: 'Aku',
   },
 
+  login: {
+    title: 'Halo!',
+    subtitle: 'Ketik kode keluargamu dan PIN-mu.',
+    familyCode: 'Kode keluarga',
+    familyCodeHint: 'Yang diberikan orang tuamu.',
+    pin: 'PIN kamu',
+    pinHint: '{length} angka, hanya milikmu.',
+    submit: 'Masuk',
+    failed: 'Belum berhasil. Periksa lagi kodenya dan PIN-nya, lalu coba lagi.',
+    lockedOut: 'Terlalu banyak percobaan. Tunggu {minutes} menit, lalu coba lagi.',
+    askGrownUp: 'Lupa PIN? Tanya orang tuamu — mereka bisa melihatnya di app mereka.',
+  },
+
   home: {
     greeting: 'Hai, {child}',
     totalLabel: 'Semua uangku',
@@ -133,6 +146,7 @@ export const id: Dictionary = {
     bigPrizesLocked: 'Selesaikan Bab {n} untuk hadiah besar',
     cosmeticOnly: 'Bintang hanya membeli tampilan — bukan uang, bukan jalan pintas.',
     categoryColoursNeverChange: 'Warna kantong tidak pernah berubah. Itu cara kamu membaca uangmu.',
+    signOut: 'Bukan kamu? Keluar',
   },
 
   avatar: {

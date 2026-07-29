@@ -12,7 +12,7 @@ import { Brand, Nav } from '../../components/ui';
  * bahwa app-nya bohong.
  */
 export default async function AddPage() {
-  const data = getKidData();
+  const data = await getKidData();
 
   const actions = [
     canOpenSort(data.unsortedBalance) && {
