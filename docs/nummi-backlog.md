@@ -169,7 +169,7 @@ Database berdiri, terisi seed kanonik, isolasi RLS diuji per-role, dan login ana
   unik per keluarga (K15), dan rate limiting dikunci ulang ke keluarga. Rinciannya di
   [ADR-0012 §Amandemen](decisions/0012-auth-anak-kode-keluarga-pin.md).
   **Yang tersisa dari U-7: layar login-nya sendiri belum dibangun** — itu bagian dari U-2.
-- **U-9 · Saldo negatif belum mustahil, baru dipantau.** Dua klik Confirm yang cepat di layar
+- ~~**U-9 · Saldo negatif belum mustahil, baru dipantau.**~~ ✅ **selesai 29 Juli 2026 (0010).** Dua klik Confirm yang cepat di layar
   Sort sama-sama membaca Unsorted 50.000 dan sama-sama menulis — hasilnya Unsorted −50.000.
   Tidak ada constraint yang mencegahnya; `invariant_check.negative_wallets` hanya **melaporkan**
   setelah kejadian, dan ledger append-only berarti tidak bisa dibatalkan, hanya ditambal baris

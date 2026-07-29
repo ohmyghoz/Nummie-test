@@ -56,9 +56,10 @@ mereka lahir dari satu pernyataan. Klik kedua saat Unsorted kosong tidak menulis
 Tombol Confirm dulu `<a href="/">` — layar yang berpura-pura sudah menyimpan. Sekarang ia server
 action `applySort()` di `lib/actions.ts`.
 
-⚠️ **Yang BELUM dijaga: dua klik cepat.** Keduanya membaca Unsorted 50.000, keduanya menulis, dan
-saldo Unsorted jadi negatif. Tidak ada constraint yang mencegahnya — `negative_wallets` cuma
-dipantau view, tidak ditegakkan. Lihat backlog U-9.
+**Dua klik cepat sudah dijaga — di database, bukan di sini.** Trigger `no_overdraft`
+(migrasi 0010) mengunci wallet asal lalu menghitung ulang, jadi klik kedua ditolak dan anak
+melihat "Nothing was moved". Diuji sungguhan dengan dua permintaan bersamaan: tepat 3 baris
+tertulis, bukan 6. Penjagaan itu berlaku untuk Move/Give/Grow juga — termasuk yang belum ditulis.
 
 Move · Give · Grow **masih berhenti di "menunggu orang tua"**. Polanya sudah ada; tinggal diikuti.
 

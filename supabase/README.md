@@ -38,6 +38,9 @@ bukan konfigurasi yang salah.
 | `migrations/0005_rpc_surface.sql` | cabut EXECUTE helper definer dari `anon` | ✅ jalan |
 | `migrations/0006_verify_child_pin.sql` | verifikasi PIN di Postgres (pgcrypto), service role saja | ✅ jalan |
 | `migrations/0007_login_by_family_pin.sql` | `find_child_by_pin()` + `family_pin_taken()`, rate limit per keluarga | ✅ jalan |
+| `migrations/0008_wallet_instrument.sql` | jenis instrumen Grow jadi kolom, bukan tebakan dari id | ✅ jalan |
+| `migrations/0009_no_direct_writes.sql` | cabut hak tulis anak — anak tidak lagi bisa mencetak uang | ✅ jalan |
+| `migrations/0010_no_overdraft.sql` | saldo negatif jadi mustahil, bukan sekadar dilaporkan | ✅ jalan |
 | `functions/child-login/` | Edge Function: kode keluarga + PIN → JWT ber-claim | ✅ **v4, ACTIVE** |
 | `seed.sql` | data uji kanonik (cermin `packages/core/src/seed.ts`) — jalankan **setelah** migrasi | ✅ jalan (`NUMMI1`) |
 
@@ -45,7 +48,7 @@ bukan konfigurasi yang salah.
 
 Seed sudah masuk dan **direkonsiliasi**: `invariant_check` untuk Arthur = **Rp484.711**, pecahannya
 `50.000 / 95.000 / 240.000 / 40.000 / 59.711`, `negative_wallets` 0, `ledger_orphans` kosong.
-Angka yang sama dihasilkan `packages/core` (174 test hijau). Itulah gunanya punya dua sumber.
+Angka yang sama dihasilkan `packages/core` (176 test hijau). Itulah gunanya punya dua sumber.
 
 Kode keluarga **`NUMMI1`**, PIN anak **`135790`** — data uji, ganti sebelum keluarga sungguhan.
 
@@ -67,8 +70,11 @@ mengembalikan nol baris dan login GAGAL — server tidak menebak. Keunikan tidak
 constraint (salt bcrypt berbeda tiap baris), jadi penegakannya di waktu tulis lewat
 `family_pin_taken()`.
 
+**App anak sudah tersambung** — membaca (Home/Wallets/Sort/Requests) dan **menulis** (Sort).
+Saldo di atas kini bergerak karena anak sungguhan menekan tombol, bukan karena seed.
+
 Yang **belum**: belum ada baris di `parents` (ortu harus daftar lewat Supabase Auth dulu — perintah
-penautannya ada di kaki `seed.sql`), dan belum ada app yang menyentuh semua ini.
+penautannya ada di kaki `seed.sql`), dan `apps/parent` + `apps/console` masih membaca `lib/data.ts`.
 
 ## Tentang JWT: project ini pakai kunci asimetris, tapi login anak masih HS256
 
@@ -98,7 +104,7 @@ Semua yang di atas dikerjakan lewat MCP + dashboard, tanpa `supabase` CLI terpas
 CLI (`brew install supabase/tap/supabase`) baru berguna untuk stack lokal dan `db push`.
 Blok perintah di bawah ini disimpan sebagai padanan CLI, bukan sebagai satu-satunya jalan.
 
-## Empat jebakan yang sudah ditemukan dan ditutup (jangan diulang)
+## Enam jebakan yang sudah ditemukan dan ditutup (jangan diulang)
 
 **1. View tidak mewarisi RLS.** `wallet_balances` adalah satu-satunya sumber saldo. Dibuat dengan
 default Postgres, ia berjalan dengan hak *pemilik* view — jadi JWT keluarga mana pun yang menembak
@@ -125,7 +131,19 @@ tidak pernah mencapai ambang. **Tujuh tebakan berturut-turut semuanya lolos.** K
 awal; efeknya tidak pernah ada. Ambil hop **pertama** (`.split(',')[0]`), dan karena hop itu dikirim
 klien dan bisa dipalsukan, tambahkan lapis kedua per-keluarga — lihat ADR-0012 §A3.
 
-Keempatnya lolos pembacaan kode, dan tidak satu pun terlihat sampai ada permintaan sungguhan yang
+**5. Policy INSERT bisa memeriksa hal yang salah.** `ledger_insert` menjawab *"baris ini milik anak
+itu?"* dan tidak pernah *"uangnya dari mana?"*. Baris ber-`from_wallet_id = null` artinya uang masuk
+dari luar — dan anak boleh menulisnya sendiri. Diuji: total 484.711 → 10.484.710 dengan satu
+permintaan. Ditutup di `0009`. **Setiap policy INSERT harus diuji dengan mencoba menyalahgunakannya**,
+bukan dengan membaca ulang kalimatnya.
+
+**6. Memeriksa saldo saja tidak mencegah saldo negatif.** Dua transaksi bersamaan di READ COMMITTED
+sama-sama tidak melihat baris lawannya yang belum di-commit, jadi keduanya menghitung saldo yang
+masih sehat dan keduanya lolos — write skew klasik. `raise exception` saja tidak menyembuhkannya.
+Trigger di `0010` **mengunci baris wallet asal (`for update`) lebih dulu, baru menghitung**. Diuji
+dengan dua permintaan bersamaan: tepat 3 baris tertulis, bukan 6.
+
+Keenamnya lolos pembacaan kode, dan tidak satu pun terlihat sampai ada permintaan sungguhan yang
 menyentuhnya: dua yang pertama tersembunyi selama tabel masih kosong, yang ketiga baru muncul saat
 fungsinya benar-benar dipanggil, dan yang keempat **tidak pernah melempar galat sama sekali** — ia
 cuma diam-diam tidak bekerja. Yang terakhir itu jenis paling berbahaya: satu-satunya cara
