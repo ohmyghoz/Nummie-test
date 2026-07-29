@@ -28,7 +28,10 @@
  */
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { GIVE_CAUSES, canOpenSort, movePlan, validateGive, type GiveCause } from '@nummi/core';
+import {
+  GIVE_CAUSES, canHarvestTo, canOpenSort, movePlan, validateGive,
+  type GiveCause, type HarvestChoice,
+} from '@nummi/core';
 import { getKidData } from './data';
 import { serviceClient } from './supabase';
 
@@ -162,4 +165,64 @@ export async function submitGive(formData: FormData): Promise<void> {
   revalidatePath('/requests');
   revalidatePath('/');
   redirect('/give?sent=1');
+}
+
+/**
+ * Harvest — request juga, bukan ledger (ADR-0002). Tapi berbeda dari Give dalam satu hal yang
+ * penting: uangnya **tetap di dalam app**, jadi ia harus mendarat di suatu tempat yang jelas.
+ *
+ * Tujuan dipilih ANAK dan ikut tercatat (migrasi 0011). Kalau tidak, ortu yang menebak saat
+ * menyetujui — dan anak yang memilih "BMX Bike" bisa menemukan uangnya di "Free savings" tanpa
+ * pernah tahu pilihannya diabaikan. ADR-0003 menjadikan ortu bank, bukan pemilik keputusan.
+ *
+ * `canHarvestTo()` diperiksa ulang di sini, bukan cuma dipakai untuk merender daftar: yang
+ * menentukan bukan apa yang tampil di layar, melainkan apa yang boleh masuk ke database.
+ */
+export async function submitHarvest(formData: FormData): Promise<void> {
+  const fromId = String(formData.get('from') ?? '');
+  const toId = String(formData.get('to') ?? '');
+  const choiceRaw = String(formData.get('choice') ?? '');
+
+  const data = await getKidData();
+  const back = `/grow?harvest=${fromId}`;
+
+  const source = data.grow.find((g) => g.wallet.id === fromId);
+  const destination = data.wallets.find((w) => w.wallet.id === toId)?.wallet;
+  if (!source || !destination) redirect(back);
+
+  // Grow keluar HANYA lewat Harvest, dan Harvest mendarat HANYA di Save (ADR-0003).
+  if (!canHarvestTo(destination)) redirect(back);
+
+  const isTd = source.wallet.instrument === 'time_deposit';
+  const choice: HarvestChoice | null =
+    isTd && ['cash_out', 'roll_over', 'take_profit'].includes(choiceRaw)
+      ? (choiceRaw as HarvestChoice)
+      : null;
+  if (isTd && !choice) redirect(back);
+
+  const amount = source.position.valueNow;
+  if (amount <= 0) redirect(back);
+
+  const { error } = await serviceClient().from('requests').insert({
+    child_id: data.child.id,
+    kind: 'harvest',
+    amount,
+    source_wallet_id: source.wallet.id,
+    destination_wallet_id: destination.id,
+    harvest_choice: choice,
+    status: 'needs_ok',
+    // Harvest jalur "instan": menyetujui = selesai, tidak ada tugas dunia nyata yang tersisa
+    // untuk ortu (fulfilmentPath di packages/core/src/requests.ts).
+    fulfilment: 'not_applicable',
+  });
+
+  if (error) {
+    console.error('submitHarvest gagal:', error.message);
+    redirect(`${back}&e=failed`);
+  }
+
+  revalidatePath('/grow');
+  revalidatePath('/requests');
+  revalidatePath('/');
+  redirect('/requests');
 }

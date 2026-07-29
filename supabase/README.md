@@ -41,6 +41,7 @@ bukan konfigurasi yang salah.
 | `migrations/0008_wallet_instrument.sql` | jenis instrumen Grow jadi kolom, bukan tebakan dari id | ✅ jalan |
 | `migrations/0009_no_direct_writes.sql` | cabut hak tulis anak — anak tidak lagi bisa mencetak uang | ✅ jalan |
 | `migrations/0010_no_overdraft.sql` | saldo negatif jadi mustahil, bukan sekadar dilaporkan | ✅ jalan |
+| `migrations/0011_harvest_destination.sql` | tujuan + pilihan deposito saat Harvest punya tempat | ✅ jalan |
 | `functions/child-login/` | Edge Function: kode keluarga + PIN → JWT ber-claim | ✅ **v4, ACTIVE** |
 | `seed.sql` | data uji kanonik (cermin `packages/core/src/seed.ts`) — jalankan **setelah** migrasi | ✅ jalan (`NUMMI1`) |
 

@@ -73,7 +73,22 @@ Diuji sungguhan: Move Rp5.000 Snacks → Transport (65.000→60.000, 30.000→35
 484.711); Give Rp15.000 membuat request `needs_ok`/`todo` sementara **saldo Give tidak bergerak
 sama sekali** dan ledger tidak bertambah. Home anak berubah jadi "2 waiting for a grown-up".
 
-**Grow/Harvest** masih berhenti di layar — polanya sudah ada, tinggal diikuti.
+| Harvest | **request** + tujuan + pilihan | uangnya tetap di dalam app, jadi ia harus mendarat di suatu tempat yang jelas — dan **anak** yang memilih (migrasi 0011) |
+
+**Harvest menyimpan niat anak, bukan cuma jumlahnya.** Tujuan (wallet Save mana) dan pilihan
+deposito (cairkan · gulung ulang · ambil untung) ikut tercatat di request. Tanpa itu, ortu harus
+menebak saat menyetujui — dan anak yang memilih "BMX Bike" bisa menemukan uangnya di "Free
+savings" tanpa pernah tahu pilihannya diabaikan. ADR-0003 menjadikan ortu **bank**, bukan pemilik
+keputusan.
+
+Diuji: Harvest deposito Rp30.750 → Headphones dengan `roll_over` tercatat; Harvest emas Rp19.140 →
+Headphones tanpa pilihan (emas memang tidak punya jatuh tempo, dan layarnya tidak merender
+pilihannya sama sekali). **Tujuan ke wallet Spend ditolak server** — `canHarvestTo()` diperiksa
+ulang saat menulis, bukan cuma dipakai merender daftar. Total tetap 484.711, ledger tidak
+bertambah: Harvest pun menunggu ortu.
+
+**Semua flow tulis app anak sudah tersambung.** Yang belum: isi pelajaran (kuis), Prizes/Jobs,
+dan Forex "Add money" per mata uang.
 
 Tiga hal yang dikunci di `lib/actions.ts` dan tidak boleh dilonggarkan:
 

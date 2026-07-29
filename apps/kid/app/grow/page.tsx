@@ -5,6 +5,7 @@ import {
 import { getKidData } from '../../lib/data';
 import { dict, fill } from '../../lib/copy';
 import { Brand, Nav, POCKET_COLOR } from '../../components/ui';
+import { submitHarvest } from '../../lib/actions';
 
 const TD_CHOICES: { key: HarvestChoice; label: string }[] = [
   { key: 'cash_out', label: dict.grow.cashOut },
@@ -77,44 +78,52 @@ export default async function GrowPage({
                 <div className="nm">{fill(dict.grow.worthNow, { amount: formatRp(target.position.valueNow) })}</div>
               </div>
 
-              {/* Deposito yang sudah jatuh tempo punya tiga pilihan (Fase 3).
-                  Jatuh tempo disimpulkan dari ledger: bunganya sudah dicatat. */}
-              {target.wallet.instrument === 'time_deposit' && target.position.deltaRp > 0 && (
-                <>
-                  <p className="muted" style={{ margin: '10px 0 8px' }}>✅ {dict.grow.matured}</p>
-                  {TD_CHOICES.map(({ key, label }) => {
-                    const out = tdHarvestOutcome(
-                      target.position.rupiahIn, target.position.deltaRp, key,
-                    );
-                    return (
-                      <div className="slot" key={key}>
-                        <div>
-                          <div className="nm">{label}</div>
-                          <div className="pct">
-                            → {formatRp(out.toSave)} · {formatRp(out.staysInvested)} ⟳
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </>
-              )}
+              {/* Ketiga pilihan deposito dulu dirender di sini sebagai daftar yang cuma bisa
+                  dibaca. Sekarang mereka hidup di dalam form di bawah, sebagai pilihan yang
+                  benar-benar bisa dipilih — angka yang sama, tapi anak yang memutuskan. */}
             </div>
 
-            <div className="card">
-              <h2>{dict.grow.harvestTo}</h2>
-              {/* Tujuan Harvest DIKUNCI ke wallet Save (ADR-0003) — uang yang keluar dari
-                  Grow tidak boleh langsung jadi jajan. Wallet Spend tidak dirender sama sekali. */}
-              {data.harvestTargets.map((w) => (
-                <div className="slot" key={w.id}>
-                  <span className="dot" style={{ background: POCKET_COLOR.save }} />
-                  <span className="nm">{w.name}</span>
+            <form action={submitHarvest}>
+              <input type="hidden" name="from" value={target.wallet.id} />
+
+              {/* Deposito jatuh tempo: tiga jalan, tiga angka berbeda. Pilihan ini keputusan
+                  ANAK dan ikut tercatat di request (migrasi 0011), bukan ditebak ortu. */}
+              {target.wallet.instrument === 'time_deposit' && target.position.deltaRp > 0 && (
+                <div className="card">
+                  <h2>{dict.grow.matured}</h2>
+                  {TD_CHOICES.map(({ key, label }, i) => {
+                    const out = tdHarvestOutcome(target.position.rupiahIn, target.position.deltaRp, key);
+                    return (
+                      <label className="choice" key={key}>
+                        <input type="radio" name="choice" value={key} defaultChecked={i === 0} required />
+                        <span className="nm">{label}</span>
+                        <span className="pct">→ {formatRp(out.toSave)} · {formatRp(out.staysInvested)} ⟳</span>
+                      </label>
+                    );
+                  })}
                 </div>
-              ))}
-              <p className="muted" style={{ marginTop: 8 }}>{dict.grow.harvestLockedToSave}</p>
-              <p className="muted">{dict.common.waitingForGrownUp}</p>
-              <a className="cta" href="/grow">{dict.common.cancel}</a>
-            </div>
+              )}
+
+              <div className="card">
+                <h2>{dict.grow.harvestTo}</h2>
+                {/* Tujuan Harvest DIKUNCI ke wallet Save (ADR-0003) — uang yang keluar dari
+                    Grow tidak boleh langsung jadi jajan. Wallet Spend tidak dirender sama sekali. */}
+                {data.harvestTargets.map((w, i) => (
+                  <label className="choice" key={w.id}>
+                    <input type="radio" name="to" value={w.id} defaultChecked={i === 0} required />
+                    <span className="dot" style={{ background: POCKET_COLOR.save }} />
+                    <span className="nm">{w.name}</span>
+                  </label>
+                ))}
+                <p className="muted" style={{ marginTop: 8 }}>{dict.grow.harvestLockedToSave}</p>
+                <p className="muted">{dict.common.waitingForGrownUp}</p>
+
+                <button className="cta" type="submit" style={{ border: 'none', font: 'inherit', cursor: 'pointer' }}>
+                  {dict.grow.harvest}
+                </button>
+                <a className="pill" href="/grow" style={{ marginLeft: 10 }}>{dict.common.cancel}</a>
+              </div>
+            </form>
           </>
         )}
       </main>

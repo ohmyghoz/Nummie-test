@@ -187,8 +187,9 @@ Database berdiri, terisi seed kanonik, isolasi RLS diuji per-role, dan login ana
   yang sama persis. Ongkos: satu kolom penghubung `children` → `auth.users`.
 - **U-2 · Sambungkan app ke Supabase.** 🟢 **Irisan 1 selesai** (baca-saja: login kode keluarga +
   PIN, cookie httpOnly, Home/Wallets/Sort/Requests dari database). 🟡 **Irisan 2 sebagian** —
-  **Sort, Move, dan Give sudah menulis** lewat server action: Sort & Move ke ledger, Give ke
-  `requests` (ADR-0002). **Grow/Harvest** masih berhenti di layar.
+  **Semua flow tulis app anak sudah tersambung** lewat server action: Sort & Move ke ledger,
+  Give & Harvest ke `requests` (ADR-0002). Harvest ikut menyimpan tujuan + pilihan deposito
+  (migrasi 0011). Sisa: irisan 3 (app ortu, terhalang U-3).
 - **U-10 · Request tidak "memesan" saldo.** Dua pengajuan Give yang masing-masing sah bisa
   melebihi isi kantong Give kalau digabung. Secara uang tidak bahaya — trigger `no_overdraft`
   (0010) menolak yang kedua saat ortu menyetujuinya. Yang belum dipikirkan adalah **pengalaman
