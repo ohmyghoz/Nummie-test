@@ -12,7 +12,10 @@
  */
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { create, getNumericDate } from 'https://deno.land/x/djwt@v3.0.2/mod.ts';
-import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
+// TIDAK ADA bcrypt di sini, dan itu disengaja — lihat migrasi 0006_verify_child_pin.sql.
+// Ringkasnya: `deno.land/x/bcrypt` async memakai Worker, yang tidak ada di Edge Runtime
+// (`ReferenceError: Worker is not defined` → 500). Perbandingan PIN sekarang dikerjakan
+// Postgres lewat pgcrypto, sehingga `pin_hash` tidak pernah keluar dari database.
 
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
@@ -38,12 +41,16 @@ Deno.serve(async (req: Request) => {
   // 2. Kode keluarga DAN child id harus cocok.
   const { data: child } = await admin
     .from('children')
-    .select('id, family_id, tier, pin_hash, families!inner(family_code)')
+    .select('id, family_id, tier, families!inner(family_code)')
     .eq('id', childId)
     .single();
 
   const codeMatches = child?.families?.family_code === String(familyCode).toUpperCase();
-  const pinMatches = child ? await bcrypt.compare(String(pin), child.pin_hash) : false;
+
+  // PIN diverifikasi DI DALAM Postgres (0006). Yang menyeberang cuma jawaban boolean.
+  const { data: pinMatches } = child
+    ? await admin.rpc('verify_child_pin', { p_child_id: childId, p_pin: String(pin) })
+    : { data: false };
 
   if (!child || !codeMatches || !pinMatches) {
     await recordFailure(childId, ip);

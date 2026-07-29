@@ -210,7 +210,7 @@ Kalau memang masih relevan, unggah; kalau sudah mati, catat matinya supaya tidak
 
 ## 9. Keadaan database (29 Juli 2026) — S1b hidup
 
-Project `lrjkhlaxixdbvxdpuqte`. Migrasi **0001–0005** jalan, seed kanonik masuk, dan angkanya
+Project `lrjkhlaxixdbvxdpuqte`. Migrasi **0001–0006** jalan, seed kanonik masuk, dan angkanya
 direkonsiliasi terhadap `packages/core`: total Arthur **Rp484.711**, I1 tegak, `ledger_orphans`
 kosong. Rincian & cara mengujinya ada di `supabase/README.md`.
 
@@ -227,11 +227,17 @@ Pelajarannya sama untuk keduanya, dan layak diingat: **keduanya tidak terlihat s
 Uji akses selalu dengan role sungguhan (`set local role authenticated` + claim JWT), tidak pernah
 dengan koneksi service role — service role membuat semuanya tampak baik-baik saja.
 
+**Login anak hidup** (`child-login` v2, ADR-0012 utuh: kode keluarga + PIN, rate limit, pesan galat
+seragam). Diuji ujung ke ujung — token terbit → `/rest/v1/wallet_balances` mengembalikan 11 baris,
+**Rp484.711**. Verifikasi PIN dipindah ke Postgres (`0006`) setelah `deno.land/x/bcrypt` gagal di
+Edge Runtime; efek sampingnya justru perbaikan: `pin_hash` tidak pernah lagi keluar dari database.
+
 **Yang masih menghalangi uji ortu–anak sungguhan:**
 
 | # | Hal | Kenapa memblokir |
 |---|---|---|
-| 1 | `child-login` belum di-deploy | tanpa ini anak **tidak punya cara masuk sama sekali**. Butuh `CHILD_JWT_SECRET` lewat CLI, dan cek **Settings → API → JWT Keys** dulu: fungsi ini menandatangani HS256, project ber-signing-key asimetris akan menolaknya |
+| 1 | **Anak belum punya layar masuk** | `child-login` menuntut `childId` (UUID), dan anak tidak mengetik UUID. Perlu langkah "pilih anak" yang belum punya jalur baca sah. **Keputusan desain**, tiga opsi di backlog **U-7** |
 | 2 | Belum ada baris `parents` | `parents.id` mereferensi `auth.users`, jadi ortu harus mendaftar lewat Supabase Auth dulu. Perintah penautannya di kaki `seed.sql` |
 | 3 | Ketiga app belum menyentuh Supabase | `apps/kid`, `apps/parent`, `apps/console` masih membaca `lib/data.ts`. Semua flow tetap berhenti di "menunggu orang tua" sampai ini dikerjakan |
 | 4 | Penghapusan data masih mustahil | trigger append-only membatalkan `delete from families`. Janji privasi belum bisa dipenuhi — butuh keputusan produk karena menyentuh ADR-0014 (`supabase/README.md`) |
+| 5 | Login anak menumpang JWT secret legacy | project sudah pakai ES256; token anak masih HS256 dengan kunci berstatus `Previously used`. **Jangan revoke kunci itu** sebelum backlog **U-6** selesai |

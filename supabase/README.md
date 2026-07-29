@@ -36,7 +36,8 @@ bukan konfigurasi yang salah.
 | `migrations/0003_child_login_attempts.sql` | bahan rate limiting login anak | ✅ jalan |
 | `migrations/0004_view_security_invoker.sql` | view pakai hak pemanggil + putus rekursi RLS | ✅ jalan |
 | `migrations/0005_rpc_surface.sql` | cabut EXECUTE helper definer dari `anon` | ✅ jalan |
-| `functions/child-login/` | Edge Function: kode keluarga + PIN → JWT ber-claim | ❌ **belum di-deploy** |
+| `migrations/0006_verify_child_pin.sql` | verifikasi PIN di Postgres (pgcrypto), service role saja | ✅ jalan |
+| `functions/child-login/` | Edge Function: kode keluarga + PIN → JWT ber-claim | ✅ **v2, ACTIVE** |
 | `seed.sql` | data uji kanonik (cermin `packages/core/src/seed.ts`) — jalankan **setelah** migrasi | ✅ jalan (`NUMMI1`) |
 
 ## Keadaan sekarang (29 Juli 2026)
@@ -47,10 +48,43 @@ Angka yang sama dihasilkan `packages/core` (172 test hijau). Itulah gunanya puny
 
 Kode keluarga **`NUMMI1`**, PIN anak **`135790`** — data uji, ganti sebelum keluarga sungguhan.
 
-Yang **belum**: `child-login` belum di-deploy, dan belum ada baris di `parents` (ortu harus daftar
-lewat Supabase Auth dulu — perintah penautannya ada di kaki `seed.sql`).
+**Login anak hidup dan sudah diuji ujung ke ujung.** Kode keluarga diterima huruf kecil, PIN salah
+dan kode keluarga salah sama-sama `401` dengan pesan seragam, token berumur 12 jam, dan token itu
+dipakai menembak `/rest/v1/wallet_balances` mengembalikan **11 baris, total 484.711** — angka yang
+sama dengan `packages/core`. Tiga sumber independen, satu angka.
 
-## Dua jebakan yang sudah ditemukan dan ditutup (jangan diulang)
+Yang **belum**: belum ada baris di `parents` (ortu harus daftar lewat Supabase Auth dulu — perintah
+penautannya ada di kaki `seed.sql`), dan belum ada app yang menyentuh semua ini.
+
+## Tentang JWT: project ini pakai kunci asimetris, tapi login anak masih HS256
+
+JWKS project (`/auth/v1/.well-known/jwks.json`) memuat satu kunci **ES256**, `key_ops: ["verify"]` —
+kunci publik, tidak bisa dipakai menandatangani. Jadi `child-login` **tidak mungkin** menerbitkan
+token dengan kunci itu.
+
+Yang menyelamatkan: JWT secret HS256 lama masih berstatus **`Previously used`**
+(`9835f01e-8ce0-4aca-bfc8-d3ba223a48d5`), jadi token HS256 masih diverifikasi. Nilainya dipasang
+sebagai secret `CHILD_JWT_SECRET`. Token tidak perlu membawa header `kid` — sudah diuji, cocok.
+
+> ⚠️ **Jangan pernah me-revoke kunci `9835f01e-…`** sampai U-6 selesai. Satu klik itu mematikan
+> login semua anak serentak. Ini utang yang tanggal jatuh temponya ditentukan Supabase, bukan kita;
+> jalan keluarnya (token terbitan Supabase + custom access token hook) ada di backlog U-6.
+
+## Tidak perlu Supabase CLI untuk pekerjaan sejauh ini
+
+Semua yang di atas dikerjakan lewat MCP + dashboard, tanpa `supabase` CLI terpasang:
+
+| Pekerjaan | Caranya |
+|---|---|
+| Jalankan migrasi | MCP `apply_migration` |
+| Set secret Edge Function | Dashboard → Edge Functions → Secrets |
+| Deploy Edge Function | MCP `deploy_edge_function` |
+| **Hapus** Edge Function | **hanya Dashboard** — MCP tidak punya tool-nya |
+
+CLI (`brew install supabase/tap/supabase`) baru berguna untuk stack lokal dan `db push`.
+Blok perintah di bawah ini disimpan sebagai padanan CLI, bukan sebagai satu-satunya jalan.
+
+## Tiga jebakan yang sudah ditemukan dan ditutup (jangan diulang)
 
 **1. View tidak mewarisi RLS.** `wallet_balances` adalah satu-satunya sumber saldo. Dibuat dengan
 default Postgres, ia berjalan dengan hak *pemilik* view — jadi JWT keluarga mana pun yang menembak
@@ -63,8 +97,17 @@ count(*) from parents` sebagai role `authenticated` mengembalikan `54001 stack d
 Karena `auth_family_id()` dipakai hampir semua policy, **seluruh sisi ortu mati**. Ditutup di `0004`
 dengan menjadikan `auth_family_id()` & `can_see_child()` SECURITY DEFINER + `search_path` terkunci.
 
-Keduanya tak terlihat selama tabel kosong dan belum ada klien. Kalau kamu menambah view atau helper
-baru, ujilah dengan role sungguhan, bukan dengan koneksi service role:
+**3. Edge Runtime tidak punya `Worker`.** `deno.land/x/bcrypt` versi async menjalankan perbandingan
+di dalam Worker, jadi `child-login` v1 mengembalikan `500` dengan `ReferenceError: Worker is not
+defined` — dan log permintaan biasa tidak memperlihatkan sebabnya sama sekali. Ditutup di `0006`
+dengan memindahkan verifikasi PIN ke Postgres lewat pgcrypto: bcrypt keluar dari jalur auth, dan
+`pin_hash` tidak pernah lagi ditarik keluar database. Catatan untuk fungsi Postgres apa pun yang
+memakai pgcrypto: `search_path` **wajib** memuat `extensions` — di situlah ekstensinya dipasang,
+bukan di `public`.
+
+Ketiganya tak terlihat sampai sesuatu yang nyata menyentuhnya — dua yang pertama tak terlihat selama
+tabel kosong, yang ketiga hanya muncul saat fungsi benar-benar dipanggil. Kalau kamu menambah view
+atau helper baru, ujilah dengan role sungguhan, bukan dengan koneksi service role:
 
 ```sql
 begin;
