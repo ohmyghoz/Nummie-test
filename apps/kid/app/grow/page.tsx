@@ -1,11 +1,20 @@
 import {
-  formatGoldWeight, formatRp, goldSpreadPct, goldWeightGrams, tdHarvestOutcome,
-  type HarvestChoice,
+  formatGoldWeight, formatRp, goldSpreadPct, goldWeightGrams, growInPlan, parseRp,
+  tdHarvestOutcome, tenorRate,
+  type HarvestChoice, type Tenor,
 } from '@nummi/core';
 import { getKidData } from '../../lib/data';
 import { dict, fill } from '../../lib/copy';
 import { Brand, Nav, POCKET_COLOR } from '../../components/ui';
-import { submitHarvest } from '../../lib/actions';
+import { submitGrowIn, submitHarvest } from '../../lib/actions';
+
+const ERROR_COPY: Record<string, string> = {
+  'growIn.amountRequired': dict.grow.amountRequired,
+  'growIn.notEnough': dict.grow.notEnough,
+  'growIn.sourceNotAllowed': dict.grow.sourceNotAllowed,
+  'growIn.tenorRequired': dict.grow.tenorRequired,
+  'growIn.depositBusy': dict.grow.depositBusy,
+};
 
 const TD_CHOICES: { key: HarvestChoice; label: string }[] = [
   { key: 'cash_out', label: dict.grow.cashOut },
@@ -15,10 +24,29 @@ const TD_CHOICES: { key: HarvestChoice; label: string }[] = [
 
 export default async function GrowPage({
   searchParams,
-}: { searchParams: Promise<{ harvest?: string }> }) {
-  const { harvest } = await searchParams;
+}: {
+  searchParams: Promise<{
+    harvest?: string; fund?: string; from?: string; amount?: string; tenor?: string; e?: string;
+  }>;
+}) {
+  const sp = await searchParams;
+  const { harvest } = sp;
   const data = await getKidData();
   const target = data.grow.find((g) => g.wallet.id === harvest);
+
+  /* ── Mode ketiga: mendanai instrumen (U-14) ────────────────────────────────
+   * Sampai 30 Juli 2026 layar ini hanya bisa MEMANEN. Anak bisa menuai tapi tidak bisa menanam —
+   * dan itu terasa seperti bug, bukan fitur yang belum ada.
+   *
+   * Bertahap lewat query param, pola yang sama dengan /move: sumber → jumlah → pratinjau, dengan
+   * `growInPlan()` menghitung ulang di server tiap langkah. */
+  const fundTo = data.growInTargets.find((w) => w.id === sp.fund);
+  const fundFrom = data.growInSources.find((w) => w.id === sp.from);
+  const fundAmount = sp.amount ? parseRp(sp.amount) : 0;
+  const tenor = [3, 6, 12].includes(Number(sp.tenor)) ? (Number(sp.tenor) as Tenor) : undefined;
+  const fundPlan = fundTo && fundFrom
+    ? growInPlan(fundFrom, fundTo, fundAmount, data.balances, data.prices, tenor)
+    : undefined;
 
   return (
     <>
@@ -65,7 +93,18 @@ export default async function GrowPage({
                   </div>
                 )}
 
-                <a className="cta" href={`/grow?harvest=${wallet.id}`}>{dict.grow.harvest}</a>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                  {/* Menanam dan menuai berdampingan — kalau cuma ada Harvest, Grow terasa
+                      seperti tempat yang uangnya muncul entah dari mana. */}
+                  {data.growInTargets.some((w) => w.id === wallet.id) && (
+                    <a className="cta" style={{ marginTop: 0 }} href={`/grow?fund=${wallet.id}`}>
+                      {dict.grow.addMoney}
+                    </a>
+                  )}
+                  {position.valueNow > 0 && (
+                    <a className="pill" href={`/grow?harvest=${wallet.id}`}>{dict.grow.harvest}</a>
+                  )}
+                </div>
               </div>
             );
           })
@@ -124,6 +163,93 @@ export default async function GrowPage({
                 <a className="pill" href="/grow" style={{ marginLeft: 10 }}>{dict.common.cancel}</a>
               </div>
             </form>
+          </>
+        )}
+        {fundTo && (
+          <>
+            {sp.e && <div className="errbox">{ERROR_COPY[sp.e] ?? dict.grow.amountRequired}</div>}
+
+            <div className="card">
+              <h2>{dict.grow.addMoney} · {fundTo.name}</h2>
+
+              {/* Langkah 1 — sumber. Dream TIDAK ADA di daftar ini, dan itu bukan karena
+                  disembunyikan: `growInSources` di core tidak pernah mengembalikannya. */}
+              <p className="muted" style={{ marginBottom: 8 }}>{dict.grow.addMoneyFrom}</p>
+              {data.growInSources.map((w) => (
+                <a
+                  className="slot" key={w.id}
+                  href={`/grow?fund=${fundTo.id}&from=${w.id}${sp.amount ? `&amount=${sp.amount}` : ''}`}
+                  style={fundFrom?.id === w.id ? { borderColor: 'var(--brand)' } : undefined}
+                >
+                  <span className="nm">{w.name}</span>
+                  <span className="amt num">{formatRp(data.balances[w.id] ?? 0)}</span>
+                </a>
+              ))}
+            </div>
+
+            {fundFrom && (
+              <form method="get" action="/grow">
+                <input type="hidden" name="fund" value={fundTo.id} />
+                <input type="hidden" name="from" value={fundFrom.id} />
+                <div className="card">
+                  <h2>{dict.grow.howMuch}</h2>
+                  <input
+                    className="field" type="text" inputMode="numeric" name="amount"
+                    defaultValue={sp.amount ?? ''} placeholder="0"
+                  />
+
+                  {/* Langkah 2b — tenor, HANYA untuk deposito. Emas & valas tidak punya jangka:
+                      nilainya mengikuti harga, dan itu pelajaran yang berbeda (ADR-0003). */}
+                  {fundTo.instrument === 'time_deposit' && (
+                    <>
+                      <p className="muted" style={{ margin: '12px 0 8px' }}>{dict.grow.pickTenor}</p>
+                      {([3, 6, 12] as Tenor[]).map((t) => (
+                        <label className="choice" key={t}>
+                          <input type="radio" name="tenor" value={t} defaultChecked={tenor === t} />
+                          <span className="nm">{fill(dict.grow.months, { n: t })}</span>
+                          <span className="pct">{tenorRate(t, data.prices)}%</span>
+                        </label>
+                      ))}
+                    </>
+                  )}
+
+                  <button className="cta" type="submit">{dict.sort.preview}</button>
+                </div>
+              </form>
+            )}
+
+            {fundPlan?.ok && fundFrom && (
+              <form action={submitGrowIn} className="card">
+                <input type="hidden" name="from" value={fundFrom.id} />
+                <input type="hidden" name="to" value={fundTo.id} />
+                <input type="hidden" name="amount" value={fundPlan.amount} />
+                {tenor && <input type="hidden" name="tenor" value={tenor} />}
+
+                <h2>{dict.sort.preview}</h2>
+                <div className="slot">
+                  <span className="dot" style={{ background: POCKET_COLOR.grow }} />
+                  <span className="nm">{fill(dict.move.after, {
+                    wallet: fundFrom.name, amount: formatRp(fundPlan.fromAfter),
+                  })}</span>
+                </div>
+
+                {/* Bunga yang dijanjikan tampil SEBELUM anak mengajukan. Bunga yang baru
+                    terlihat setelah disetujui adalah janji yang tidak pernah dibaca. */}
+                {fundPlan.promisedInterest > 0 && (
+                  <p style={{ marginTop: 8, fontWeight: 700, color: 'var(--grow)' }}>
+                    {fill(dict.grow.promisedInterest, {
+                      amount: formatRp(fundPlan.promisedInterest),
+                    })}
+                  </p>
+                )}
+
+                <p className="muted" style={{ marginTop: 8 }}>{dict.grow.needsGrownUp}</p>
+                <button className="cta" type="submit" style={{ border: 'none', font: 'inherit', cursor: 'pointer' }}>
+                  {dict.grow.submit}
+                </button>
+                <a className="pill" href="/grow" style={{ marginLeft: 10 }}>{dict.common.cancel}</a>
+              </form>
+            )}
           </>
         )}
       </main>

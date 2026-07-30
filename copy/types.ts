@@ -176,7 +176,12 @@ export interface Dictionary {
     'title' | 'putIn' | 'worthNow' | 'youOwn' | 'pricesAsOf'
     | 'whyLess' | 'whyLessBody' | 'onlyWayOut'
     | 'harvest' | 'harvestTo' | 'harvestLockedToSave'
-    | 'matured' | 'cashOut' | 'rollOver' | 'takeProfit',
+    | 'matured' | 'cashOut' | 'rollOver' | 'takeProfit'
+    // Setoran ke instrumen (U-14). `needsGrownUp` dan `promisedInterest` sengaja dipisah:
+    // yang pertama soal izin, yang kedua soal janji — dan anak harus membaca keduanya.
+    | 'addMoney' | 'addMoneyFrom' | 'howMuch' | 'pickInstrument' | 'pickTenor'
+    | 'months' | 'promisedInterest' | 'needsGrownUp' | 'submit' | 'depositBusy'
+    | 'sourceNotAllowed' | 'notEnough' | 'amountRequired' | 'tenorRequired',
     string
   >;
 

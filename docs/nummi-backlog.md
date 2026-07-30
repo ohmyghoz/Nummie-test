@@ -207,12 +207,14 @@ Database berdiri, terisi seed kanonik, isolasi RLS diuji per-role, dan login ana
   menukar refresh token 2 menit sebelum access token mati. Diuji dengan menanam access token
   kedaluwarsa + refresh token asli: dashboard tetap terbuka dan token baru dipasang. "Keluar"
   ikut menghapus refresh cookie — tanpa itu middleware akan membangkitkan sesi yang baru ditutup.
-- **U-14 · "Add money to Grow" belum ada di app anak, dan butuh ATURAN PRODUK baru.** Anak bisa
-  memanen tapi tidak bisa menanam. Move sengaja melarang Grow sebagai tujuan, jadi ini harus jalur
-  pengajuan sendiri (`grow_in`, disetujui ortu — ADR-0003). Yang belum diputuskan: **kantong mana
-  yang boleh mendanai Grow.** Kalau wallet Save (dream) diizinkan, anak bisa menguras "BMX Bike" ke
-  emas — melewati gerbang ortu dan denda ⭐ raid-dream sekaligus. Usulan konservatif: hanya Unsorted
-  dan Free savings; dream tidak pernah. **Butuh persetujuan sebelum dibangun.**
+- ~~**U-14 · "Add money to Grow"**~~ ✅ **selesai 30 Juli 2026.** Sumber: **Spend · Free savings ·
+  Unsorted**; dream tidak pernah. **Strict tidak memblokir** — setiap setoran sudah wajib disetujui
+  ortu, jadi tidak ada yang unilateral untuk dikunci (ada test yang menjaga keputusan ini).
+  Anak memilih **tenor**, dan approval **membekukan rate + tanggal mulai** ke wallet (0014) —
+  ADR-0003 §"bunganya terkunci di kesepakatan" akhirnya punya rumah. Satu deposito aktif per
+  wallet TD: setoran kedua ditolak (`growIn.depositBusy`) karena ia akan memperpanjang jatuh tempo
+  dan mengubah rate untuk uang yang sudah masuk.
+  Ikut ditutup: approval `grow_in` yang **tidak memindahkan uang sama sekali** tanpa galat.
 - **U-11-lama · (dipindah)** Access token Supabase berumur ~1 jam dan
   `apps/parent/lib/supabase.ts` tidak me-refresh-nya — ortu terlempar ke layar masuk setelah satu
   jam. Refresh token perlu ditukar di middleware (server component tidak bisa memasang cookie).

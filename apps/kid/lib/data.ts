@@ -30,6 +30,8 @@ import {
   SEED_PRICES,
   closedGiving,
   growPosition,
+  growInSources,
+  growInTargets,
   harvestDestinations,
   pocketBalancesForTier,
   promiseDebt,
@@ -76,6 +78,10 @@ export interface KidData {
   economy: { starsBalance: number; starsLifetime: number; gems: number; chaptersDone: number; chaptersTotal: number };
   grow: GrowRow[];
   harvestTargets: Wallet[];
+  /** kantong yang boleh mendanai Grow — dream TIDAK PERNAH ada di sini (ADR-0005) */
+  growInSources: Wallet[];
+  /** instrumen yang siap menerima setoran; deposito yang sedang berjalan tidak ikut (0014) */
+  growInTargets: Wallet[];
   giveBalance: number;
   /** id wallet Give — dicari lewat `kind`, tidak pernah ditulis mati (id kini UUID) */
   giveWalletId: string;
@@ -108,12 +114,12 @@ export async function getKidData(mode?: RuleMode): Promise<KidData> {
     childRes, walletRes, ledgerRes, rulesRes, requestRes, economyRes, ratesRes, pricesRes,
   ] = await Promise.all([
     db.from('children').select('id, name, tier').limit(1).maybeSingle(),
-    db.from('wallets').select('id, child_id, name, category, kind, target_amount, instrument')
+    db.from('wallets').select('id, child_id, name, category, kind, target_amount, instrument, tenor_months, locked_rate_pct, started_at')
       .is('archived_at', null).order('created_at'),
     db.from('ledger_entries').select('id, child_id, from_wallet_id, to_wallet_id, amount, reason, created_at')
       .order('created_at'),
     db.from('money_rules').select('child_id, mode, auto_split_enabled, ratios, destinations').maybeSingle(),
-    db.from('requests').select('id, child_id, kind, amount, source_wallet_id, reason, status, fulfilment, fulfilment_story')
+    db.from('requests').select('id, child_id, kind, amount, source_wallet_id, destination_wallet_id, reason, status, fulfilment, fulfilment_story')
       .order('created_at', { ascending: false }),
     db.from('child_economy').select('stars_balance, stars_lifetime, gems').maybeSingle(),
     // Bunga bank tidak dipakai layar anak, tapi `Prices` di core satu bentuk — jadi ikut dibaca
@@ -137,6 +143,11 @@ export async function getKidData(mode?: RuleMode): Promise<KidData> {
     kind: w.kind,
     targetAmount: w.target_amount ?? undefined,
     instrument: w.instrument ?? undefined,
+    // Kesepakatan deposito yang dibekukan saat approval (0014). Dibaca semua permukaan supaya
+    // hitung mundur & bunga berasal dari baris yang sama, bukan dari tenor yang ditebak.
+    tenorMonths: (w.tenor_months ?? undefined) as Wallet['tenorMonths'],
+    lockedRatePct: w.locked_rate_pct === null ? undefined : Number(w.locked_rate_pct),
+    startedAt: w.started_at ?? undefined,
   }));
 
   const ledger: LedgerEntry[] = (ledgerRes.data ?? []).map((l) => ({
@@ -216,6 +227,8 @@ export async function getKidData(mode?: RuleMode): Promise<KidData> {
     grow,
     balances: byWallet,
     harvestTargets: harvestDestinations(wallets),
+    growInSources: growInSources(wallets),
+    growInTargets: growInTargets(wallets),
     giveBalance: giveWallet ? byWallet[giveWallet.id] ?? 0 : 0,
     giveWalletId: giveWallet?.id ?? '',
     unsortedWalletId: unsortedWallet?.id ?? '',

@@ -29,8 +29,8 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import {
-  GIVE_CAUSES, canHarvestTo, canOpenSort, movePlan, validateGive,
-  type GiveCause, type HarvestChoice,
+  GIVE_CAUSES, canHarvestTo, canOpenSort, growInPlan, movePlan, validateGive,
+  type GiveCause, type HarvestChoice, type Tenor,
 } from '@nummi/core';
 import { getKidData } from './data';
 import { serviceClient } from './supabase';
@@ -218,6 +218,65 @@ export async function submitHarvest(formData: FormData): Promise<void> {
 
   if (error) {
     console.error('submitHarvest gagal:', error.message);
+    redirect(`${back}&e=failed`);
+  }
+
+  revalidatePath('/grow');
+  revalidatePath('/requests');
+  revalidatePath('/');
+  redirect('/requests');
+}
+
+/**
+ * Add money to Grow — setoran ke instrumen.
+ *
+ * Request, bukan ledger: masuk ke Grow SELALU lewat persetujuan ortu, karena ortu yang menanggung
+ * risiko pasarnya (ADR-0003). Uang tidak bergerak sampai ia menekan approve.
+ *
+ * Asimetris dengan Harvest, dan itu memang kebijakannya: keluar hanya lewat Harvest ke Save,
+ * masuk hanya lewat pengajuan. `movePlan` tidak bisa dipakai di sini — ia menolak Grow sebagai
+ * tujuan (`move.destinationNotAllowed`).
+ *
+ * Perhatikan `growInPlan()` dipanggil dengan aturan yang sama yang dipakai layarnya untuk
+ * pratinjau, termasuk bunga yang dijanjikan. Bunga yang baru terlihat setelah disetujui adalah
+ * janji yang tidak pernah dibaca.
+ */
+export async function submitGrowIn(formData: FormData): Promise<void> {
+  const fromId = String(formData.get('from') ?? '');
+  const toId = String(formData.get('to') ?? '');
+  const amount = Number(formData.get('amount') ?? 0);
+  const tenorRaw = Number(formData.get('tenor') ?? 0);
+
+  const data = await getKidData();
+  const back = `/grow?fund=${toId}&from=${fromId}&amount=${amount || ''}`;
+
+  const from = data.wallets.find((w) => w.wallet.id === fromId)?.wallet;
+  const to = data.wallets.find((w) => w.wallet.id === toId)?.wallet;
+  if (!from || !to) redirect('/grow');
+
+  const tenor = [3, 6, 12].includes(tenorRaw) ? (tenorRaw as Tenor) : undefined;
+
+  const plan = growInPlan(from, to, amount, data.balances, data.prices, tenor);
+  if (!plan.ok) redirect(`${back}&e=${plan.errorKey ?? 'failed'}`);
+
+  const { error } = await serviceClient().from('requests').insert({
+    child_id: data.child.id,
+    kind: 'grow_in',
+    amount,
+    source_wallet_id: from.id,
+    // Instrumen tujuannya WAJIB tercatat (constraint `grow_in_needs_destination`, 0014) —
+    // ortu tidak boleh menebak setoran ini mendarat di mana.
+    destination_wallet_id: to.id,
+    // Tenor cuma berarti untuk deposito; constraint `grow_tenor_only_on_grow_in` menjaga
+    // kolomnya, dan `growInPlan` sudah menolak deposito tanpa tenor.
+    grow_tenor_months: tenor ?? null,
+    status: 'needs_ok',
+    // Jalur instan (requests.ts:19): menyetujui = selesai, tidak ada tugas dunia nyata sisa.
+    fulfilment: 'not_applicable',
+  });
+
+  if (error) {
+    console.error('submitGrowIn gagal:', error.message);
     redirect(`${back}&e=failed`);
   }
 

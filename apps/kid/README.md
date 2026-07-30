@@ -87,8 +87,28 @@ pilihannya sama sekali). **Tujuan ke wallet Spend ditolak server** — `canHarve
 ulang saat menulis, bukan cuma dipakai merender daftar. Total tetap 484.711, ledger tidak
 bertambah: Harvest pun menunggu ortu.
 
-**Semua flow tulis app anak sudah tersambung.** Yang belum: isi pelajaran (kuis), Prizes/Jobs,
-dan Forex "Add money" per mata uang.
+| Add money to Grow | **request** + tenor | masuk Grow selalu lewat izin ortu — dia yang menanggung risiko pasarnya (ADR-0003) |
+
+### Anak akhirnya bisa menanam, bukan cuma menuai
+
+Sampai 30 Juli 2026 layar Grow hanya bisa **memanen**. Sekarang ada mode ketiga `?fund=`:
+sumber → jumlah → (tenor, kalau deposito) → pratinjau → ajukan.
+
+**Sumbernya Spend · Free savings · Unsorted — dream TIDAK PERNAH.** Kalau dream diizinkan, anak
+bisa menguras "BMX Bike" ke emas dan melewati **dua** penjaga sekaligus: gerbang ortu untuk
+membatalkan dream (ADR-0005) dan denda ⭐ raid-dream (Fase 5). Itu bukan "menunda lebih lama",
+itu membatalkan dream lewat pintu belakang.
+
+⚠️ `canGrowInFrom()` **sengaja tidak** memakai `canChildMoveFrom()`. Fungsi itu menolak **semua**
+wallet di mode Strict, jadi memakainya akan mematikan Grow total untuk keluarga Strict — padahal
+setiap setoran sudah wajib disetujui ortu, dan itulah yang sebenarnya dijaga Strict. Ada test yang
+menjaga keputusan ini supaya tidak "dirapikan" jadi konsisten.
+
+**Bunga yang dijanjikan tampil sebelum diajukan** (Rp20.000 tenor 12 bln → "pays you Rp800 at the
+end"). Bunga yang baru terlihat setelah disetujui adalah janji yang tidak pernah dibaca.
+
+**Semua flow tulis app anak sudah tersambung.** Yang belum: isi pelajaran (kuis) dan Jobs/Prizes
+(U-13), plus Forex "Add money" per mata uang.
 
 Tiga hal yang dikunci di `lib/actions.ts` dan tidak boleh dilonggarkan:
 

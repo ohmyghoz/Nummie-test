@@ -25,6 +25,16 @@ export default async function AddPage() {
       sub: fill(dict.give.available, { amount: formatRp(data.giveBalance) }),
     },
     { href: '/grow', icon: '🌱', title: dict.grow.title, sub: dict.grow.onlyWayOut },
+    /*
+     * Menanam, terpisah dari melihat Grow. Gerbangnya DUA syarat sekaligus (I3 — yang tidak bisa
+     * dilakukan tidak dirender): harus ada instrumen yang siap menerima setoran, DAN harus ada
+     * kantong yang isinya bisa didanakan. Anak yang semua kantongnya kosong tidak melihat pintu
+     * yang cuma akan menolaknya.
+     */
+    data.growInTargets.length > 0
+      && data.growInSources.some((w) => (data.balances[w.id] ?? 0) > 0) && {
+      href: '/grow', icon: '🪴', title: dict.grow.addMoney, sub: dict.grow.needsGrownUp,
+    },
     data.requests.length > 0 && {
       href: '/requests', icon: '⏳', title: dict.requests.title,
       sub: fill(dict.home.requestsWaiting, { count: data.openRequests.length }),

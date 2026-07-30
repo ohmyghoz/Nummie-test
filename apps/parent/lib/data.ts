@@ -94,7 +94,7 @@ export async function getParentData(): Promise<ParentData> {
   ] = await Promise.all([
     db.from('parents').select('id, display_name').limit(1).maybeSingle(),
     db.from('children').select('id, name, tier').order('created_at'),
-    db.from('wallets').select('id, child_id, name, category, kind, target_amount, instrument')
+    db.from('wallets').select('id, child_id, name, category, kind, target_amount, instrument, tenor_months, locked_rate_pct, started_at')
       .is('archived_at', null).order('created_at'),
     db.from('ledger_entries')
       .select('id, child_id, from_wallet_id, to_wallet_id, amount, reason, created_at')
@@ -146,6 +146,11 @@ export async function getParentData(): Promise<ParentData> {
     kind: w.kind,
     targetAmount: w.target_amount ?? undefined,
     instrument: w.instrument ?? undefined,
+    // Kesepakatan deposito yang dibekukan saat approval (0014). Dibaca semua permukaan supaya
+    // hitung mundur & bunga berasal dari baris yang sama, bukan dari tenor yang ditebak.
+    tenorMonths: (w.tenor_months ?? undefined) as Wallet['tenorMonths'],
+    lockedRatePct: w.locked_rate_pct === null ? undefined : Number(w.locked_rate_pct),
+    startedAt: w.started_at ?? undefined,
   }));
 
   const allLedger: LedgerEntry[] = (ledgerRes.data ?? []).map((l) => ({

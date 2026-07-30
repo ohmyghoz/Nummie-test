@@ -1,4 +1,5 @@
 /** Tipe domain Nummi. Tidak ada logika di sini — hanya bentuk data. */
+import type { Tenor } from './grow.js';
 
 export type Category = 'spend' | 'save' | 'give' | 'grow';
 export type Tier = 'little' | 'middle' | 'teen';
@@ -32,6 +33,18 @@ export interface Wallet {
   targetAmount?: number;
   /** WAJIB saat kind 'instrument', dan tidak boleh ada selain itu. */
   instrument?: GrowInstrument;
+
+  /**
+   * Kesepakatan deposito yang **dibekukan saat ortu menyetujui** (migrasi 0014).
+   *
+   * Ketiganya sekaligus atau tidak satu pun. Alasan membekukannya: ADR-0003 menutup dengan
+   * "TD tidak ikut pasar — bunganya terkunci di kesepakatan". Tanpa ini, ortu yang mengubah
+   * bunga di Settings ikut mengubah bunga deposito yang sudah berjalan — janji yang dibatalkan
+   * diam-diam untuk uang yang sudah masuk.
+   */
+  tenorMonths?: Tenor;
+  lockedRatePct?: number;
+  startedAt?: string;
 }
 
 /**

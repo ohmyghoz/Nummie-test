@@ -26,6 +26,22 @@ Add a child dan Jobs juga dicapai dari Dashboard.
 
 **Belum ada:** Insight · undang ortu kedua · Learning tracker.
 
+### Kesepakatan deposito dibekukan saat approve (0014)
+
+ADR-0003 menutup dengan *"TD tidak ikut pasar — bunganya terkunci di kesepakatan"*, dan sampai
+30 Juli 2026 kalimat itu tidak punya rumah: tidak ada kolom untuk tenor, rate, maupun tanggal
+mulai. Sekarang approval `grow_in` menulis ketiganya ke wallet.
+
+Diuji: anak menyetor Rp20.000 tenor 12 bulan → approve membekukan `4.00%`. Ortu lalu menurunkan
+bunga 12 bulan jadi **1%** → deposito itu **tetap 4%**. Sebelum ini, deposito akan diam-diam
+mengikuti setelan hari ini, dan anak yang menyetor karena dijanjikan 4% bisa menemukan bunganya
+berubah tanpa pernah diberi tahu.
+
+Ikut ditutup: `ledgerRowFor()` mengembalikan `null` untuk `grow_in`, dan `approveRequest` memakai
+`if (row)` — jadi pengajuan Grow yang disetujui akan berpindah ke `approved` **tanpa satu rupiah
+bergerak dan tanpa galat.** Sekarang ketiadaan baris di jalur instan harus punya nama; satu-satunya
+yang sah adalah harvest `roll_over`, sisanya dianggap bug dan melempar.
+
 ⚠️ **Hitung mundur deposito belum bisa dipercaya.** Setiap baris ledger di seed memakai
 `createdAt` placeholder yang sama (`2026-07-01`), jadi tanggal bilang "153 hari lagi" sementara
 bunga Rp750 sudah tercatat dan seed memang memaksudkan "sudah jatuh tempo". Sesuai prinsip

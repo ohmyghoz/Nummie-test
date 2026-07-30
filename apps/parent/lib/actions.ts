@@ -30,10 +30,10 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import {
   CATEGORIES,
-  approve, decline, markDone, postsLedgerOn, talkAboutIt, tdHarvestOutcome,
+  approve, decline, markDone, postsLedgerOn, talkAboutIt, tdHarvestOutcome, tenorRate,
   STARTER_WALLETS, nextAllowanceDates, validateAllowance, validateAutoSplit, validateBankRates,
   validateChild, validateSend, validateTake,
-  type AllowanceFrequency, type AllowanceSchedule,
+  type AllowanceFrequency, type AllowanceSchedule, type Prices, type Tenor,
   type Category, type MoneyRequest, type MoneyRules, type RuleMode, type SendSource,
   type Tier,
 } from '@nummi/core';
@@ -45,8 +45,15 @@ interface Found {
   parentId: string;
   childId: string;
   child: ChildView;
+  /** dibutuhkan saat membekukan kesepakatan deposito — rate & tanggal acuan (0014) */
+  prices: Prices;
+  today: string;
   /** baris DB mentah — perlu untuk kolom yang tidak ada di MoneyRequest */
-  raw: { destination_wallet_id: string | null; harvest_choice: string | null };
+  raw: {
+    destination_wallet_id: string | null;
+    harvest_choice: string | null;
+    grow_tenor_months: number | null;
+  };
 }
 
 /** Cari request lewat data yang dibaca dengan token ortu. Kalau tidak ketemu, tidak terjadi apa-apa. */
@@ -59,7 +66,7 @@ async function findRequest(requestId: string): Promise<Found | null> {
       // soal skema). Diambil terpisah, tetap lewat service role SETELAH kepemilikan terbukti.
       const { data: raw } = await serviceClient()
         .from('requests')
-        .select('destination_wallet_id, harvest_choice')
+        .select('destination_wallet_id, harvest_choice, grow_tenor_months')
         .eq('id', requestId)
         .maybeSingle();
       return {
@@ -67,7 +74,9 @@ async function findRequest(requestId: string): Promise<Found | null> {
         parentId: data.parentId,
         childId: child.id,
         child,
-        raw: raw ?? { destination_wallet_id: null, harvest_choice: null },
+        prices: data.prices,
+        today: data.today,
+        raw: raw ?? { destination_wallet_id: null, harvest_choice: null, grow_tenor_months: null },
       };
     }
   }
@@ -121,9 +130,27 @@ function ledgerRowFor(found: Found): Record<string, unknown> | null {
       };
     }
 
+    /*
+     * Setoran ke instrumen. Sampai 30 Juli 2026 jenis ini jatuh ke `default` dan mengembalikan
+     * null — artinya request grow_in yang disetujui berpindah status ke `approved` TANPA satu
+     * rupiah bergerak dan tanpa galat apa pun. Tidak terlihat karena app anak belum bisa
+     * membuatnya; berbahaya justru pada hari ia bisa.
+     */
+    case 'grow_in': {
+      if (!raw.destination_wallet_id) return null;
+      return {
+        child_id: childId,
+        from_wallet_id: r.sourceWalletId ?? null,
+        to_wallet_id: raw.destination_wallet_id,
+        amount: r.amount,
+        reason: 'grow_in',
+        request_id: r.id,
+      };
+    }
+
     default:
-      // grow_in, prize, mission_claim: belum ada jalurnya di app anak, jadi belum ada
-      // request-nya yang bisa disetujui. Sengaja tidak diarang-arang sekarang.
+      // prize & mission_claim: belum ada jalurnya di app anak (U-13), jadi belum ada request-nya
+      // yang bisa disetujui. Sengaja tidak diarang-arang sekarang.
       return null;
   }
 }
@@ -143,10 +170,48 @@ export async function approveRequest(formData: FormData): Promise<void> {
   // "approved" yang uangnya tidak pernah pindah — utang janji palsu di kolom yang salah.
   if (postsLedgerOn(found.request.kind) === 'approve') {
     const row = ledgerRowFor(found);
+
+    /*
+     * `row === null` di jalur instan hanya SAH untuk satu hal: harvest deposito dengan pilihan
+     * `roll_over`, yang memang memindahkan nol rupiah karena uangnya lanjut bekerja.
+     *
+     * Dulu blok ini cuma `if (row)`, dan itu menelan setiap jenis yang belum ditangani: request
+     * disetujui, status berubah, uang tidak bergerak, tidak ada galat. Sekarang ketiadaan baris
+     * harus punya nama.
+     */
+    const rollOver = found.request.kind === 'harvest' && found.raw.harvest_choice === 'roll_over';
+    if (!row && !rollOver) {
+      console.error(`approve: jalur instan '${found.request.kind}' tidak menghasilkan baris ledger`);
+      redirect(`/requests?child=${found.childId}&e=failed`);
+    }
+
     if (row) {
       const { error } = await db.from('ledger_entries').insert(row);
       if (error) {
         console.error('approve: ledger gagal:', error.message);
+        redirect(`/requests?child=${found.childId}&e=failed`);
+      }
+    }
+
+    /*
+     * KESEPAKATAN DEPOSITO DIBEKUKAN DI SINI (0014).
+     *
+     * ADR-0003: "TD tidak ikut pasar — bunganya terkunci di kesepakatan." Rate diambil dari
+     * `bank_rates` **saat ini**, lalu disimpan ke wallet. Ortu yang mengubah bunga besok tidak
+     * mengubah deposito ini — dan itu seluruh gunanya.
+     */
+    if (found.request.kind === 'grow_in' && found.raw.grow_tenor_months) {
+      const tenor = found.raw.grow_tenor_months as Tenor;
+      const { error: termsError } = await db.from('wallets')
+        .update({
+          tenor_months: tenor,
+          locked_rate_pct: tenorRate(tenor, found.prices),
+          started_at: found.today,
+        })
+        .eq('id', found.raw.destination_wallet_id);
+
+      if (termsError) {
+        console.error('approve: kesepakatan deposito gagal disimpan:', termsError.message);
         redirect(`/requests?child=${found.childId}&e=failed`);
       }
     }
