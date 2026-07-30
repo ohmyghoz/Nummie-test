@@ -37,6 +37,7 @@ import {
   type Prices,
   type Pocket,
   type TakeTarget,
+  type Economy,
   type Job,
   type LedgerEntry,
   type Prize,
@@ -74,6 +75,12 @@ export interface ChildView {
   prizes: Prize[];
   /** 💎 dari ledger-nya sendiri, bukan penghitung */
   gems: number;
+  /**
+   * Ekonomi anak, supaya ortu bisa melihat status ketiga gerbang (handoff §82 — Learning
+   * tracker). Sampai 30 Juli 2026 app ortu TIDAK PERNAH membaca `child_economy`, jadi kartu ini
+   * tidak mungkin dibangun walau sudah lama ada di spec.
+   */
+  economy: Economy;
 }
 
 export interface ParentData {
@@ -88,6 +95,8 @@ export interface ParentData {
 
 /** Sementara, sampai `children` punya kolomnya (avatar shop Fase 4 belum persisten). */
 const AVATAR_DEFAULT = '🦊';
+/** Sementara, sampai kurikulum punya tabel — sama dengan `apps/kid/lib/data.ts`. */
+const CHAPTERS_DONE = 1;
 
 export async function getParentData(): Promise<ParentData> {
   const token = await parentToken();
@@ -97,7 +106,7 @@ export async function getParentData(): Promise<ParentData> {
 
   const [
     meRes, childRes, walletRes, ledgerRes, requestRes, rulesRes,
-    allowanceRes, ratesRes, jobRes, prizeRes, gemRes, pricesRes,
+    allowanceRes, ratesRes, jobRes, prizeRes, gemRes, economyRes, pricesRes,
   ] = await Promise.all([
     db.from('parents').select('id, display_name').limit(1).maybeSingle(),
     db.from('children').select('id, name, tier').order('created_at'),
@@ -118,6 +127,7 @@ export async function getParentData(): Promise<ParentData> {
     db.from('prizes').select('id, child_id, title, gem_cost')
       .is('archived_at', null).order('gem_cost'),
     db.from('gem_balances').select('child_id, balance'),
+    db.from('child_economy').select('child_id, stars_balance, stars_lifetime'),
     // Baris terbaru = harga hari ini. Riwayatnya tetap ada (price_date jadi PK di 0013), jadi
     // nilai lama anak masih bisa dijelaskan kalau harga berubah — syarat backlog T.
     db.from('daily_prices')
@@ -207,6 +217,24 @@ export async function getParentData(): Promise<ParentData> {
     };
   };
 
+  /**
+   * `chaptersDone` masih tetap 1 di sini, sama seperti di app anak — kurikulum belum punya tabel.
+   * Konstanta yang sama disebut di dua tempat memang bau, tapi menyembunyikannya di core akan
+   * membuatnya tampak seperti keputusan; ia sementara, dan lebih baik terlihat sementara.
+   *
+   * `weeklyMaterialDone` sengaja TIDAK diset: `undefined` berarti "belum ada materi mingguan",
+   * bukan "belum selesai" (ADR-0004 §A3).
+   */
+  const economyFor = (childId: string): Economy => {
+    const row = (economyRes.data ?? []).find((e) => e.child_id === childId);
+    return {
+      starsBalance: row?.stars_balance ?? 0,
+      starsLifetime: row?.stars_lifetime ?? 0,
+      gems: Number((gemRes.data ?? []).find((g) => g.child_id === childId)?.balance ?? 0),
+      chaptersDone: CHAPTERS_DONE,
+    };
+  };
+
   // Multi-anak sudah jadi bentuk datanya sejak awal: strip pending harus PER-ANAK,
   // bukan gabungan semua anak (perbaikan lintas-app yang sudah dikunci).
   const children: ChildView[] = (childRes.data ?? []).map((c) => {
@@ -252,6 +280,7 @@ export async function getParentData(): Promise<ParentData> {
         id: pr.id, childId: pr.child_id, title: pr.title, gemCost: pr.gem_cost,
       })),
       gems: Number((gemRes.data ?? []).find((g) => g.child_id === c.id)?.balance ?? 0),
+      economy: economyFor(c.id),
       // Modal & nilai KEDUANYA dari ledger — harga hanya menjelaskan (lihat core/grow.ts).
       investments: wallets
         .filter((w) => w.category === 'grow')

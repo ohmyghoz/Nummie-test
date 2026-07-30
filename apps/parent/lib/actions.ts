@@ -781,3 +781,55 @@ export async function createPrize(formData: FormData): Promise<void> {
   revalidateAll();
   redirect(`/jobs?child=${childId}&saved=1`);
 }
+
+/**
+ * Mengarsipkan job / hadiah — bukan menghapusnya, dan **tidak menyediakan edit.**
+ *
+ * `archived_at`, bukan DELETE: baris ini dirujuk `requests.job_id`/`prize_id`, dan klaim yang sudah
+ * disetujui harus tetap bisa dijelaskan. Menghapus job akan membuat 💎 di ledger anak kehilangan
+ * asalnya — persis hal yang dihindari dengan memberi 💎 ledger.
+ *
+ * **Kenapa tidak ada tombol edit:** mengubah nominal job yang sudah pernah diklaim membuat sejarah
+ * berbohong — anak mengerjakannya untuk 5💎 lalu layarnya bilang 2💎. Job diganti, bukan diubah:
+ * arsipkan yang lama, buat yang baru. Itu sekaligus menjaga jejaknya tetap benar.
+ */
+export async function archiveJob(formData: FormData): Promise<void> {
+  await archive(formData, 'jobs', 'job');
+}
+
+export async function archivePrize(formData: FormData): Promise<void> {
+  await archive(formData, 'prizes', 'prize');
+}
+
+async function archive(
+  formData: FormData,
+  table: 'jobs' | 'prizes',
+  field: 'job' | 'prize',
+): Promise<void> {
+  const id = String(formData.get(field) ?? '');
+  const childId = String(formData.get('child') ?? '');
+
+  const data = await getParentData();
+  const child = data.children.find((c) => c.id === childId);
+  if (!child) redirect('/');
+
+  // Kepemilikan dibuktikan dari data yang dibaca lewat token ortu, bukan dari id yang dikirim —
+  // id milik keluarga lain sederhananya tidak akan ketemu.
+  const owned = field === 'job'
+    ? child.jobs.some((j) => j.id === id)
+    : child.prizes.some((p) => p.id === id);
+  if (!owned) redirect(`/jobs?child=${childId}`);
+
+  const { error } = await serviceClient().from(table)
+    .update({ archived_at: new Date().toISOString() })
+    .eq('id', id);
+
+  if (error) {
+    console.error(`archive ${table} gagal:`, error.message);
+    redirect(`/jobs?child=${childId}&e=failed`);
+  }
+
+  revalidatePath('/jobs');
+  revalidateAll();
+  redirect(`/jobs?child=${childId}&saved=1`);
+}

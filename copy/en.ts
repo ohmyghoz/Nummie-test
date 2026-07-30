@@ -174,6 +174,22 @@ export const en: Dictionary = {
     fox: 'Fox', deer: 'Deer', cat: 'Cat', owl: 'Owl', dragon: 'Dragon',
   },
 
+  tracker: {
+    title: 'Learning tracker',
+    chapters: 'Chapters done',
+    starsLifetime: 'Stars ever earned',
+    gems: 'Gems',
+    gateChores: 'Jobs from home',
+    gateBigPrize: 'Big prizes & achievements',
+    gateWeekly: 'Spending gems this week',
+    open: 'Open',
+    locked: 'Locked',
+    starsToGo: '{n} stars to go',
+    chaptersToGo: 'Finish Chapter {n}',
+    weeklyNoData: 'No weekly material yet',
+    talkAboutIt: '{child} is on Chapter {n} — a good thing to ask about at dinner.',
+  },
+
   parent: {
     dashboard: 'Dashboard',
     inbox: 'Requests',
@@ -328,6 +344,8 @@ export const en: Dictionary = {
     amountRequired: 'Set an amount',
     moneyNotAllowed: 'Helping at home is paid in gems',
     costRequired: 'Set a gem cost',
+    archive: 'Remove',
+    archiveHint: 'Removing keeps what your child already earned — it only stops new claims.',
   },
 
   jobKind: {

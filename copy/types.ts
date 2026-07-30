@@ -89,6 +89,18 @@ export interface Dictionary {
 
   avatar: Record<string, string>;
 
+  /**
+   * Learning tracker sisi ortu (handoff §82) — status ketiga gerbang ADR-0004 di satu kartu.
+   * Sengaja menyebut apa yang harus terjadi berikutnya, bukan cuma terkunci/terbuka: ortu yang
+   * cuma melihat 🔒 tidak tahu ia bisa membantu apa.
+   */
+  tracker: Record<
+    'title' | 'chapters' | 'starsLifetime' | 'gems' | 'gateChores' | 'gateBigPrize'
+    | 'gateWeekly' | 'open' | 'locked' | 'starsToGo' | 'chaptersToGo' | 'weeklyNoData'
+    | 'talkAboutIt',
+    string
+  >;
+
   /** Sisi ortu (S3). Bahasa produk = Inggris, sama dengan app anak (ADR-0016). */
   parent: Record<
     'dashboard' | 'inbox' | 'send' | 'take' | 'rules' | 'noPending' | 'pendingCount'
@@ -138,7 +150,8 @@ export interface Dictionary {
   jobs: Record<
     'title' | 'kind' | 'reward' | 'amount' | 'jobTitle' | 'gemsOnly' | 'whyGemsOnly' | 'add'
     | 'prizes' | 'prizeTitle' | 'gemCost' | 'timeToEarn' | 'weeks' | 'never' | 'gemsPerWeek'
-    | 'titleRequired' | 'amountRequired' | 'moneyNotAllowed' | 'costRequired',
+    | 'titleRequired' | 'amountRequired' | 'moneyNotAllowed' | 'costRequired'
+    | 'archive' | 'archiveHint',
     string
   >;
 

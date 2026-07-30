@@ -24,7 +24,26 @@ Nav: Dashboard / Requests / Send / Settings. **Money rules sengaja TIDAK di nav*
 **per-anak**, dicapai dari kartu anak di Dashboard; Settings adalah setelan tingkat akun.
 Add a child dan Jobs juga dicapai dari Dashboard.
 
-**Belum ada:** Insight · undang ortu kedua · Learning tracker.
+**Belum ada:** Insight · undang ortu kedua.
+
+### Learning tracker akhirnya bisa dibangun
+
+Kartu ini ada di spec sejak handoff §82 tapi **tidak mungkin** dibuat sebelumnya: app ortu tidak
+pernah membaca `child_economy`. Sekarang ia menampilkan bab selesai, ⭐ lifetime, 💎, dan **status
+ketiga gerbang ADR-0004** — masing-masing dengan **apa yang kurang**, bukan cuma 🔒. Ortu yang cuma
+melihat gembok tidak tahu ia bisa membantu apa.
+
+Tempatnya di `/jobs`, bukan Dashboard: ketiga gerbang itu yang menentukan apa yang bisa dipakai dari
+Jobs & Prizes, jadi ortu perlu melihatnya justru saat sedang menyiapkannya.
+
+### Job & hadiah bisa dihapus, tapi tidak bisa diedit
+
+Hapus = **arsip**, bukan DELETE: barisnya dirujuk `requests.job_id`, dan 💎 yang sudah masuk ke
+ledger anak harus tetap punya asal. Diuji: job diarsipkan → hilang dari layar anak, klaim yang
+merujuknya tetap ada, **💎 anak tidak berkurang**.
+
+**Edit sengaja tidak disediakan.** Mengubah nominal job yang sudah pernah diklaim membuat sejarah
+berbohong — anak mengerjakannya untuk 5💎 lalu layarnya bilang 2💎. Job diganti, bukan diubah.
 
 ### Kesepakatan deposito dibekukan saat approve (0014)
 

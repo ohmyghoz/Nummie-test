@@ -102,7 +102,10 @@ undang ortu kedua, halaman Insight, Transactions dengan filter rentang. Sisa kan
    (*"Arthur just learned X — a good thing to ask about at dinner"*). Tinggal jadikan konten & jadwal mingguan.
 2. **Progress markers** (§4.2 financial_literacy.md) — checklist observasi ortu + metrik otomatis dari ledger.
 3. **Foto di cerita Give** — saat ini teks saja; foto perlu dipikirkan (upload? kamera? placeholder?).
-4. **Edit data anak** (nama/tier/PIN) & **edit/hapus mission & prize** — semuanya baru bisa create.
+4. **Edit data anak** (nama/tier/PIN) baru bisa create. ~~edit/hapus mission & prize~~ ✅ **hapus
+   selesai 30 Juli 2026** — arsip, bukan DELETE (baris dirujuk `requests.job_id`, dan 💎 anak harus
+   tetap punya asal). **Edit sengaja tidak disediakan**: mengubah nominal job yang sudah diklaim
+   membuat sejarah berbohong. Job diganti, bukan diubah.
 5. **Growth Reward** — bunga simulasi didanai ortu utk Little/Middle awal. Masih menunggu keputusan (M1).
 6. **Rapor Literasi Finansial** (M2) — belum ada di permukaan mana pun.
 
@@ -207,13 +210,12 @@ Database berdiri, terisi seed kanonik, isolasi RLS diuji per-role, dan login ana
   💎 pakai ledger, ⭐ tetap penghitung — ⭐ hanya membeli kosmetik, 💎 menyentuh dunia nyata
   (ADR-0004). Jumlah 💎 **tidak** disimpan di `requests.amount` (kolom itu rupiah); diturunkan
   lewat `job_id`/`prize_id` — menghindari peringatan K14.
-- **U-15 · Definisi minggu masih terbuka, dan gerbang 3 menunggunya.** `weeklyMaterialDone`
-  tidak punya sumber karena kurikulum belum punya tabel. `canRedeemGems` sekarang memperlakukan
-  `undefined` sebagai **"belum ada materi mingguan"**, bukan "belum selesai" — kalau tidak,
-  gerbang itu tertutup selamanya dan seluruh ekonomi 💎 jadi hiasan. ⚠️ **Ini pembacaan yang
-  perlu dikonfirmasi**: ADR-0004 mengunci gerbangnya, dan yang berubah hanya cara membaca
-  "tidak ada data". Begitu kurikulum punya tabel + definisi minggu diputuskan (backlog T: awal
-  minggu · zona waktu · klaim retroaktif), gerbangnya menutup sendiri tanpa perubahan kode.
+- ~~**U-15 · "belum ada materi" vs "belum selesai"**~~ ✅ **dikonfirmasi 30 Juli 2026**, dicatat
+  sebagai [ADR-0004 §A3](decisions/0004-ekonomi-bintang-permata.md). `undefined` berarti gerbang
+  belum berlaku; `false` tetap menutupnya. Gerbangnya tidak dilonggarkan — ia menutup sendiri
+  begitu ada materi mingguan yang bisa dinilai.
+  **Yang masih terbuka: definisi minggu** (awal minggu · zona waktu · klaim retroaktif) — tercatat
+  di §T, dan gerbang ini baru benar-benar bekerja setelah ketiganya dijawab.
 - ~~**U-11 · Sesi ortu tidak diperbarui.**~~ ✅ **selesai 30 Juli 2026.** `apps/parent/middleware.ts`
   menukar refresh token 2 menit sebelum access token mati. Diuji dengan menanam access token
   kedaluwarsa + refresh token asli: dashboard tetap terbuka dan token baru dipasang. "Keluar"

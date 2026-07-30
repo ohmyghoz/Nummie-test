@@ -170,6 +170,22 @@ export const id: Dictionary = {
     fox: 'Rubah', deer: 'Kancil', cat: 'Kucing', owl: 'Burung Hantu', dragon: 'Naga',
   },
 
+  tracker: {
+    title: 'Pantauan belajar',
+    chapters: 'Bab selesai',
+    starsLifetime: 'Bintang yang pernah didapat',
+    gems: 'Permata',
+    gateChores: 'Kerjaan dari rumah',
+    gateBigPrize: 'Hadiah besar & pencapaian',
+    gateWeekly: 'Memakai permata minggu ini',
+    open: 'Terbuka',
+    locked: 'Terkunci',
+    starsToGo: 'kurang {n} bintang',
+    chaptersToGo: 'Selesaikan Bab {n}',
+    weeklyNoData: 'Belum ada materi mingguan',
+    talkAboutIt: '{child} sedang di Bab {n} — bagus untuk ditanyakan saat makan malam.',
+  },
+
   parent: {
     dashboard: 'Beranda',
     inbox: 'Permintaan',
@@ -317,6 +333,8 @@ export const id: Dictionary = {
     amountRequired: 'Tentukan nominalnya',
     moneyNotAllowed: 'Membantu di rumah dibayar dengan permata',
     costRequired: 'Tentukan harga permatanya',
+    archive: 'Hapus',
+    archiveHint: 'Menghapus tidak mengambil yang sudah didapat anakmu — ia cuma menghentikan klaim baru.',
   },
 
   jobKind: {
