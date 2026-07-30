@@ -3,7 +3,7 @@
 Dokumen ini mencatat keputusan & fitur yang sudah didiskusikan tapi **belum dibangun**,
 agar tidak hilang. Diurutkan kasar berdasarkan prioritas/ketergantungan.
 
-*Diperbarui 28 Juli 2026 setelah audit lintas-file. Status permukaan & register kontradiksi
+*Diperbarui 30 Juli 2026 (D3 ditutup — ADR-0018). Status permukaan & register kontradiksi
 lengkap ada di `nummi-status.md`.*
 
 ---
@@ -404,9 +404,9 @@ Keputusan pembagian Free/Pro sudah **disepakati & ditulis di `premium-setting.md
 - **M7. Arsitektur entitlement (BARU).** Empat tabel — `entitlements`, `iap_receipts`, `schools`,
   `school_members` — dengan satu resolver `isPro(user)`. Aturan UX yang sudah dikunci: **tombol upgrade
   tidak pernah tampil untuk pengguna sekolah**, dan kolom kode sekolah dikubur di Settings.
-- **M8. Model harga belum final (BLOKER KEPUTUSAN).** `premium-setting.md` mengunci one-time Rp 399.000.
-  Risiko struktural sekali-bayar (pendapatan sekali vs kewajiban seumur pemakaian) sudah teridentifikasi;
-  usulan hibrida (slot founding-member seumur hidup terbatas → langganan) belum diputuskan.
+- ~~**M8. Model harga belum final.**~~ ✅ **selesai 30 Juli 2026** — [ADR-0018](decisions/0018-harga-sekali-bayar.md)
+  menutup D3: sekali bayar Rp 399.000, bukan hibrida. Risiko struktural (pendapatan sekali vs kewajiban
+  seumur pemakaian) diterima sadar, bukan diselesaikan — dicatat, ditinjau ulang kalau D4 jatuh ke PWA.
 
 ## N. Family Circle (ditunda — pernah diusulkan, ditolak untuk v1)
 Undang keluarga besar (kakek/nenek/om/tante) untuk lihat dream & ikut nyumbang (tetap butuh konfirmasi ortu,
@@ -462,6 +462,6 @@ Rincian & rekomendasi ada di `nummi-status.md` §5. Ringkasnya:
 |---|---|---|
 | ~~D1~~ | ~~Bahasa produk~~ | ✅ **diputuskan: Inggris** (ADR-0016) — tidak lagi memblokir |
 | ~~D2~~ | ~~Tabel istilah final kategori × tier~~ | ✅ **sama lintas tier** (ADR-0017) |
-| **D3** | Model harga (sekali-bayar vs hibrida) | menentukan bentuk paywall, entitlement, dan proyeksi |
+| ~~D3~~ | ~~Model harga~~ | ✅ **diputuskan: sekali bayar Rp399.000** (ADR-0018) — `LIMITS` ditegakkan di `packages/core/src/plan.ts` |
 | **D4** | Distribusi (native/Expo vs PWA) | memblokir mulainya M1 |
 | **D5** | Little & Teen masuk MVP atau tidak | menentukan besar cakupan app anak |

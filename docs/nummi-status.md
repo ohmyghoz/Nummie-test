@@ -4,7 +4,8 @@
 > dan apa yang menghalangi MVP.* Keputusan produk ada di `nummi-handoff.md`. Pekerjaan tertunda ada
 > di `nummi-backlog.md`. Console ada di `nummi_console.md`.
 >
-> Terakhir diaudit: **28 Juli 2026** (audit lintas-file atas 5 mockup + 6 dokumen).
+> Terakhir diaudit: **28 Juli 2026** (audit lintas-file atas 5 mockup + 6 dokumen), diperbarui
+> **30 Juli 2026** (D3 ditutup — ADR-0018; §5, §9 mengikuti).
 
 ---
 
