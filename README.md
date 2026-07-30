@@ -61,8 +61,9 @@ claude
 tiga project, Root Directory, env, dan jebakan yang sudah ditemukan — ada di
 [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
-Ringkasnya: **dua** project (`apps/kid`, `apps/parent`). **Console tidak ikut** — ia membaca
-service role lintas keluarga (ADR-0015).
+Ringkasnya: tiga project Vercel terpisah. `apps/kid` dan `apps/parent` biasa; **`apps/console`
+bersyarat** — ia membaca service role lintas keluarga, jadi hanya boleh naik dengan tiga lapis
+sekaligus ([ADR-0021](docs/decisions/0021-console-boleh-dideploy-dengan-syarat.md)).
 
 ## Lisensi
 

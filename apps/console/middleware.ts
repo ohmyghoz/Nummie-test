@@ -1,73 +1,44 @@
 /**
  * Gerbang console — **gagal-tertutup.**
  *
- * ADR-0015 mengunci bahwa console tidak punya login karena ia dijalankan operator di lingkungan
- * yang dia kendalikan sendiri. Berkas ini tidak membatalkan itu; ia memasang jaring untuk saat
- * asumsi "lingkungan yang dikendalikan sendiri" ternyata tidak berlaku — laptop di WiFi kafe,
- * atau seseorang yang meng-import repo ini ke Vercel tanpa membaca ADR-nya.
+ * ADR-0021 mengamandemen ADR-0015: console boleh di-deploy, karena laptop dev berbeda dari
+ * laptop & HP harian founder. Yang tidak berubah: ia membaca **service role, lintas keluarga,
+ * RLS dilewati** — satu halamannya berisi saldo setiap anak di setiap keluarga.
  *
- * Kenapa jaringnya perlu ada, dengan angka: `apps/console` membaca **service role, lintas
- * keluarga, RLS dilewati**. Satu halaman berisi saldo setiap anak di setiap keluarga. Tanpa
- * gerbang, satu URL yang bocor = seluruh basis data uang anak.
+ * Middleware ini sengaja **tidak** memeriksa password. Ia hanya memverifikasi tanda tangan
+ * cookie. Password diperiksa sekali di `app/api/login/route.ts`, tempat rate limiting bisa
+ * memanggil database tanpa membebani setiap permintaan. Lihat `lib/session.ts`.
  *
- * **Gagal-tertutup, bukan gagal-terbuka.** Tanpa `CONSOLE_PASSWORD`, console menolak semuanya —
- * bukan membuka semuanya. Pola ini sudah terbukti mahal kalau dibalik: rate limiting login anak
- * "menyala" berbulan-bulan tanpa pernah menghitung satu pun (ADR-0012 §A3), dan `isPro()` hidup
- * di dokumen tanpa pernah dipanggil (ADR-0018). Gerbang yang diam saat salah konfigurasi adalah
- * gerbang yang tidak ada.
+ * Lapis kedua ada DI LUAR kode ini: **Vercel Deployment Protection** mencegat sebelum permintaan
+ * menyentuh app. Dua lapis dari vendor berbeda, karena satu-satunya lapis yang gagal senyap
+ * adalah lapis yang tidak punya pasangan.
  */
 import { NextResponse, type NextRequest } from 'next/server';
+import { SESSION_COOKIE, verifySession } from './lib/session';
 
-/** Bandingan waktu-tetap. Panjang tetap bocor, dan itu diterima — yang dijaga isinya. */
-function safeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
-function challenge(): NextResponse {
-  return new NextResponse('Authentication required.', {
-    status: 401,
-    headers: {
-      'WWW-Authenticate': 'Basic realm="Nummi Console", charset="UTF-8"',
-      'Cache-Control': 'no-store',
-    },
-  });
-}
-
-export function middleware(req: NextRequest) {
-  const expected = process.env.CONSOLE_PASSWORD;
-
-  if (!expected) {
-    // Sengaja 503 dan bukan 401: ini salah konfigurasi operator, bukan kredensial salah.
-    // Membedakannya membuat penyebabnya kelihatan alih-alih terbaca "password saya salah".
+export async function middleware(req: NextRequest) {
+  if (!process.env.CONSOLE_PASSWORD) {
+    // Sengaja 503 dan bukan halaman login: ini salah konfigurasi operator, bukan kredensial
+    // salah. Membedakannya membuat penyebabnya kelihatan alih-alih terbaca "password saya salah".
     return new NextResponse(
       'Console terkunci: CONSOLE_PASSWORD belum diset. Lihat apps/console/README.md.',
       { status: 503, headers: { 'Cache-Control': 'no-store' } },
     );
   }
 
-  const header = req.headers.get('authorization');
-  if (!header?.startsWith('Basic ')) return challenge();
-
-  let decoded: string;
-  try {
-    decoded = atob(header.slice('Basic '.length));
-  } catch {
-    return challenge();
+  const ok = await verifySession(req.cookies.get(SESSION_COOKIE)?.value, Date.now());
+  if (!ok) {
+    const back = new URL('/login', req.url);
+    return NextResponse.redirect(back, { status: 303 });
   }
 
-  // Username diabaikan — satu operator, dan menambah nama pengguna cuma menambah yang bisa lupa.
-  const password = decoded.slice(decoded.indexOf(':') + 1);
-  if (!safeEqual(password, expected)) return challenge();
-
   const res = NextResponse.next();
-  // Console tidak boleh singgah di cache bersama mana pun (CDN Vercel termasuk).
+  // Console tidak boleh singgah di cache bersama mana pun, CDN Vercel termasuk.
   res.headers.set('Cache-Control', 'no-store, private');
   return res;
 }
 
-// Semuanya digerbang, termasuk aset. Basic auth dikirim ulang otomatis oleh browser, jadi tidak
-// ada ongkos UX — dan tidak ada satu jalur pun yang perlu diingat untuk dikecualikan.
-export const config = { matcher: '/(.*)' };
+export const config = {
+  // `/login` dan jalur API-nya harus tetap terbuka — kalau ikut digerbang, tidak ada cara masuk.
+  matcher: ['/((?!_next/static|_next/image|favicon|login|api/login|api/logout).*)'],
+};

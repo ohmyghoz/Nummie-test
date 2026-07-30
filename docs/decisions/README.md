@@ -31,6 +31,7 @@ kelihatannya lebih masuk akal.
 | [0018](0018-harga-sekali-bayar.md) | Harga sekali bayar Rp399.000 (menutup D3) |
 | [0019](0019-d4-pwa-untuk-mvp.md) | PWA untuk MVP — bisa dipasang, sengaja tidak offline (menjawab D4) |
 | [0020](0020-d5-middle-saja-untuk-mvp.md) | Middle saja untuk MVP, kode Little & Teen tetap hidup (menutup D5) |
+| [0021](0021-console-boleh-dideploy-dengan-syarat.md) | Console boleh di-deploy — hanya dengan tiga lapis sekaligus (mengamandemen 0015) |
 
 ## Terbuka — jangan dijawab lewat kode
 

@@ -295,6 +295,20 @@ export default async function ConsolePage() {
         <div className="pagehead">
           <h1>Ikhtisar keluarga</h1>
           <p>Metrik utara: keluarga aktif mingguan dengan siklus uang lengkap — bukan DAU.</p>
+          {/* Sejak ADR-0021 console dibuka dari laptop & HP harian, bukan cuma mesin dev.
+              Sesi yang tidak bisa ditutup adalah masalah di perangkat yang dipakai bersama. */}
+          <form method="post" action="/api/logout" style={{ marginTop: 8 }}>
+            <button
+              type="submit"
+              style={{
+                background: 'none', border: 0, padding: 0, cursor: 'pointer',
+                font: 'inherit', fontSize: 12, fontWeight: 700, color: 'var(--ink-3, #8a85a6)',
+                textDecoration: 'underline',
+              }}
+            >
+              Keluar
+            </button>
+          </form>
         </div>
         <Strip totals={data.totals} />
         {data.families.map((fam) => (

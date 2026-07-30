@@ -14,24 +14,12 @@
 |---|---|---|
 | `nummi-kid` | `apps/kid` | anak |
 | `nummi-parent` | `apps/parent` | ortu |
-| ~~`nummi-console`~~ | — | **tidak di-deploy** |
+| `nummi-console` | `apps/console` | **operator saja — bersyarat, lihat §Console** |
 
-**Kenapa dua project, bukan satu.** Tidak ada satu pun tautan lintas-app di seluruh kode — app anak
-tidak pernah menaut ke app ortu, dan sebaliknya. Menyatukannya di satu origin justru butuh `basePath`
-di kedua `next.config.mjs` plus menulis ulang setiap `redirect()` dan setiap `action="/api/login"`.
-Dua origin adalah jalur yang paling sedikit menyentuh kode.
-
-**Kenapa console tidak ikut.** Ia membaca **service role, lintas keluarga, RLS dilewati** — satu
-halamannya berisi saldo setiap anak di setiap keluarga. [ADR-0015](decisions/0015-console-duluan-tipis.md)
-mengunci bahwa ia dijalankan operator di lingkungan yang dia kendalikan sendiri. Jalankan lokal:
-
-```bash
-npm run console:dev   # http://localhost:3000
-```
-
-Sejak 30 Juli 2026 ia butuh `CONSOLE_PASSWORD` (gagal-tertutup — tanpa itu semua permintaan dijawab
-`503`). Kalau suatu saat console **memang** perlu di-deploy, gerbangnya sudah ada, tapi itu keputusan
-tersendiri — bukan efek samping dari mengimpor repo.
+**Kenapa project terpisah, bukan satu.** Tidak ada satu pun tautan lintas-app di seluruh kode — app
+anak tidak pernah menaut ke app ortu, dan sebaliknya. Menyatukannya di satu origin justru butuh
+`basePath` di ketiga `next.config.mjs` plus menulis ulang setiap `redirect()` dan setiap
+`action="/api/login"`. Origin terpisah adalah jalur yang paling sedikit menyentuh kode.
 
 ---
 
@@ -95,6 +83,57 @@ Bukan dibaca, dicoba. Repo ini sudah tiga kali kena fitur yang "ada" tapi tidak 
    tidak tertutup home indicator**. Yang terakhir itu yang diperbaiki `viewportFit: 'cover'`, dan ia
    hanya kelihatan salah dalam mode standalone — tidak pernah di tab Safari
 4. **Satu siklus uang penuh**: anak minta cash out → ortu approve → saldo turun tepat sejumlah itu
+
+---
+
+## Console — project ketiga, dan satu-satunya yang bersyarat
+
+[ADR-0021](decisions/0021-console-boleh-dideploy-dengan-syarat.md) mengamandemen ADR-0015: console
+boleh punya URL, karena laptop dev berbeda dari laptop & HP harian, dan pemeriksaan invarian justru
+paling dibutuhkan saat sedang tidak di depan mesin dev.
+
+Tapi ia membaca **service role, lintas keluarga, RLS dilewati** — satu halamannya berisi saldo setiap
+anak di setiap keluarga. Jadi ia hanya boleh naik dengan **tiga lapis sekaligus.** Kurang satu →
+kembali ke `npm run console:dev` di mesin sendiri.
+
+### 1. Vercel Deployment Protection — WAJIB, dan cek dulu plan-mu
+
+Lapis platform: Vercel mencegat sebelum permintaan menyentuh kode app. **Verifikasi dulu bahwa
+plan Vercel-mu menyediakannya untuk domain produksi** — di sebagian plan, proteksi otomatis hanya
+berlaku untuk deployment preview, bukan produksi. Kalau ternyata tidak tersedia, **jangan
+deploy console.** Itu syarat, bukan saran.
+
+### 2. Env — satu lagi dari app produk
+
+| Nama | Catatan |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | sama dengan app lain |
+| `SUPABASE_SECRET_KEY` | sama dengan app lain |
+| `CONSOLE_PASSWORD` | **hanya console.** Rahasia panjang & acak — ini satu-satunya kredensial |
+
+`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` **tidak** dipakai console.
+
+Kunci HMAC sesi diturunkan dari `CONSOLE_PASSWORD`, jadi **menggantinya langsung membatalkan semua
+sesi.** Itu perilaku yang diinginkan, bukan efek samping.
+
+### 3. Rate limiting sudah ada, tapi butuh migrasinya
+
+Migrasi **0017** (`console_login_attempts`) harus sudah jalan di project Supabase — dua lapis,
+5 kegagalan / 15 menit per IP dan 30 / 15 menit global. Tanpa tabel itu, route login **menolak
+semua percobaan** (rate limiter yang tidak bisa dijawab database membuat gerbang buta, dan menolak
+lebih aman daripada melanjutkan tanpa pembatas).
+
+### Yang harus dicoba setelah console naik
+
+1. Buka URL-nya **tanpa login** → dialihkan ke `/login`, nol nominal di respons
+2. Password salah **6×** → percobaan ke-6 dijawab terkunci
+3. Lalu masukkan password **benar** → **tetap ditolak** selama terkunci. Kalau ia lolos, urutan
+   periksa terbalik dan gerbangnya jadi oracle
+4. Hapus `CONSOLE_PASSWORD` di Vercel lalu redeploy → **semuanya** `503`. Kalau malah terbuka,
+   gerbangnya gagal-terbuka dan harus dihentikan sebelum dipakai
+
+> Poin 3 dan 4 yang paling mudah dilewat, dan justru keduanya yang membedakan gerbang sungguhan
+> dari gerbang yang cuma terpasang.
 
 ---
 

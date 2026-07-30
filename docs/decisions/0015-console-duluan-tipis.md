@@ -30,3 +30,20 @@ Console berhenti jadi beban dan jadi alat debug untuk S1.
 - Metrik utara yang ditampilkan: **keluarga aktif mingguan dengan siklus uang lengkap** — bukan DAU.
   Mengejar DAU bertentangan dengan misi produk, dan console tidak boleh jadi alat yang menggodanya.
 - Console tidak pernah dipakai untuk *mengubah* data keluarga di fase ini. Baca saja.
+
+---
+
+## Amandemen 30 Juli 2026 — lihat [ADR-0021](0021-console-boleh-dideploy-dengan-syarat.md)
+
+Console **boleh di-deploy**, dengan tiga lapis wajib (Deployment Protection + gerbang aplikasi
+gagal-tertutup + rate limiting yang terbukti menghitung). Kalau salah satu tidak ada, ia kembali
+ke lokal saja.
+
+⚠️ **Catatan untuk pembaca ADR ini:** selama dua hari, aturan *"console tidak punya login dan tidak
+boleh dipublikasikan"* beredar sebagai keputusan yang mengatasnamakan ADR-0015 — padahal ia hidup di
+komentar `apps/console/lib/supabase.ts`, bukan di sini. ADR ini tidak pernah menulisnya.
+
+Kalau kamu menemukan kalimat serupa di komentar kode yang menunjuk sebuah ADR, **buka ADR-nya.**
+Aturan yang hanya ada di komentar tidak pernah ditinjau siapa pun.
+
+C-2 dan C-6 **tetap** di backlog: yang dibangun ADR-0021 adalah gerbang untuk **satu** operator.

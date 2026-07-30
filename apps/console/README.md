@@ -27,28 +27,48 @@ npm run console:build   # build produksi
 ### ⚠️ Gerbang wajib — `CONSOLE_PASSWORD`
 
 Console membaca **service role, lintas keluarga, RLS dilewati.** Satu halamannya berisi saldo
-setiap anak di setiap keluarga. Karena itu `middleware.ts` mewajibkan basic auth, dan ia
-**gagal-tertutup**: tanpa `CONSOLE_PASSWORD` di `apps/console/.env.local`, console menjawab `503`
-untuk semua permintaan.
+setiap anak di setiap keluarga.
 
 ```
 CONSOLE_PASSWORD=<rahasia panjang>
 ```
 
-Username diabaikan; isi apa saja saat browser bertanya.
+**Gagal-tertutup**: tanpa nilai itu, console menjawab `503` untuk semua permintaan — termasuk yang
+membawa password benar. Lupa memasang env terlihat seketika, bukan membuka pintu diam-diam.
 
-**Dua lubang yang ditutup 30 Juli 2026, keduanya tidak terlihat sampai diuji:**
+Bentuknya cookie httpOnly bertanda tangan HMAC (`lib/session.ts`), sama seperti login anak & ortu —
+bukan basic auth. Alasannya di [ADR-0021](../../docs/decisions/0021-console-boleh-dideploy-dengan-syarat.md):
+basic auth mengirim password di setiap permintaan, dan satu-satunya tempat memeriksanya adalah
+middleware (Edge) — rate limiting di sana berarti satu round-trip database per aset.
 
-1. **Halaman ini dulu diprerender jadi HTML statis saat build.** Console tidak memakai
+**Mengganti `CONSOLE_PASSWORD` langsung membatalkan semua sesi**, karena kunci HMAC diturunkan
+darinya. Itu disengaja.
+
+### Boleh di-deploy? Ya — dengan tiga lapis sekaligus
+
+[ADR-0021](../../docs/decisions/0021-console-boleh-dideploy-dengan-syarat.md) mengamandemen
+ADR-0015. Console boleh punya URL, tapi **hanya** kalau ketiganya ada:
+
+1. **Vercel Deployment Protection menyala** (lapis platform, sebelum kode app tersentuh)
+2. **Gerbang aplikasi gagal-tertutup** (di atas)
+3. **Rate limiting** — `console_login_attempts`, migrasi 0017. Dua lapis: 5 kegagalan / 15 menit
+   per IP, 30 / 15 menit global
+
+Kurang satu → kembali ke `npm run console:dev` di mesin sendiri.
+
+**Kunci diperiksa sebelum password.** Kalau dibalik, IP yang sudah terkunci tetap mendapat oracle.
+Diuji: percobaan ke-6 dijawab terkunci, dan password **benar** sesudahnya tetap ditolak.
+
+### Tiga lubang yang ditutup 30 Juli 2026 — tidak satu pun terlihat sampai diuji
+
+1. **Halaman ini diprerender jadi HTML statis saat build.** Console tidak memakai
    `cookies()`/`headers()`, jadi Next menganggapnya statis dan memanggil service role **di waktu
-   build**, lalu menulis hasilnya ke `.next/server/app/index.html` — 58 KB berisi saldo nyata,
-   siap di-cache CDN. Ditutup dengan `export const dynamic = 'force-dynamic'` di `app/page.tsx`.
-   Ia sekaligus bug kebenaran: pemeriksa invarian yang membeku di waktu build tidak memeriksa apa pun.
-2. **Tidak ada gerbang sama sekali.** ADR-0015 menyandarkannya pada "operator menjalankannya di
-   lingkungan yang dia kendalikan sendiri" — asumsi yang benar sampai ia tidak lagi benar.
-
-**Default yang masih berlaku: console TIDAK ikut di-deploy ke Vercel** (ADR-0015). Gerbang ini ada
-untuk saat asumsi lingkungan gagal, bukan sebagai izin mempublikasikannya.
+   build**, lalu menulis hasilnya ke `.next/server/app/index.html` — 58 KB berisi saldo nyata, siap
+   di-cache CDN. Ditutup dengan `export const dynamic = 'force-dynamic'`. Ia sekaligus bug
+   kebenaran: pemeriksa invarian yang membeku di waktu build tidak memeriksa apa pun.
+2. **Tidak ada gerbang sama sekali.**
+3. **Aturan keamanannya hidup di komentar kode**, mengatasnamakan ADR-0015 yang tidak pernah
+   menulisnya. Sekarang ada di ADR-0021.
 
 ### Sumber data
 
