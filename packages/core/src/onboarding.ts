@@ -148,8 +148,33 @@ export function validateChild(
   // yang tidak lewat layar — dan itu justru titik yang penting: penegaknya di sini, bukan di UI.
   if (!isTierAvailable(draft.tier)) return { ok: false, errorKey: 'child.tierUnavailable' };
 
-  if (!/^\d+$/.test(draft.pin)) return { ok: false, errorKey: 'child.pinDigitsOnly' };
-  if (draft.pin.length !== PIN_LENGTH) return { ok: false, errorKey: 'child.pinLength' };
+  return validatePin(draft.pin, ctx);
+}
+
+export type PinErrorKey = Extract<
+  ChildErrorKey, 'child.pinLength' | 'child.pinDigitsOnly' | 'child.pinTaken'
+>;
+
+/**
+ * Aturan PIN, dipisah dari `validateChild` supaya **mengganti** PIN dan **membuat** anak memakai
+ * pemeriksaan yang sama persis.
+ *
+ * Dipisah 30 Juli 2026 karena mengganti PIN ternyata tidak mungkin sama sekali: `pin_hash`
+ * di-bcrypt dan sengaja tidak pernah keluar dari database (migrasi 0006), sementara PIN hanya
+ * bisa diisi saat anak DIBUAT. Anak yang lupa PIN-nya terkunci permanen dari uangnya sendiri —
+ * dan app justru menyuruhnya meminta bantuan ortu yang tidak bisa melihat apa pun.
+ *
+ * Kalau aturan ini disalin alih-alih dipakai bersama, "6 digit & unik per keluarga" punya dua
+ * rumah, dan yang satu akan menyimpang. Keunikan itu bukan kerapian: login anak adalah
+ * kode keluarga + PIN **tanpa memilih anak lebih dulu**, jadi dua PIN kembar membuat login tidak
+ * punya jawaban tunggal (ADR-0012 §A1/§A2).
+ */
+export function validatePin(
+  pin: string,
+  ctx: ChildValidationContext = {},
+): { ok: boolean; errorKey?: PinErrorKey } {
+  if (!/^\d+$/.test(pin)) return { ok: false, errorKey: 'child.pinDigitsOnly' };
+  if (pin.length !== PIN_LENGTH) return { ok: false, errorKey: 'child.pinLength' };
 
   // Diperiksa TERAKHIR: kalau PIN-nya belum berbentuk sah, "sudah dipakai" cuma membingungkan.
   if (ctx.pinTakenInFamily) return { ok: false, errorKey: 'child.pinTaken' };

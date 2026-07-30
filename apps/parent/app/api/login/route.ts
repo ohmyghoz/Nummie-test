@@ -1,62 +1,53 @@
 /**
- * Login ortu: form → sini → Supabase Auth → cookie httpOnly → Dashboard.
+ * Langkah 1 dari 2 — kirim kode masuk ke email ortu (ADR-0022).
  *
- * Lewat route handler kita sendiri, bukan langsung dari browser, karena hanya server yang bisa
- * memasang cookie httpOnly. Password tidak pernah disimpan, di-log, atau ikut ke redirect.
+ * Berkas ini dulu melakukan sign-in password (`grant_type=password`). Diganti bukan karena
+ * password tidak aman, melainkan karena **tidak ada halaman daftar dan tidak ada reset password**:
+ * ortu yang lupa passwordnya jadi tiket dukungan manual untuk founder yang bekerja kantoran.
+ *
+ * `create_user: false` adalah **gerbang uji tertutupnya**, dan itu sebabnya tidak perlu ada halaman
+ * daftar sama sekali: hanya email yang akunnya sudah dibuat lebih dulu yang bisa menerima kode.
+ *
+ * Jawaban seragam apa pun hasilnya — disengaja. Kalau layar ini membedakan "email tidak terdaftar"
+ * dari "kode terkirim", ia berubah jadi alat memeriksa siapa saja yang ikut uji ini.
  */
 import { NextResponse } from 'next/server';
-import { REFRESH_COOKIE, SESSION_COOKIE, signInEndpoint } from '../../../lib/supabase';
-
-/** Sepadan dengan umur access token Supabase (~1 jam). Cookie tidak boleh hidup lebih lama. */
-const SESSION_SECONDS = 60 * 60;
-/** Refresh token hidup jauh lebih lama — ia yang membuat sesi bertahan seharian. */
-const REFRESH_SECONDS = 30 * 24 * 60 * 60;
+import { sendOtpEndpoint } from '../../../lib/supabase';
 
 export async function POST(req: Request) {
   const form = await req.formData();
-  const email = String(form.get('email') ?? '').trim();
-  const password = String(form.get('password') ?? '');
+  const email = String(form.get('email') ?? '').trim().toLowerCase();
 
   const back = new URL('/login', req.url);
-  if (!email || !password) {
+
+  if (!email || !email.includes('@')) {
     back.searchParams.set('e', 'failed');
     return NextResponse.redirect(back, { status: 303 });
   }
 
-  const { url, key } = signInEndpoint();
+  const { url, key } = sendOtpEndpoint();
 
-  let res: Response;
   try {
-    res = await fetch(url, {
+    const res = await fetch(url, {
       method: 'POST',
       headers: { apikey: key, 'content-type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      // Tidak ada pendaftaran diam-diam. Uji tertutup ditegakkan di sini, bukan dengan
+      // menyembunyikan tautan daftar.
+      body: JSON.stringify({ email, create_user: false }),
     });
+
+    // 429 dibedakan karena ia satu-satunya kegagalan yang bisa ortu perbaiki sendiri — dengan
+    // menunggu. Menyamarkannya sebagai "kode terkirim" akan membuat ortu menunggu email yang
+    // tidak akan pernah datang.
+    if (res.status === 429) {
+      back.searchParams.set('e', 'tooMany');
+      return NextResponse.redirect(back, { status: 303 });
+    }
   } catch {
-    back.searchParams.set('e', 'failed');
-    return NextResponse.redirect(back, { status: 303 });
+    // Jaringan mati pun tetap tampil sebagai "kode terkirim" — lihat catatan seragam di atas.
   }
 
-  const body = await res.json().catch(() => ({}));
-
-  // Pesan seragam, apa pun sebabnya — email tidak terdaftar dan password salah harus
-  // tidak bisa dibedakan, kalau tidak layar ini jadi alat memeriksa siapa yang punya akun.
-  if (!res.ok || !body.access_token) {
-    back.searchParams.set('e', 'failed');
-    return NextResponse.redirect(back, { status: 303 });
-  }
-
-  const out = NextResponse.redirect(new URL('/', req.url), { status: 303 });
-  const base = {
-    httpOnly: true as const,
-    sameSite: 'lax' as const,
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-  };
-  out.cookies.set(SESSION_COOKIE, body.access_token, { ...base, maxAge: SESSION_SECONDS });
-  // Tanpa ini, ortu terlempar ke layar masuk setiap jam (U-11). Middleware yang menukarnya.
-  if (body.refresh_token) {
-    out.cookies.set(REFRESH_COOKIE, body.refresh_token, { ...base, maxAge: REFRESH_SECONDS });
-  }
-  return out;
+  back.searchParams.set('sent', '1');
+  back.searchParams.set('email', email);
+  return NextResponse.redirect(back, { status: 303 });
 }

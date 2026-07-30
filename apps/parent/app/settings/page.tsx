@@ -68,6 +68,19 @@ export default async function SettingsPage({
         )}
         {sp.e && <div className="errbox">{ERROR_COPY[sp.e] ?? dict.parent.decisionFailed}</div>}
 
+        {/* ── PIN anak ───────────────────────────────────────────────────────
+            Ditaruh paling atas dengan sengaja: ini yang dicari ortu saat sedang panik karena
+            anaknya tidak bisa masuk, dan ia harus ketemu tanpa menggulir. */}
+        <div className="card">
+          <h2>{dict.resetPin.title}</h2>
+          <p className="sub" style={{ marginTop: -6, marginBottom: 10 }}>
+            {dict.resetPin.cannotSee}
+          </p>
+          <a className="btn" href={`/children/pin?child=${child.id}`}>
+            {dict.resetPin.submit}
+          </a>
+        </div>
+
         {/* ── Allowance schedule ─────────────────────────────────────────────── */}
         <div className="card">
           <h2>{dict.settings.allowance}</h2>

@@ -67,7 +67,11 @@ export const en: Dictionary = {
     // Satu pesan untuk semua sebab — sama seperti jawaban server.
     failed: "That didn't work. Check the code and the PIN, then try again.",
     lockedOut: 'Too many tries. Wait {minutes} minutes and try again.',
-    askGrownUp: "Forgot your PIN? Ask your grown-up — they can see it in their app.",
+    // Dulu berbunyi "...they can see it in their app" — dan itu TIDAK PERNAH benar. `pin_hash`
+    // di-bcrypt dan sengaja tidak pernah keluar dari database (migrasi 0006). Ortu tidak bisa
+    // melihat PIN anaknya; ia hanya bisa MENGGANTINYA. Kalimat lama menyuruh anak meminta sesuatu
+    // yang mustahil, lalu meninggalkannya terkunci dari uangnya sendiri.
+    askGrownUp: "Forgot your PIN? Ask your grown-up — they can set you a new one.",
   },
 
   home: {
@@ -260,9 +264,23 @@ export const en: Dictionary = {
     title: 'Nummi for grown-ups',
     subtitle: 'Sign in to see what your child is deciding.',
     email: 'Email',
+    // `password` dipertahankan di kamus walau layarnya sudah tidak memakainya (ADR-0022):
+    // `Dictionary` mewajibkan kedua bahasa punya bentuk yang sama, dan menghapusnya sekarang
+    // hanya menghemat satu baris sambil membuat jalan kembali lebih mahal.
     password: 'Password',
-    submit: 'Sign in',
-    failed: 'That did not work. Check the email and password, then try again.',
+    submit: 'Email me a code',
+    noPassword: 'No password needed — we send a code every time.',
+    // Panjang kode SENGAJA tidak disebut. Ia setelan dashboard Supabase, bukan konstanta kode —
+    // saat diuji 30 Juli 2026 ia keluar 8 digit, sementara kalimat ini semula menjanjikan 6.
+    // Copy yang menyebut angka akan berbohong diam-diam begitu setelannya diubah.
+    codeSent: 'We sent a code to {email}.',
+    code: 'Code',
+    codeHint: 'It expires shortly. Check spam if it is not there.',
+    submitCode: 'Sign in',
+    resend: 'Send another code',
+    badCode: 'That code did not work. Try the newest one, or send another.',
+    tooMany: 'Too many tries. Wait a few minutes, then ask for a new code.',
+    failed: 'That did not work. Check the email, then try again.',
     signOut: 'Sign out',
   },
 
@@ -279,6 +297,19 @@ export const en: Dictionary = {
     dreamProtected: 'A dream cannot be taken back',
     giveProtected: 'Money promised to giving stays promised',
     growProtected: 'Grow only leaves through Harvest',
+  },
+
+  resetPin: {
+    title: 'New PIN',
+    forWhom: 'For {name}',
+    newPin: 'New PIN',
+    hint: '{length} digits. It has to be different from your other children’s.',
+    // Dikatakan apa adanya, bukan disembunyikan: ortu yang mengira bisa melihatnya akan mencari,
+    // dan tidak menemukan apa pun. Ini juga janji privasi ke anak, bukan keterbatasan teknis.
+    cannotSee: 'Nobody can look up the old PIN — not even you. You can only set a new one.',
+    submit: 'Set new PIN',
+    saved: 'Done. The old PIN stopped working.',
+    tellThem: 'Tell {name} the new PIN yourself — Nummi will not show it to them.',
   },
 
   // Kunci = `MoneyRequest['kind']` di core. Jalur baru tidak bisa lahir tanpa nama di sini.

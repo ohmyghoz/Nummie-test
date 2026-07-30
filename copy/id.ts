@@ -64,7 +64,7 @@ export const id: Dictionary = {
     submit: 'Masuk',
     failed: 'Belum berhasil. Periksa lagi kodenya dan PIN-nya, lalu coba lagi.',
     lockedOut: 'Terlalu banyak percobaan. Tunggu {minutes} menit, lalu coba lagi.',
-    askGrownUp: 'Lupa PIN? Tanya orang tuamu — mereka bisa melihatnya di app mereka.',
+    askGrownUp: 'Lupa PIN? Tanya orang tuamu — mereka bisa membuatkan PIN baru.',
   },
 
   home: {
@@ -254,8 +254,16 @@ export const id: Dictionary = {
     subtitle: 'Masuk untuk melihat apa yang sedang diputuskan anakmu.',
     email: 'Email',
     password: 'Kata sandi',
-    submit: 'Masuk',
-    failed: 'Belum berhasil. Periksa email dan kata sandinya, lalu coba lagi.',
+    submit: 'Kirimi saya kode',
+    noPassword: 'Tidak perlu kata sandi — kami kirim kode setiap kali masuk.',
+    codeSent: 'Kode masuk sudah dikirim ke {email}.',
+    code: 'Kode',
+    codeHint: 'Berlaku sebentar saja. Cek folder spam kalau belum ada.',
+    submitCode: 'Masuk',
+    resend: 'Kirim kode lagi',
+    badCode: 'Kode itu tidak cocok. Coba kode terbaru, atau minta yang baru.',
+    tooMany: 'Terlalu sering mencoba. Tunggu beberapa menit, lalu minta kode baru.',
+    failed: 'Belum berhasil. Periksa emailnya, lalu coba lagi.',
     signOut: 'Keluar',
   },
 
@@ -272,6 +280,17 @@ export const id: Dictionary = {
     dreamProtected: 'Impian tidak bisa ditarik kembali',
     giveProtected: 'Uang yang dijanjikan untuk berbagi tetap dijanjikan',
     growProtected: 'Bertumbuh hanya keluar lewat Harvest',
+  },
+
+  resetPin: {
+    title: 'PIN baru',
+    forWhom: 'Untuk {name}',
+    newPin: 'PIN baru',
+    hint: '{length} digit. Harus berbeda dari PIN anakmu yang lain.',
+    cannotSee: 'PIN lama tidak bisa dilihat siapa pun — termasuk kamu. Yang bisa cuma menggantinya.',
+    submit: 'Simpan PIN baru',
+    saved: 'Selesai. PIN lama berhenti berlaku.',
+    tellThem: 'Beri tahu {name} sendiri — Nummi tidak akan menampilkannya ke dia.',
   },
 
   requestKind: {

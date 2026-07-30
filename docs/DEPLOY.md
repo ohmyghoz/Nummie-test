@@ -8,7 +8,7 @@
 
 ---
 
-## Bentuknya: dua project, bukan satu
+## Bentuknya: project terpisah per app, bukan satu
 
 | Project Vercel | Root Directory | Siapa yang membukanya |
 |---|---|---|
@@ -59,7 +59,34 @@ build. Kalau keduanya belum ada saat build, middleware menerima `undefined`, dan
 token **diam-diam tidak pernah terjadi** — ortu terlempar ke layar masuk tiap ~1 jam tanpa satu pun
 galat muncul di mana pun. Ini kegagalan senyap; kalau env ditambahkan belakangan, **redeploy**.
 
-### 3. Deployment Protection
+### 3. Email — sekarang jalur kritis (ADR-0022)
+
+Ortu masuk dengan **kode sekali pakai lewat email, tanpa password**. Konsekuensinya: kalau email
+tidak terkirim, **tidak ada satu pun ortu yang bisa masuk.** Tiga hal wajib dibereskan di dashboard
+Supabase sebelum keluarga pertama diundang:
+
+| Setelan | Kenapa |
+|---|---|
+| **SMTP sendiri** (Resend/Postmark/sejenis) | Pengirim bawaan Supabase dibatasi ketat & ditujukan untuk pengembangan. 30 keluarga yang mendaftar berbarengan akan menabraknya |
+| **Template email memuat `{{ .Token }}`** | Default Supabase mengirim **magic link**. Kalau template tidak diubah, ortu menerima tautan yang tidak bisa diketik ke layar kode |
+| **Umur OTP dipendekkan** (~10 menit) | Default 1 jam terlalu panjang untuk kode sekali pakai |
+
+⚠️ **Panjang kode adalah setelan dashboard, bukan konstanta kode.** Saat diuji ia keluar **8 digit**.
+Copy sengaja tidak menyebut angka — jangan tambahkan.
+
+⚠️ **Pembatas percobaan OTP milik Supabase, bukan milik kita.** Berbeda dengan gerbang console yang
+rate limiter-nya kita bangun dan buktikan sendiri. Ia **wajib dibuktikan menyala** saat uji pertama —
+minta kode berulang-ulang sampai dijawab `429`.
+
+**Jalan darurat kalau kamu sendiri terkunci:** Supabase dashboard bisa membuat magic link manual
+untuk sebuah akun. Ketahui ini sebelum butuh.
+
+**Membuat 30 akun ortu:** tidak ada halaman daftar, dan itu disengaja — permintaan kode memakai
+`create_user: false`, jadi hanya email yang sudah dibuat lebih dulu yang bisa masuk. Buat akunnya
+lewat Admin API (`POST /auth/v1/admin/users`), lalu tautkan ke `parents`. Uji tertutup ditegakkan
+oleh jawaban server, bukan dengan menyembunyikan tautan daftar.
+
+### 4. Deployment Protection
 
 Nyalakan untuk kedua project selama pengembangan. **Matikan (atau pakai password) untuk uji 30
 keluarga** — kalau tidak, ortu dan anak tidak bisa masuk sama sekali.
@@ -71,18 +98,26 @@ keluarga** — kalau tidak, ortu dan anak tidak bisa masuk sama sekali.
   memindahkan uang. Tanpa ini, halamannya bisa di-iframe dan tombol itu jadi sasaran clickjacking
 - `X-Content-Type-Options: nosniff` · `Referrer-Policy: no-referrer`
 
-### 4. Setelah deploy — yang harus benar-benar dicoba
+### 5. Setelah deploy — yang harus benar-benar dicoba
 
 Bukan dibaca, dicoba. Repo ini sudah tiga kali kena fitur yang "ada" tapi tidak pernah menyala
 (RLS rekursif, view yang melewati RLS, rate limit yang tak pernah menghitung).
 
 1. **Anak masuk** dengan kode keluarga + PIN → Home menampilkan saldo
-2. **Ortu masuk**, lalu **tunggu lewat 1 jam** (atau tanam access token kedaluwarsa) → dashboard
+2. **Ortu minta kode → email BENAR-BENAR sampai → masuk.** Ini yang membuktikan SMTP hidup. Kalau
+   gagal, tidak ada satu pun ortu yang bisa masuk (ADR-0022)
+3. **Email asing minta kode** → tidak ada akun baru terbuat, dan jawabannya identik dengan email
+   terdaftar. Itu gerbang uji tertutupnya
+4. **Minta kode berulang-ulang** sampai dijawab `429` → membuktikan pembatas Supabase menyala.
+   Ia milik vendor, jadi ia harus dilihat, bukan diasumsikan
+5. **Ortu masuk**, lalu **tunggu lewat 1 jam** (atau tanam access token kedaluwarsa) → dashboard
    tetap terbuka. Ini yang membuktikan `NEXT_PUBLIC_*` benar-benar ada saat build
-3. **Pasang ke Home Screen** di iPhone → ikon muncul, app terbuka tanpa address bar, dan **nav bawah
+6. **Ganti PIN anak** dari Settings → PIN lama berhenti berlaku, PIN baru bisa dipakai masuk.
+   Tanpa jalur ini, anak yang lupa PIN terkunci permanen
+7. **Pasang ke Home Screen** di iPhone → ikon muncul, app terbuka tanpa address bar, dan **nav bawah
    tidak tertutup home indicator**. Yang terakhir itu yang diperbaiki `viewportFit: 'cover'`, dan ia
    hanya kelihatan salah dalam mode standalone — tidak pernah di tab Safari
-4. **Satu siklus uang penuh**: anak minta cash out → ortu approve → saldo turun tepat sejumlah itu
+8. **Satu siklus uang penuh**: anak minta cash out → ortu approve → saldo turun tepat sejumlah itu
 
 ---
 

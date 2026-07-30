@@ -63,9 +63,30 @@ export function serviceClient(): SupabaseClient {
 }
 
 /** Endpoint sign-in Supabase Auth + kunci publiknya, dipakai route handler login. */
-export function signInEndpoint(): { url: string; key: string } {
+/**
+ * ── Auth ortu = OTP email, tanpa password (ADR-0022) ─────────────────────────
+ *
+ * `signInEndpoint()` (grant_type=password) dihapus 30 Juli 2026. Alasannya bukan keamanan
+ * password, melainkan bahwa **tidak ada halaman daftar dan tidak ada reset password** — jadi
+ * ortu yang lupa passwordnya jadi tiket dukungan manual untuk founder yang bekerja kantoran.
+ * OTP menghapus dua masalah dengan satu layar: tidak ada yang bisa dilupakan, jadi tidak ada
+ * yang perlu direset.
+ *
+ * **Kode 6 digit, BUKAN magic link** — dan ini keputusan PWA, bukan selera. Magic link membuka
+ * browser bawaan aplikasi email, yang sering bukan browser tempat PWA dipasang. Cookie httpOnly
+ * mendarat di konteks yang salah dan ortu tetap terkunci di luar app-nya sendiri. Kode yang
+ * diketik ke layar yang sudah terbuka tidak punya masalah itu.
+ */
+export function sendOtpEndpoint(): { url: string; key: string } {
   return {
-    url: `${env('NEXT_PUBLIC_SUPABASE_URL')}/auth/v1/token?grant_type=password`,
+    url: `${env('NEXT_PUBLIC_SUPABASE_URL')}/auth/v1/otp`,
+    key: env('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'),
+  };
+}
+
+export function verifyOtpEndpoint(): { url: string; key: string } {
+  return {
+    url: `${env('NEXT_PUBLIC_SUPABASE_URL')}/auth/v1/verify`,
     key: env('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'),
   };
 }

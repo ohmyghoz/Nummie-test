@@ -140,7 +140,17 @@ export interface Dictionary {
    * `failed` satu pesan untuk semua sebab: email tak terdaftar dan password salah harus tidak
    * bisa dibedakan, kalau tidak layar ini jadi alat memeriksa siapa yang punya akun.
    */
-  parentAuth: Record<'title' | 'subtitle' | 'email' | 'password' | 'submit' | 'failed' | 'signOut', string>;
+  /**
+   * Auth ortu = OTP email tanpa password (ADR-0022). `password` sengaja tetap ada di bentuk ini
+   * walau layarnya tidak memakainya lagi — membuangnya cuma menghemat satu baris sambil membuat
+   * jalan kembali lebih mahal.
+   */
+  parentAuth: Record<
+    'title' | 'subtitle' | 'email' | 'password' | 'submit' | 'failed' | 'signOut'
+    | 'noPassword' | 'codeSent' | 'code' | 'codeHint' | 'submitCode' | 'resend'
+    | 'badCode' | 'tooMany',
+    string
+  >;
 
   /** Sebab uang masuk — kuncinya di core (`SEND_SOURCES`). Anak melihat label ini. */
   sendSource: Record<SendSource, string>;
@@ -153,6 +163,15 @@ export interface Dictionary {
    * Kuncinya sengaja sama persis dengan `MoneyRequest['kind']` di core, jadi jalur baru tidak bisa
    * ditambahkan tanpa memberinya nama di sini.
    */
+  /**
+   * Ganti PIN anak — jalur pemulihan satu-satunya. Ortu **mengganti**, tidak pernah **melihat**:
+   * `pin_hash` di-bcrypt dan sengaja tidak pernah keluar dari database (migrasi 0006).
+   */
+  resetPin: Record<
+    'title' | 'forWhom' | 'newPin' | 'hint' | 'cannotSee' | 'submit' | 'saved' | 'tellThem',
+    string
+  >;
+
   requestKind: Record<
     'cash_out' | 'give_away' | 'prize' | 'mission_claim' | 'grow_in' | 'harvest',
     string

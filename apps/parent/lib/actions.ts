@@ -32,7 +32,7 @@ import {
   CATEGORIES,
   approve, decline, markDone, postsLedgerOn, talkAboutIt, tdHarvestOutcome, tenorRate,
   STARTER_WALLETS, canAdd, nextAllowanceDates, validateAllowance, validateAutoSplit, validateBankRates,
-  validateChild, validateJob, validatePrize, validateSend, validateTake,
+  validateChild, validateJob, validatePin, validatePrize, validateSend, validateTake,
   type AllowanceFrequency, type AllowanceSchedule, type JobKind, type Prices,
   type RewardKind, type Tenor,
   type Category, type MoneyRequest, type MoneyRules, type RuleMode, type SendSource,
@@ -876,4 +876,63 @@ async function archive(
   revalidatePath('/jobs');
   revalidateAll();
   redirect(`/jobs?child=${childId}&saved=1`);
+}
+
+/**
+ * Ganti PIN anak — satu-satunya jalan pulih dari PIN yang lupa.
+ *
+ * Ortu **mengganti**, tidak pernah **melihat**. `pin_hash` di-bcrypt dan sengaja tidak pernah
+ * keluar dari database (migrasi 0006), dan itu tetap dipertahankan: PIN adalah milik anak, ortu
+ * hanya jalur pemulihannya. Sampai 30 Juli 2026 jalur itu tidak ada sama sekali — PIN cuma bisa
+ * diisi saat anak dibuat — sementara app anak justru menjanjikan ortu bisa melihatnya. Anak yang
+ * lupa PIN terkunci permanen dari uangnya sendiri.
+ *
+ * Keluarga diturunkan dari token (`parents` dibaca lewat id yang sudah terbukti), tidak pernah
+ * dari formData. Fungsi SQL-nya memeriksa ulang hal yang sama — ia `security definer`, jadi ia
+ * tidak boleh mempercayai argumennya sendiri (pelajaran migrasi 0009).
+ */
+export async function resetChildPin(formData: FormData): Promise<void> {
+  const childId = String(formData.get('child') ?? '');
+  const pin = String(formData.get('pin') ?? '').trim();
+  const back = `/children/pin?child=${childId}`;
+
+  const data = await getParentData();
+  // Anak yang bukan miliknya sederhananya tidak ada di sini — RLS yang menjaganya, bukan cek if.
+  const child = data.children.find((c) => c.id === childId);
+  if (!child) redirect('/');
+
+  const db = serviceClient();
+
+  const { data: me } = await db.from('parents')
+    .select('family_id').eq('id', data.parentId).maybeSingle();
+  if (!me) redirect('/login');
+
+  /*
+   * Keunikan per keluarga (ADR-0012 §A2) — tapi **anak ini sendiri dikecualikan.**
+   *
+   * `family_pin_taken()` yang dipakai "Add a child" tidak cukup di sini: ia menjawab "ada anak
+   * di keluarga ini yang PIN-nya X?", dan saat MENGGANTI PIN, anak yang sedang diganti ikut
+   * terhitung. Ortu yang mengetik ulang PIN yang sama akan ditolak dengan alasan yang salah.
+   * Karena itu ada RPC terpisah yang bertanya "ada anak LAIN yang PIN-nya X?".
+   */
+  const { data: taken } = await db.rpc('family_pin_taken_for_other', {
+    p_family_id: me.family_id, p_child_id: childId, p_pin: pin,
+  });
+
+  const check = validatePin(pin, { pinTakenInFamily: taken === true });
+  if (!check.ok) redirect(`${back}&e=${check.errorKey ?? 'failed'}`);
+
+  const { error } = await db.rpc('set_child_pin', {
+    p_family_id: me.family_id,
+    p_child_id: childId,
+    p_pin: pin,
+  });
+
+  if (error) {
+    console.error('resetChildPin gagal:', error.message);
+    redirect(`${back}&e=failed`);
+  }
+
+  revalidateAll();
+  redirect(`${back}&saved=1`);
 }

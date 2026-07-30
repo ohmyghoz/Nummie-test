@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   PIN_LENGTH, STARTER_WALLETS, MVP_TIERS,
   ageFrom, allowedRewards, defaultReward, suggestTier,
-  isTierAvailable, isAgeOutsideMvpScope, tierAgeRange,
+  isTierAvailable, isAgeOutsideMvpScope, tierAgeRange, validatePin,
   validateChild, validateJob, validatePrize, weeksToEarn,
 } from '../src/index.js';
 import type { ChildDraft, JobDraft } from '../src/index.js';
@@ -32,6 +32,33 @@ describe('tier DISARANKAN, tidak ditetapkan', () => {
     // mencampur dua hal — "usia tidak menghakimi" dan "tier apa saja boleh".
     expect(validateChild(child({ birthYear: 2019, tier: 'middle' }), TODAY).ok).toBe(true);
     expect(validateChild(child({ birthYear: 2005, tier: 'middle' }), TODAY).ok).toBe(true);
+  });
+});
+
+describe('validatePin — aturan yang sama untuk MEMBUAT dan MENGGANTI', () => {
+  it('6 digit, angka saja', () => {
+    expect(validatePin('135790').ok).toBe(true);
+    expect(validatePin('1234').errorKey).toBe('child.pinLength');
+    expect(validatePin('1234567').errorKey).toBe('child.pinLength');
+    expect(validatePin('12a456').errorKey).toBe('child.pinDigitsOnly');
+    expect(validatePin('').errorKey).toBe('child.pinDigitsOnly');
+  });
+
+  it('bentuk diperiksa SEBELUM "sudah dipakai"', () => {
+    // PIN cacat yang kebetulan bentrok harus mengeluh soal bentuknya dulu — "sudah dipakai"
+    // untuk PIN 4 digit cuma membingungkan.
+    expect(validatePin('12', { pinTakenInFamily: true }).errorKey).toBe('child.pinLength');
+  });
+
+  it('unik per keluarga — konsekuensi login tanpa memilih anak (ADR-0012 §A1)', () => {
+    expect(validatePin('135790', { pinTakenInFamily: true }).errorKey).toBe('child.pinTaken');
+  });
+
+  it('validateChild memakai aturan yang SAMA, bukan salinannya', () => {
+    // Kalau keduanya menyimpang, "6 digit & unik" punya dua rumah dan yang satu akan busuk.
+    for (const pin of ['1234', '12a456', '1234567']) {
+      expect(validateChild(child({ pin }), TODAY).errorKey).toBe(validatePin(pin).errorKey);
+    }
   });
 });
 
