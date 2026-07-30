@@ -197,6 +197,17 @@ export const en: Dictionary = {
     notEnough: 'There is not that much in there',
     reasonRequired: 'A reason is required — your child had to give one too',
     protected: 'This pocket is protected',
+    decisionFailed: 'That did not go through. Nothing changed — check the balance and try again.',
+  },
+
+  parentAuth: {
+    title: 'Nummi for grown-ups',
+    subtitle: 'Sign in to see what your child is deciding.',
+    email: 'Email',
+    password: 'Password',
+    submit: 'Sign in',
+    failed: 'That did not work. Check the email and password, then try again.',
+    signOut: 'Sign out',
   },
 
   sendSource: {

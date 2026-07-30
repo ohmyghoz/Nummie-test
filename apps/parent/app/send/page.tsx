@@ -15,7 +15,7 @@ export default async function SendPage({
   searchParams,
 }: { searchParams: Promise<{ child?: string; amount?: string; source?: string; note?: string }> }) {
   const sp = await searchParams;
-  const data = getParentData();
+  const data = await getParentData();
   const child = findChild(data, sp.child);
   const pending = data.children.reduce((n, c) => n + c.openRequests.length, 0);
 

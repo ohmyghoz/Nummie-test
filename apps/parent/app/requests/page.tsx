@@ -1,10 +1,10 @@
-import {
-  approve, decline, formatRp, fulfilmentPath, markDone, postsLedgerOn, talkAboutIt,
-  type MoneyRequest,
-} from '@nummi/core';
+import { formatRp, fulfilmentPath, postsLedgerOn, type MoneyRequest } from '@nummi/core';
 import { findChild, getParentData } from '../../lib/data';
 import { dict, fill } from '../../lib/copy';
 import { Nav, TopBar } from '../../components/ui';
+import {
+  approveRequest, declineRequest, markRequestDone, talkAboutRequest,
+} from '../../lib/actions';
 
 const KIND_LABEL: Record<MoneyRequest['kind'], string> = {
   cash_out: 'Cash out', give_away: 'Giving', prize: 'Prize',
@@ -20,22 +20,16 @@ const KIND_LABEL: Record<MoneyRequest['kind'], string> = {
  */
 export default async function InboxPage({
   searchParams,
-}: { searchParams: Promise<{ child?: string; act?: string; id?: string; story?: string }> }) {
+}: { searchParams: Promise<{ child?: string; e?: string }> }) {
   const sp = await searchParams;
-  const data = getParentData();
+  const data = await getParentData();
   const child = findChild(data, sp.child);
   const pending = data.children.reduce((n, c) => n + c.openRequests.length, 0);
 
-  // Pratinjau hasil keputusan. Belum persisten — penulisan ledger menunggu S1b.
-  const acted = (() => {
-    const target = child.requests.find((r) => r.id === sp.id);
-    if (!target || !sp.act) return undefined;
-    if (sp.act === 'approve') return approve(target, 'parent_1');
-    if (sp.act === 'decline') return decline(target, 'parent_1');
-    if (sp.act === 'talk') return talkAboutIt(target, 'parent_1');
-    if (sp.act === 'done') return markDone(target, sp.story);
-    return undefined;
-  })();
+  // Blok "pratinjau keputusan" yang dulu ada di sini sudah dihapus. Ia menghitung hasil approve
+  // lewat query param dan menampilkannya seolah tersimpan — padahal tidak ada apa pun yang
+  // tercatat. Sekarang keputusannya dijalankan server action, jadi yang dirender di bawah selalu
+  // keadaan yang BENAR-BENAR ada di database.
 
   return (
     <>
@@ -45,9 +39,10 @@ export default async function InboxPage({
           {dict.parent.inbox} · {child.name}
         </h1>
 
-        {acted && !acted.ok && acted.errorKey === 'request.giveNeedsStory' && (
+        {sp.e === 'request.giveNeedsStory' && (
           <div className="errbox">{dict.parent.storyMissing}</div>
         )}
+        {sp.e === 'failed' && <div className="errbox">{dict.parent.decisionFailed}</div>}
 
         {child.requests.length === 0 ? (
           <div className="card"><p className="sub">{dict.parent.noPending}</p></div>
@@ -55,7 +50,7 @@ export default async function InboxPage({
           child.requests.map((r) => {
             const instant = fulfilmentPath(r.kind) === 'instant';
             // Kalau ada aksi untuk baris ini, tampilkan hasilnya; kalau tidak, keadaan sekarang.
-            const shown = acted?.ok && acted.request?.id === r.id ? acted.request : r;
+            const shown = r;
             const isDebt = shown.status === 'approved' && shown.fulfilment === 'todo';
             const open = shown.status === 'needs_ok' || shown.status === 'talk_about_it';
 
@@ -83,35 +78,40 @@ export default async function InboxPage({
                   {isDebt && <span className="pill risk">{dict.parent.promiseDebt}</span>}
                 </div>
 
+                {/* Sampai 30 Juli 2026 ketiga tombol ini `<a href>` yang cuma memPRATINJAU
+                    keputusannya lewat query param. Sekarang mereka benar-benar memutuskan —
+                    dan untuk jalur instan, benar-benar memindahkan uang. */}
                 {open && (
                   <div className="btnrow">
-                    <a className="btn primary" href={`/requests?child=${child.id}&act=approve&id=${r.id}`}>
-                      {dict.common.approve}
-                    </a>
+                    <form action={approveRequest}>
+                      <input type="hidden" name="id" value={r.id} />
+                      <button className="btn primary" type="submit">{dict.common.approve}</button>
+                    </form>
                     {/* Jawaban KETIGA — supaya menolak tanpa penjelasan bukan satu-satunya jalan. */}
-                    <a className="btn ghost" href={`/requests?child=${child.id}&act=talk&id=${r.id}`}>
-                      {dict.common.talkAboutIt}
-                    </a>
-                    <a className="btn danger" href={`/requests?child=${child.id}&act=decline&id=${r.id}`}>
-                      {dict.common.decline}
-                    </a>
+                    <form action={talkAboutRequest}>
+                      <input type="hidden" name="id" value={r.id} />
+                      <button className="btn ghost" type="submit">{dict.common.talkAboutIt}</button>
+                    </form>
+                    <form action={declineRequest}>
+                      <input type="hidden" name="id" value={r.id} />
+                      <button className="btn danger" type="submit">{dict.common.decline}</button>
+                    </form>
                   </div>
                 )}
 
                 {isDebt && r.kind !== 'give_away' && (
                   <div className="btnrow">
-                    <a className="btn primary" href={`/requests?child=${child.id}&act=done&id=${r.id}`}>
-                      {dict.parent.markDone}
-                    </a>
+                    <form action={markRequestDone}>
+                      <input type="hidden" name="id" value={r.id} />
+                      <button className="btn primary" type="submit">{dict.parent.markDone}</button>
+                    </form>
                   </div>
                 )}
 
                 {/* Give TIDAK punya "Mark as done" polos — yang ada form cerita WAJIB.
                     Tanpa cerita, Give tak beda dari uang yang hilang (ADR-0006). */}
                 {isDebt && r.kind === 'give_away' && (
-                  <form method="get" action="/requests" style={{ marginTop: 10 }}>
-                    <input type="hidden" name="child" value={child.id} />
-                    <input type="hidden" name="act" value="done" />
+                  <form action={markRequestDone} style={{ marginTop: 10 }}>
                     <input type="hidden" name="id" value={r.id} />
                     <label className="sub">{dict.parent.storyRequired}</label>
                     <input

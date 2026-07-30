@@ -20,7 +20,7 @@ export default async function TakePage({
   searchParams,
 }: { searchParams: Promise<{ child?: string; wallet?: string; amount?: string; reason?: string }> }) {
   const sp = await searchParams;
-  const data = getParentData();
+  const data = await getParentData();
   const child = findChild(data, sp.child);
   const pending = data.children.reduce((n, c) => n + c.openRequests.length, 0);
 

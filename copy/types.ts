@@ -90,9 +90,17 @@ export interface Dictionary {
     | 'takeTitle' | 'takeReason' | 'takeSubmit' | 'notificationPreview'
     | 'protectedShownNotHidden' | 'rulesTitle' | 'ratioTotal' | 'ratioLeftover'
     | 'modeFlexible' | 'modeFlexibleBody' | 'modeStrict' | 'modeStrictBody' | 'enforcedOnKid'
-    | 'amountRequired' | 'sourceRequired' | 'notEnough' | 'reasonRequired' | 'protected',
+    | 'amountRequired' | 'sourceRequired' | 'notEnough' | 'reasonRequired' | 'protected'
+    | 'decisionFailed',
     string
   >;
+
+  /**
+   * Masuk sebagai ortu (Supabase Auth, email + password — ADR-0012).
+   * `failed` satu pesan untuk semua sebab: email tak terdaftar dan password salah harus tidak
+   * bisa dibedakan, kalau tidak layar ini jadi alat memeriksa siapa yang punya akun.
+   */
+  parentAuth: Record<'title' | 'subtitle' | 'email' | 'password' | 'submit' | 'failed' | 'signOut', string>;
 
   /** Sebab uang masuk — kuncinya di core (`SEND_SOURCES`). Anak melihat label ini. */
   sendSource: Record<SendSource, string>;

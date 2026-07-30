@@ -23,7 +23,7 @@ export default async function SettingsPage({
   searchParams: Promise<{ child?: string; amount?: string; freq?: string; day?: string; off?: string }>;
 }) {
   const sp = await searchParams;
-  const data = getParentData();
+  const data = await getParentData();
   const child = findChild(data, sp.child);
   const pending = data.children.reduce((n, c) => n + c.openRequests.length, 0);
 

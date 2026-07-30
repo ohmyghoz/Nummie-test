@@ -32,12 +32,49 @@ bunga Rp750 sudah tercatat dan seed memang memaksudkan "sudah jatuh tempo". Sesu
 `core/grow.ts`, **ledger yang berwenang**: bunga tercatat = jatuh tempo. Hitung mundur berbasis
 tanggal baru sahih setelah S1b memberi tanggal mulai sungguhan per instrumen.
 
-**Belum persisten** — keputusan di inbox menampilkan hasilnya lewat `@nummi/core`, tapi belum
-menulis ledger. Penulisan menunggu S1b.
+## Tersambung Supabase (30 Juli 2026) — dan siklus uang akhirnya tutup
 
-⚠️ **Jalur cerita Give belum bisa dicoba dari seed.** Seed kanonik hanya berisi satu request
-(cash out Rp25.000), jadi cabang "Give butuh cerita" ada di kodenya dan diuji di
-`packages/core/test/give.test.ts`, tapi tidak muncul di layar sampai ada request Give sungguhan.
+`getParentData()` membaca dari Supabase dengan token **ortu**, jadi RLS yang memutuskan anak siapa
+yang terlihat. Ortu yang bukan anggota keluarga tidak melihat apa pun (diuji per-role).
+
+**Yang sudah MENULIS: approval inbox.** Approve · Talk about it · Decline · Mark as done semuanya
+server action yang benar-benar mengubah database. Sebelum ini mereka `<a href="?act=…">` yang
+cuma *memPRATINJAU* keputusan lewat query param — layar yang menampilkan hasil seolah tersimpan.
+
+**Yang masih pratinjau (baca nyata, tulis belum):** Send money · Take money · Money rules ·
+Settings · Add a child · Jobs & Prizes. Semuanya menampilkan data sungguhan dan memvalidasi lewat
+`@nummi/core`, tapi tombol akhirnya belum menulis. Itu potongan berikutnya.
+
+### ADR-0002 sekarang bisa dilihat, bukan cuma dibaca
+
+| Jalur | Approve | Mark as done |
+|---|---|---|
+| **Instan** (harvest, grow_in, mission_claim) | **ledger ditulis di sini** | — |
+| **To-do** (cash_out, give_away, prize) | status berubah, **uang belum bergerak** | **ledger ditulis di sini** |
+
+Diuji ujung ke ujung, dan angkanya rekonsiliasi:
+
+```
+Harvest emas   approve → Gold 19.140 → 0, Headphones +19.140   (satu baris ledger)
+Harvest TD     approve → roll_over: NOL rupiah pindah,          (nol baris ledger)
+                         TD tetap 30.750, status approved
+cash out 25rb  approve → ledger TETAP, saldo TETAP, promise_debt +1
+give 15rb      approve → sama; keduanya "You said yes — not done yet"
+give           done tanpa cerita → DITOLAK (ADR-0006)
+give           done + cerita     → ledger, cerita tersimpan
+cash out       done              → ledger
+
+total 484.711 → 444.711 (turun tepat 25rb + 15rb: uang KELUAR dari app)
+I1 tegak · nol saldo negatif · nol orphan · promise_debt kembali 0
+```
+
+**Nominal Harvest dihitung ulang dari pilihan anak**, tidak diambil dari `amount`. `roll_over`
+memindahkan nol rupiah — memakai `amount` mentah akan menguras deposito ke Save, kebalikan dari
+yang anak pilih. Pokok diambil dari ledger (`grow_in`), bunga = nilai sekarang − pokok.
+
+⚠️ **Sesi ortu belum diperbarui otomatis.** Access token Supabase berumur ~1 jam dan
+`lib/supabase.ts` tidak me-refresh-nya, jadi ortu akan dilempar ke layar masuk setelah satu jam.
+Cukup untuk uji prototipe; dicatat sebagai backlog **U-11**.
 
 ## Yang harus diperbaiki saat diport (mockup ortu menyimpang dari daftar kanonik)
 

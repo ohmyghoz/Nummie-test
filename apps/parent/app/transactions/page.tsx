@@ -27,7 +27,7 @@ export default async function TransactionsPage({
   searchParams,
 }: { searchParams: Promise<{ child?: string; range?: string }> }) {
   const sp = await searchParams;
-  const data = getParentData();
+  const data = await getParentData();
   const child = findChild(data, sp.child);
   const pending = data.children.reduce((n, c) => n + c.openRequests.length, 0);
 

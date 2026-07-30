@@ -4,7 +4,7 @@ import { categoryLabel, dict, fill } from '../lib/copy';
 import { Nav, POCKET_COLOR, TopBar } from '../components/ui';
 
 export default async function DashboardPage() {
-  const data = getParentData();
+  const data = await getParentData();
   const pending = data.children.reduce((n, c) => n + c.openRequests.length, 0);
 
   return (

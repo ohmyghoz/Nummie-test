@@ -25,7 +25,7 @@ export default async function AddChildPage({
   searchParams: Promise<{ name?: string; month?: string; year?: string; tier?: string; pin?: string }>;
 }) {
   const sp = await searchParams;
-  const data = getParentData();
+  const data = await getParentData();
   const pending = data.children.reduce((n, c) => n + c.openRequests.length, 0);
 
   const name = sp.name ?? '';

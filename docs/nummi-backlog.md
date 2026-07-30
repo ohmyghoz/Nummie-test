@@ -189,7 +189,14 @@ Database berdiri, terisi seed kanonik, isolasi RLS diuji per-role, dan login ana
   PIN, cookie httpOnly, Home/Wallets/Sort/Requests dari database). 🟡 **Irisan 2 sebagian** —
   **Semua flow tulis app anak sudah tersambung** lewat server action: Sort & Move ke ledger,
   Give & Harvest ke `requests` (ADR-0002). Harvest ikut menyimpan tujuan + pilihan deposito
-  (migrasi 0011). Sisa: irisan 3 (app ortu, terhalang U-3).
+  (migrasi 0011). 🟡 **Irisan 3 sebagian** — app ortu
+  membaca dari Supabase, dan **approval inbox sudah menulis**: Approve/Decline/Talk/Mark-done
+  benar-benar mengubah database, dengan ADR-0002 & ADR-0006 ditegakkan `@nummi/core`. Sisa:
+  Send/Take/Rules/Settings/Add-a-child/Jobs masih pratinjau (baca nyata, tulis belum).
+- **U-11 · Sesi ortu tidak diperbarui.** Access token Supabase berumur ~1 jam dan
+  `apps/parent/lib/supabase.ts` tidak me-refresh-nya — ortu terlempar ke layar masuk setelah satu
+  jam. Refresh token perlu ditukar di middleware (server component tidak bisa memasang cookie).
+  Cukup untuk uji prototipe; jadi menyakitkan begitu ada ortu sungguhan yang memakainya seharian.
 - **U-10 · Request tidak "memesan" saldo.** Dua pengajuan Give yang masing-masing sah bisa
   melebihi isi kantong Give kalau digabung. Secara uang tidak bahaya — trigger `no_overdraft`
   (0010) menolak yang kedua saat ortu menyetujuinya. Yang belum dipikirkan adalah **pengalaman

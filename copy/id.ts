@@ -192,6 +192,17 @@ export const id: Dictionary = {
     notEnough: 'Isinya tidak sebanyak itu',
     reasonRequired: 'Alasan wajib diisi — anakmu juga harus memberi alasan',
     protected: 'Kantong ini terlindungi',
+    decisionFailed: 'Belum berhasil. Tidak ada yang berubah — periksa saldonya, lalu coba lagi.',
+  },
+
+  parentAuth: {
+    title: 'Nummi untuk orang tua',
+    subtitle: 'Masuk untuk melihat apa yang sedang diputuskan anakmu.',
+    email: 'Email',
+    password: 'Kata sandi',
+    submit: 'Masuk',
+    failed: 'Belum berhasil. Periksa email dan kata sandinya, lalu coba lagi.',
+    signOut: 'Keluar',
   },
 
   sendSource: {

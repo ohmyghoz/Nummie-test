@@ -27,9 +27,11 @@ melainkan **menyambungkan permukaan yang sudah ada**:
    `apps/kid/README.md`.
 2. **Irisan 2 — menulis ledger.** Sort, Move, Give, dan Grow masih berhenti di "menunggu orang
    tua". Ini yang pertama kali menyentuh ADR-0014 (append-only) dari sisi aplikasi.
-3. **Irisan 3 — app ortu.** ✅ U-3 selesai 30 Juli 2026, jadi **tidak ada lagi yang memblokirnya.**
-   Yang paling menentukan: Approve/Decline yang benar-benar menulis ledger. Sekarang ada 4 request
-   menggantung di database — anak sudah bisa mengajukan, belum ada yang bisa menjawab.
+3. ~~**Irisan 3 — app ortu.**~~ 🟢 **Potongan penutup-siklus selesai 30 Juli 2026.** Login ortu,
+   pembacaan nyata, dan approval inbox yang menulis ledger. **Siklus uang sudah pernah tutup utuh
+   sekali**: anak mengajukan → ortu memutuskan → uang bergerak → anak melihat ceritanya.
+   Sisa: Send/Take/Rules/Settings/Add-a-child/Jobs masih pratinjau, dan `apps/console`
+   belum tersambung.
 
 Konsol (S1c) sengaja terakhir: ia memakai service role dan tidak memblokir uji ortu–anak.
 
