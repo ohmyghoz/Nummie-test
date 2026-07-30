@@ -23,6 +23,39 @@ anak tidak pernah menaut ke app ortu, dan sebaliknya. Menyatukannya di satu orig
 
 ---
 
+## Keadaan nyata per 30 Juli 2026 — sudah naik
+
+| | URL | Bukti |
+|---|---|---|
+| `nummi-kid` | https://nummi-kid.vercel.app | login anak `NUMMI1` + PIN → Home menampilkan saldo |
+| `nummi-parent` | https://nummi-parent.vercel.app | OTP → dashboard `Rp484.711`, inbox & layar PIN terbuka |
+| `nummi-console` | — | tetap lokal (ADR-0021 belum terpenuhi) |
+
+Scope Vercel: tim `ohmyghozs-projects`. `rootDirectory` diset per project (`apps/kid`, `apps/parent`),
+env terpasang **sebelum** build pertama.
+
+⚠️ **Deploy masih MANUAL, bukan otomatis dari git.** Koneksi GitHub↔Vercel gagal dibuat lewat API —
+kredensial GitHub di sisi Vercel menjawab `Bad credentials`, artinya GitHub App Vercel belum pernah
+terpasang untuk akun ini. Selama itu belum dibereskan di browser (Vercel → project → Settings → Git),
+**push ke `main` tidak men-deploy apa pun.** Deploy dilakukan dengan:
+
+```bash
+vercel deploy --prod --yes     # dari root repo, memakai .vercel/project.json
+```
+
+`.vercel/project.json` menentukan project mana yang dituju — ia gitignored, dan **saat ini menunjuk
+`nummi-parent`**. Tukar `projectId`-nya untuk men-deploy kid.
+
+Konsekuensi yang perlu diketahui: tanpa koneksi git tidak ada preview deployment per-PR, dan tidak
+ada jejak commit di dashboard Vercel. Untuk uji 30 keluarga itu bisa diterima; untuk jangka panjang
+tidak.
+
+⚠️ **Deployment Protection MATI** — memang harus, supaya keluarga bisa masuk. Artinya kedua URL bisa
+dijangkau siapa pun yang tahu alamatnya. Yang menjaga datanya adalah auth + RLS, bukan kerahasiaan
+URL; `X-Robots-Tag: noindex` mencegah terindeks, bukan diakses.
+
+---
+
 ## Langkah
 
 ### 1. Impor repo dua kali
