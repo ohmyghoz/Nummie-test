@@ -31,8 +31,10 @@ Peta jalan lengkap ada di `docs/nummi-status.md`. Semua keputusan produk ada di 
 
 ## Menjalankan mockup lama
 
-`legacy/` berisi lima berkas HTML yang berdiri sendiri. Buka langsung di browser, atau setelah
-di-deploy ke Vercel akses lewat `/legacy/kid-mobile.html` dan seterusnya.
+`legacy/` berisi lima berkas HTML yang berdiri sendiri. **Buka langsung di browser** — sejak
+30 Juli 2026 mereka tidak lagi ikut ter-deploy. `vercel.json` di root dulu menyetel
+`outputDirectory: "legacy"`, sisa dari S0.5; kalau repo root diimpor ke Vercel yang terbit adalah
+lima mockup beku, bukan app. Berkasnya dihapus (ada di riwayat git, `b2a40b5`).
 
 | Berkas | Permukaan |
 |---|---|
@@ -55,8 +57,12 @@ claude
 
 ## Deploy
 
-Vercel, dari branch `main`. **Nyalakan Deployment Protection** — prototipe produk anak tidak boleh
-terindeks mesin pencari sebelum siap.
+**PWA di Vercel** (ADR-0019 menjawab D4 untuk MVP). Langkah lengkapnya —
+tiga project, Root Directory, env, dan jebakan yang sudah ditemukan — ada di
+[`docs/DEPLOY.md`](docs/DEPLOY.md).
+
+Ringkasnya: **dua** project (`apps/kid`, `apps/parent`). **Console tidak ikut** — ia membaca
+service role lintas keluarga (ADR-0015).
 
 ## Lisensi
 

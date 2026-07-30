@@ -6,6 +6,7 @@
   "workspaces": ["packages/*", "apps/*"],
   "scripts": {
     "test": "npm run test --workspace @nummi/core",
+    "build": "npm run kid:build && npm run parent:build && npm run console:build",
     "typecheck": "npm run typecheck --workspace @nummi/core && npm run typecheck --workspace @nummi/console && npm run typecheck --workspace @nummi/kid && npm run typecheck --workspace @nummi/parent",
     "console:dev": "npm run dev --workspace @nummi/console",
     "console:build": "npm run build --workspace @nummi/console",

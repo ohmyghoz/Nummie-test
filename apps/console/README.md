@@ -24,12 +24,39 @@ npm run console:dev     # http://localhost:3000
 npm run console:build   # build produksi
 ```
 
-### Sumber data & titik tukar S1b
+### ⚠️ Gerbang wajib — `CONSOLE_PASSWORD`
 
-Sumber angka saat ini adalah **seed kanonik** `@nummi/core`, dibungkus di satu tempat:
-`lib/data.ts` → `getConsoleData()`. Ketika migrasi Supabase dijalankan (S1b), cukup ganti isi fungsi
-itu dengan query ke view SQL — tidak ada berkas di `app/` yang perlu diubah, karena UI tidak pernah
-menyentuh seed langsung.
+Console membaca **service role, lintas keluarga, RLS dilewati.** Satu halamannya berisi saldo
+setiap anak di setiap keluarga. Karena itu `middleware.ts` mewajibkan basic auth, dan ia
+**gagal-tertutup**: tanpa `CONSOLE_PASSWORD` di `apps/console/.env.local`, console menjawab `503`
+untuk semua permintaan.
+
+```
+CONSOLE_PASSWORD=<rahasia panjang>
+```
+
+Username diabaikan; isi apa saja saat browser bertanya.
+
+**Dua lubang yang ditutup 30 Juli 2026, keduanya tidak terlihat sampai diuji:**
+
+1. **Halaman ini dulu diprerender jadi HTML statis saat build.** Console tidak memakai
+   `cookies()`/`headers()`, jadi Next menganggapnya statis dan memanggil service role **di waktu
+   build**, lalu menulis hasilnya ke `.next/server/app/index.html` — 58 KB berisi saldo nyata,
+   siap di-cache CDN. Ditutup dengan `export const dynamic = 'force-dynamic'` di `app/page.tsx`.
+   Ia sekaligus bug kebenaran: pemeriksa invarian yang membeku di waktu build tidak memeriksa apa pun.
+2. **Tidak ada gerbang sama sekali.** ADR-0015 menyandarkannya pada "operator menjalankannya di
+   lingkungan yang dia kendalikan sendiri" — asumsi yang benar sampai ia tidak lagi benar.
+
+**Default yang masih berlaku: console TIDAK ikut di-deploy ke Vercel** (ADR-0015). Gerbang ini ada
+untuk saat asumsi lingkungan gagal, bukan sebagai izin mempublikasikannya.
+
+### Sumber data
+
+**Supabase, lintas keluarga** (sejak 30 Juli 2026) — `lib/data.ts` → `getConsoleData()`, satu-satunya
+tempat yang menyentuh database. Tidak ada berkas di `app/` yang perlu tahu asal datanya.
+
+Taruhan desain itu terbayar persis seperti rencananya: saat sumbernya ditukar dari seed kanonik ke
+query nyata, **tidak satu pun komponen berubah.**
 
 ## Masih di backlog, jangan dikerjakan sekarang
 

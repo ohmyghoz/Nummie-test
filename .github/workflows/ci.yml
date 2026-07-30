@@ -21,3 +21,20 @@ jobs:
       # Invariant I1 dan aturan kantong terlindungi diperiksa di sini.
       # Kegagalan di job ini bukan "test merah biasa" — itu janji produk yang bocor.
       - run: npm test
+
+  apps:
+    name: apps — build ketiganya
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install
+      - run: npm run typecheck
+      # Sampai 30 Juli 2026 CI TIDAK PERNAH mem-build satu app pun — hanya packages/core. Artinya
+      # build Next yang rusak lolos tanpa hambatan sampai Vercel, dan baru ketahuan setelah
+      # deploy gagal. Ketiganya sengaja dibangun tanpa env Supabase: kalau salah satu mulai
+      # membutuhkannya saat build, itu tanda ia memanggil database di waktu build — persis cacat
+      # yang membuat console memprerender saldo semua keluarga jadi HTML statis.
+      - run: npm run build

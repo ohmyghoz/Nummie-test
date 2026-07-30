@@ -1,4 +1,17 @@
 import { formatRp, fulfilmentPath } from '@nummi/core';
+
+/**
+ * **Jangan hapus baris ini.** Tanpanya console tidak memakai `cookies()`/`headers()` sama sekali,
+ * jadi Next menganggap `/` statis dan **memprerender-nya saat build** — memanggil service role
+ * lintas keluarga dan menuliskan hasilnya ke `.next/server/app/index.html`. Terbukti: berkas itu
+ * pernah berisi 58 KB saldo nyata (`Rp484.711`, `Rp279.140`) sebagai HTML datar yang siap
+ * di-cache CDN.
+ *
+ * Ia juga bug kebenaran, bukan cuma keamanan: console bertugas jadi pemeriksa invarian **hidup**
+ * (dua perhitungan independen yang saling mengoreksi). Snapshot beku waktu build tidak bisa
+ * memeriksa apa pun — ia akan melaporkan "sehat" untuk keadaan yang sudah lewat.
+ */
+export const dynamic = 'force-dynamic';
 import {
   getConsoleData,
   POCKETS,
