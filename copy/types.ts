@@ -114,7 +114,8 @@ export interface Dictionary {
     | 'ratesTitle' | 'ratesHint' | 'ratesUpsideDown' | 'oneTapApprove'
     | 'pricesTitle' | 'goldSell' | 'goldBuyback' | 'spread' | 'fx' | 'pricesFrom'
     | 'investmentsTitle' | 'matured' | 'daysLeft' | 'startedOn' | 'placeholderDates'
-    | 'amountRequired' | 'dayOutOfRange' | 'ratesNegative' | 'ratesTooHigh',
+    | 'amountRequired' | 'dayOutOfRange' | 'ratesNegative' | 'ratesTooHigh'
+    | 'save' | 'saved',
     string
   >;
 
@@ -155,7 +156,8 @@ export interface Dictionary {
   /** Pesan mode Strict menjelaskan KENAPA terkunci, bukan sekadar tombol yang mati. */
   rules: Record<
     'strictLockedTitle' | 'strictLockedBody'
-    | 'ratioOver100' | 'ratioStrictMustBeExact' | 'ratioMissingDestination',
+    | 'ratioOver100' | 'ratioStrictMustBeExact' | 'ratioMissingDestination'
+    | 'ratioGrowExcluded',
     string
   >;
 

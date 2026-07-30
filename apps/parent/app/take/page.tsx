@@ -2,6 +2,7 @@ import { formatRp, parseRp, validateTake } from '@nummi/core';
 import { findChild, getParentData } from '../../lib/data';
 import { dict, fill } from '../../lib/copy';
 import { Nav, POCKET_COLOR, TopBar } from '../../components/ui';
+import { takeMoney } from '../../lib/actions';
 
 const ERROR_COPY: Record<string, string> = {
   'take.amountRequired': dict.parent.amountRequired,
@@ -99,12 +100,21 @@ export default async function TakePage({
         {/* Pratinjau notifikasi KATA PER KATA yang akan anak terima — ortu melihat persis
             apa yang dibaca anaknya sebelum menekan. */}
         {check?.ok && target && (
-          <div className="card">
+          <form action={takeMoney} className="card">
+            <input type="hidden" name="child" value={child.id} />
+            <input type="hidden" name="wallet" value={target.wallet.id} />
+            <input type="hidden" name="amount" value={amount} />
+            <input type="hidden" name="reason" value={sp.reason ?? ''} />
             <h2>{fill(dict.parent.notificationPreview, { child: child.name })}</h2>
             <p className="note">
               −{formatRp(amount)} · {target.wallet.name} — “{sp.reason}”
             </p>
-          </div>
+            {/* Langkah kedua yang benar-benar mengambil. Ortu sudah melihat kata per kata apa
+                yang akan dibaca anaknya sebelum menekan ini. */}
+            <button className="btn primary" type="submit" style={{ marginTop: 10 }}>
+              {dict.parent.takeSubmit}
+            </button>
+          </form>
         )}
       </main>
       <Nav active="dashboard" pending={pending} />

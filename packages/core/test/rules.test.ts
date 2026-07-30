@@ -3,7 +3,7 @@ import {
   SEED_REQUESTS, SEED_RULES, SEED_WALLETS,
   applyAutoSplit, canChildMoveFrom, canParentTakeFrom, dreamRaidPenalty, promiseDebt, ratioTotal, validateAutoSplit,
 } from '../src/index.js';
-import type { MoneyRequest } from '../src/index.js';
+import type { MoneyRequest, MoneyRules } from '../src/index.js';
 
 const wallet = (id: string) => SEED_WALLETS.find((w) => w.id === id)!;
 
@@ -107,5 +107,32 @@ describe('utang janji — metrik kepercayaan console (backlog §R)', () => {
 
   it('seed kanonik belum punya utang janji (request masih needs_ok)', () => {
     expect(promiseDebt(SEED_REQUESTS)).toHaveLength(0);
+  });
+});
+
+describe('Grow dikecualikan dari auto-split (backlog A, ADR-0003)', () => {
+  const withRatios = (ratios: MoneyRules['autoSplit']['ratios']): MoneyRules => ({
+    childId: 'c1',
+    mode: 'flexible',
+    autoSplit: { enabled: true, ratios, destinations: { spend: 'w1', save: 'w2', give: 'w3', grow: 'w4' } },
+  });
+
+  it('rasio Grow ditolak, walaupun tujuannya ada', () => {
+    // Tanpa penjagaan ini, uang saku mingguan bisa otomatis jadi investasi — padahal
+    // memasukkan uang ke instrumen SELALU lewat pengajuan yang disetujui ortu (ADR-0003).
+    const check = validateAutoSplit(withRatios({ spend: 30, save: 30, give: 20, grow: 20 }));
+    expect(check.ok).toBe(false);
+    expect(check.errorKey).toBe('ratio.growExcluded');
+  });
+
+  it('rasio Grow tidak ikut dihitung dalam total', () => {
+    // 40+40+20 = 100 walaupun ada grow: 50 tertulis. Kalau grow ikut, ini akan tampak 150%.
+    expect(ratioTotal({ enabled: true, ratios: { spend: 40, save: 40, give: 20, grow: 50 }, destinations: {} }))
+      .toBe(100);
+  });
+
+  it('uang tidak pernah dialokasikan ke Grow oleh auto-split', () => {
+    const split = applyAutoSplit(100_000, withRatios({ spend: 40, save: 40, give: 20, grow: 100 }));
+    expect(split.targets.some((t) => t.category === 'grow')).toBe(false);
   });
 });

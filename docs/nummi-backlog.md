@@ -193,6 +193,12 @@ Database berdiri, terisi seed kanonik, isolasi RLS diuji per-role, dan login ana
   membaca dari Supabase, dan **approval inbox sudah menulis**: Approve/Decline/Talk/Mark-done
   benar-benar mengubah database, dengan ADR-0002 & ADR-0006 ditegakkan `@nummi/core`. Sisa:
   Send/Take/Rules/Settings/Add-a-child/Jobs masih pratinjau (baca nyata, tulis belum).
+- **U-12 · Settings ortu belum punya tabel.** Jadwal uang saku, bunga bank, dan harga harian
+  masih dari `SEED_*`. Uang saku butuh tabel sendiri (+ scheduler, backlog T); bunga bank juga.
+  Harga sengaja di luar cakupan S1–S3. **Butuh keputusan skema sebelum bisa disambungkan.**
+- **U-13 · Jobs & Prizes belum punya tabel.** Builder di sisi ortu memvalidasi lewat core dan
+  layarnya berdiri, tapi tidak ada `jobs`/`prizes` untuk menyimpannya — dan sisi anak belum punya
+  layarnya sama sekali. **Butuh keputusan skema.**
 - **U-11 · Sesi ortu tidak diperbarui.** Access token Supabase berumur ~1 jam dan
   `apps/parent/lib/supabase.ts` tidak me-refresh-nya — ortu terlempar ke layar masuk setelah satu
   jam. Refresh token perlu ditukar di middleware (server component tidak bisa memasang cookie).

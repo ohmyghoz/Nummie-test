@@ -2,6 +2,7 @@ import { SEND_SOURCES, formatRp, parseRp, validateSend, type SendSource } from '
 import { findChild, getParentData } from '../../lib/data';
 import { dict, fill } from '../../lib/copy';
 import { Nav, TopBar } from '../../components/ui';
+import { sendMoney } from '../../lib/actions';
 
 const ERROR_COPY: Record<string, string> = {
   'send.amountRequired': dict.parent.amountRequired,
@@ -69,7 +70,11 @@ export default async function SendPage({
         </form>
 
         {submitted && check.ok && source && (
-          <div className="card" style={{ marginTop: 12 }}>
+          <form action={sendMoney} className="card" style={{ marginTop: 12 }}>
+            <input type="hidden" name="child" value={child.id} />
+            <input type="hidden" name="amount" value={amount} />
+            <input type="hidden" name="source" value={source} />
+            {sp.note && <input type="hidden" name="note" value={sp.note} />}
             <h2>{fill(dict.parent.notificationPreview, { child: child.name })}</h2>
             <div className="row">
               <span className="nm">{dict.sendSource[source]}</span>
@@ -79,7 +84,12 @@ export default async function SendPage({
               → {child.unsortedWallet?.name}
             </p>
             {sp.note && <p className="note" style={{ marginTop: 8 }}>“{sp.note}”</p>}
-          </div>
+            {/* Konfirmasi kedua yang benar-benar mengirim. Send adalah SATU-SATUNYA jalur yang
+                menambah total uang anak, jadi ia layak dua langkah, bukan satu. */}
+            <button className="btn primary" type="submit" style={{ marginTop: 10 }}>
+              {dict.parent.sendSubmit}
+            </button>
+          </form>
         )}
       </main>
       <Nav active="send" pending={pending} />

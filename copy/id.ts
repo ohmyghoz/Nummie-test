@@ -253,6 +253,8 @@ export const id: Dictionary = {
     dayOutOfRange: 'Pilih hari yang sah (bulanan dibatasi sampai 28)',
     ratesNegative: 'Bunga tidak boleh negatif',
     ratesTooHigh: 'Bunga itu sepertinya salah ketik',
+    save: 'Simpan',
+    saved: 'Tersimpan. Anakmu sudah melihatnya.',
   },
 
   addChild: {
@@ -344,6 +346,7 @@ export const id: Dictionary = {
     ratioOver100: 'Rasio melebihi 100%',
     ratioStrictMustBeExact: 'Bagikan sisa {remaining}% terakhir',
     ratioMissingDestination: 'Pilih dulu tujuan bagian ini',
+    ratioGrowExcluded: 'Bertumbuh tidak bisa masuk pembagian otomatis — ia selalu butuh izinmu.',
   },
 
   give: {

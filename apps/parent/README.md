@@ -41,9 +41,33 @@ yang terlihat. Ortu yang bukan anggota keluarga tidak melihat apa pun (diuji per
 server action yang benar-benar mengubah database. Sebelum ini mereka `<a href="?act=…">` yang
 cuma *memPRATINJAU* keputusan lewat query param — layar yang menampilkan hasil seolah tersimpan.
 
-**Yang masih pratinjau (baca nyata, tulis belum):** Send money · Take money · Money rules ·
-Settings · Add a child · Jobs & Prizes. Semuanya menampilkan data sungguhan dan memvalidasi lewat
-`@nummi/core`, tapi tombol akhirnya belum menulis. Itu potongan berikutnya.
+**Yang MENULIS sekarang:** approval inbox · **Send money** · **Take money** · **Money rules** ·
+**Add a child**.
+
+**Yang masih pratinjau:** Settings (uang saku · bunga bank · harga) dan Jobs & Prizes — keduanya
+**belum punya tabel**, jadi bukan sekadar belum disambungkan. Lihat backlog U-12/U-13.
+
+### Money rules akhirnya punya input
+
+Layar ini dulu **nol input**: mode cuma tautan `?mode=` yang mengubah pratinjau tanpa menyimpan,
+dan rasio hanya dipajang. Sekarang satu form yang tersimpan — dan karena app anak membaca baris
+yang sama, Strict yang dinyalakan di sini benar-benar mengunci layar Sort anak.
+
+**Grow tidak punya input rasio, dan itu disengaja.** `SPLITTABLE` di core (bukan `CATEGORIES`)
+yang menentukan kategori mana boleh menerima auto-split — masuk instrumen selalu lewat pengajuan
+yang disetujui (ADR-0003, backlog A).
+
+### Add a child: satu transaksi, empat penulisan
+
+Anak + wallet awal + `money_rules` + `child_economy` lahir bersama lewat `create_child()`
+(migrasi 0012), atau tidak terjadi apa pun. Anak tanpa wallet tidak bisa menerima uang; anak
+tanpa aturan uang punya layar Sort kosong. Ketiganya bukan "nanti diisi".
+
+PIN di-hash **oleh Postgres**, bukan oleh app — sumber yang sama dengan seed dan verifikasi
+login. Keunikan PIN per keluarga diperiksa `family_pin_taken()` sebelum menulis (ADR-0012 §A2).
+
+Diuji: PIN kembar ditolak; PIN unik → anak lahir lengkap dan **benar-benar bisa login**, sementara
+anak pertama tetap bisa login dengan PIN-nya sendiri.
 
 ### ADR-0002 sekarang bisa dilihat, bukan cuma dibaca
 

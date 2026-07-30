@@ -7,7 +7,6 @@
  * karena ortu mengira anaknya dibatasi padahal tidak. (backlog A-sisa-1 & C)
  */
 import type { AutoSplit, Category, MoneyRequest, MoneyRules, Wallet } from './types.js';
-import { CATEGORIES } from './ledger.js';
 
 export interface SplitTarget {
   walletId: string;
@@ -21,14 +20,29 @@ export interface SplitResult {
   remainderToUnsorted: number;
 }
 
+/**
+ * Kategori yang boleh menerima auto-split. **Grow SENGAJA tidak ada di sini** (backlog A:
+ * "Grow dikecualikan dari auto-split").
+ *
+ * Alasannya ADR-0003: memasukkan uang ke instrumen selalu lewat pengajuan yang disetujui ortu,
+ * karena ortulah bank-nya dan risiko pasarnya ada di dia. Auto-split yang boleh mengalir ke Grow
+ * akan membuat uang saku mingguan otomatis jadi investasi tanpa satu pun keputusan sadar.
+ *
+ * Dulu ini cuma tertulis di backlog. `applyAutoSplit()` mengiterasi seluruh `CATEGORIES`, jadi
+ * begitu ada editor tujuan yang menyetel destinasi Grow, aturan itu akan bocor tanpa suara —
+ * satu-satunya yang menahannya adalah kebetulan bahwa tujuan Grow belum pernah diisi.
+ */
+export const SPLITTABLE: readonly Category[] = ['spend', 'save', 'give'];
+
 export function ratioTotal(split: AutoSplit): number {
-  return CATEGORIES.reduce((sum, c) => sum + (split.ratios[c] ?? 0), 0);
+  return SPLITTABLE.reduce((sum, c) => sum + (split.ratios[c] ?? 0), 0);
 }
 
 export interface SplitValidation {
   ok: boolean;
   /** kunci copy, bukan kalimat jadi — string UI tidak boleh hidup di core (lihat CLAUDE.md) */
-  errorKey?: 'ratio.over100' | 'ratio.strictMustBeExact' | 'ratio.missingDestination';
+  errorKey?: 'ratio.over100' | 'ratio.strictMustBeExact' | 'ratio.missingDestination'
+    | 'ratio.growExcluded';
 }
 
 export function validateAutoSplit(rules: MoneyRules): SplitValidation {
@@ -39,7 +53,13 @@ export function validateAutoSplit(rules: MoneyRules): SplitValidation {
   if (total > 100) return { ok: false, errorKey: 'ratio.over100' };
   if (mode === 'strict' && total !== 100) return { ok: false, errorKey: 'ratio.strictMustBeExact' };
 
-  for (const c of CATEGORIES) {
+  // Rasio Grow bukan "sah tapi tanpa tujuan" — ia tidak pernah sah. Ditolak eksplisit supaya
+  // pesannya benar, bukan menyamar sebagai tujuan yang lupa diisi.
+  if ((autoSplit.ratios.grow ?? 0) > 0) {
+    return { ok: false, errorKey: 'ratio.growExcluded' };
+  }
+
+  for (const c of SPLITTABLE) {
     const ratio = autoSplit.ratios[c] ?? 0;
     if (ratio > 0 && !autoSplit.destinations[c]) {
       return { ok: false, errorKey: 'ratio.missingDestination' };
@@ -63,7 +83,7 @@ export function applyAutoSplit(amount: number, rules: MoneyRules): SplitResult {
   const targets: SplitTarget[] = [];
   let allocated = 0;
 
-  for (const category of CATEGORIES) {
+  for (const category of SPLITTABLE) {
     const ratio = autoSplit.ratios[category] ?? 0;
     const walletId = autoSplit.destinations[category];
     if (ratio <= 0 || !walletId) continue;

@@ -260,6 +260,8 @@ export const en: Dictionary = {
     dayOutOfRange: 'Pick a valid day (monthly is capped at 28)',
     ratesNegative: 'Rates cannot be negative',
     ratesTooHigh: 'That rate looks like a typo',
+    save: 'Save',
+    saved: 'Saved. Your child sees this now.',
   },
 
   addChild: {
@@ -358,6 +360,7 @@ export const en: Dictionary = {
     ratioOver100: 'Ratio is over 100%',
     ratioStrictMustBeExact: 'Assign the last {remaining}%',
     ratioMissingDestination: 'Pick where this part should land',
+    ratioGrowExcluded: 'Grow cannot be part of the automatic split — it always needs your OK.',
   },
 
   give: {

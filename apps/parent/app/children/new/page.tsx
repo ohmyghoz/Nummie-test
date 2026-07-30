@@ -5,6 +5,7 @@ import {
 import { getParentData } from '../../../lib/data';
 import { dict, fill } from '../../../lib/copy';
 import { Nav, TopBar } from '../../../components/ui';
+import { addChild } from '../../../lib/actions';
 
 const TIERS: Tier[] = ['little', 'middle', 'teen'];
 
@@ -22,7 +23,9 @@ const ERROR_COPY: Record<string, string> = {
 export default async function AddChildPage({
   searchParams,
 }: {
-  searchParams: Promise<{ name?: string; month?: string; year?: string; tier?: string; pin?: string }>;
+  searchParams: Promise<{
+    name?: string; month?: string; year?: string; tier?: string; pin?: string; e?: string;
+  }>;
 }) {
   const sp = await searchParams;
   const data = await getParentData();
@@ -100,6 +103,12 @@ export default async function AddChildPage({
           </button>
         </form>
 
+        {sp.e && (
+          <div className="errbox" style={{ marginTop: 12 }}>
+            {ERROR_COPY[sp.e] ?? dict.parent.decisionFailed}
+          </div>
+        )}
+
         {check && !check.ok && check.errorKey && (
           <div className="errbox" style={{ marginTop: 12 }}>
             {check.errorKey === 'child.pinLength'
@@ -109,7 +118,12 @@ export default async function AddChildPage({
         )}
 
         {check?.ok && (
-          <div className="card" style={{ marginTop: 12 }}>
+          <form action={addChild} className="card" style={{ marginTop: 12 }}>
+            <input type="hidden" name="name" value={name} />
+            <input type="hidden" name="month" value={month} />
+            <input type="hidden" name="year" value={year} />
+            <input type="hidden" name="tier" value={tier} />
+            <input type="hidden" name="pin" value={pin} />
             <h2>{dict.addChild.starterWallets}</h2>
             {/* Bentuk wallet awal identik untuk ketiga tier — anak yang naik tier tidak
                 perlu migrasi apa pun. */}
@@ -122,7 +136,12 @@ export default async function AddChildPage({
             <p className="note" style={{ marginTop: 10 }}>
               {fill(dict.addChild.created, { name })}
             </p>
-          </div>
+            {/* Langkah kedua yang benar-benar membuat anaknya. Satu transaksi di database:
+                anak + wallet awal + aturan uang + ekonomi, atau tidak terjadi apa pun. */}
+            <button className="btn primary" type="submit" style={{ marginTop: 10 }}>
+              {fill(dict.addChild.submit, { name })}
+            </button>
+          </form>
         )}
       </main>
       <Nav active="settings" pending={pending} />

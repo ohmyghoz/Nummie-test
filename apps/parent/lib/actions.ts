@@ -29,8 +29,11 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import {
+  CATEGORIES,
   approve, decline, markDone, postsLedgerOn, talkAboutIt, tdHarvestOutcome,
-  type MoneyRequest,
+  STARTER_WALLETS, validateAutoSplit, validateChild, validateSend, validateTake,
+  type Category, type MoneyRequest, type MoneyRules, type RuleMode, type SendSource,
+  type Tier,
 } from '@nummi/core';
 import { getParentData, type ChildView } from './data';
 import { serviceClient } from './supabase';
@@ -248,4 +251,212 @@ function revalidateAll(): void {
   revalidatePath('/');
   revalidatePath('/requests');
   revalidatePath('/transactions');
+}
+
+/**
+ * Send money — uang masuk dari luar app. Satu-satunya jalur di seluruh sistem yang MENAMBAH
+ * total anak, dan itu sebabnya `from_wallet_id` null di sini bukan lubang melainkan definisi:
+ * uangnya memang datang dari dunia nyata, dari kantong ortu.
+ *
+ * Tujuannya SELALU Unsorted (`sendLandsIn`), tidak pernah bisa dipilih ortu. Itu keputusan
+ * produk, bukan penyederhanaan: yang memberi tugas pada uang adalah anak. Ortu yang bisa
+ * mengirim langsung ke "Tabungan" akan mengambil alih pelajarannya.
+ */
+export async function sendMoney(formData: FormData): Promise<void> {
+  const childId = String(formData.get('child') ?? '');
+  const amount = Number(formData.get('amount') ?? 0);
+  const source = String(formData.get('source') ?? '');
+  const note = String(formData.get('note') ?? '').trim() || undefined;
+
+  const data = await getParentData();
+  const child = data.children.find((c) => c.id === childId);
+  if (!child) redirect('/send');
+
+  const back = `/send?child=${childId}&amount=${amount}&source=${source}`;
+
+  const check = validateSend({ amount, source: source as SendSource, note });
+  if (!check.ok) redirect(back);
+
+  const landing = child.unsortedWallet;
+  if (!landing) redirect(back);
+
+  const { error } = await serviceClient().from('ledger_entries').insert({
+    child_id: child.id,
+    from_wallet_id: null,
+    to_wallet_id: landing.id,
+    amount,
+    reason: 'send_money',
+    created_by: data.parentId,
+  });
+
+  if (error) {
+    console.error('sendMoney gagal:', error.message);
+    redirect(`${back}&e=failed`);
+  }
+
+  revalidateAll();
+  redirect(`/?child=${childId}&sent=1`);
+}
+
+/**
+ * Take money — ortu mengambil kembali. Jalur yang paling perlu dijaga di seluruh app ortu.
+ *
+ * I7 (invariant): take TIDAK PERNAH bisa menyentuh dream, Give, dan Grow. Yang menegakkannya
+ * `validateTake()` → `canParentTakeFrom()` di core, dan layar sengaja TETAP MENAMPILKAN kantong
+ * terlindungi itu (bukan menyembunyikannya) supaya ortu melihat aturannya, bukan bingung ke mana
+ * kantongnya pergi.
+ *
+ * Diperiksa ulang di sini, bukan cuma dipakai merender: yang menentukan bukan apa yang tampil.
+ */
+export async function takeMoney(formData: FormData): Promise<void> {
+  const childId = String(formData.get('child') ?? '');
+  const walletId = String(formData.get('wallet') ?? '');
+  const amount = Number(formData.get('amount') ?? 0);
+  const reason = String(formData.get('reason') ?? '').trim();
+
+  const data = await getParentData();
+  const child = data.children.find((c) => c.id === childId);
+  const wallet = child?.wallets.find((w) => w.id === walletId);
+  if (!child || !wallet) redirect('/take');
+
+  const back = `/take?child=${childId}&wallet=${walletId}&amount=${amount}`;
+
+  const check = validateTake(wallet, amount, child.balances[wallet.id] ?? 0, reason);
+  if (!check.ok) redirect(back);
+
+  const { error } = await serviceClient().from('ledger_entries').insert({
+    child_id: child.id,
+    from_wallet_id: wallet.id,
+    to_wallet_id: null,
+    amount,
+    reason: 'take_money',
+    created_by: data.parentId,
+  });
+
+  if (error) {
+    console.error('takeMoney gagal:', error.message);
+    redirect(`${back}&e=failed`);
+  }
+
+  revalidateAll();
+  redirect(`/?child=${childId}&took=1`);
+}
+
+/**
+ * Money rules — mode Strict/Flexible dan rasio auto-split.
+ *
+ * Ini setelan yang paling langsung terasa di app anak: `sortPlan()` di sisi anak membaca baris
+ * yang sama, jadi Strict yang dinyalakan di sini benar-benar mengunci layar Sort anak dan
+ * rasio yang diubah di sini langsung mengubah angka yang dilihat anak. Tidak ada salinan.
+ *
+ * `validateAutoSplit()` yang memutuskan sah atau tidak — termasuk aturan bahwa di Strict rasio
+ * WAJIB habis 100% (uang tidak boleh menganggur di Unsorted saat anak tidak boleh menyortir).
+ */
+export async function saveMoneyRules(formData: FormData): Promise<void> {
+  const childId = String(formData.get('child') ?? '');
+  const mode = String(formData.get('mode') ?? '') as RuleMode;
+
+  const data = await getParentData();
+  const child = data.children.find((c) => c.id === childId);
+  if (!child || (mode !== 'flexible' && mode !== 'strict')) redirect('/');
+
+  const ratios: Partial<Record<Category, number>> = {};
+  for (const category of CATEGORIES) {
+    const raw = formData.get(`ratio_${category}`);
+    if (raw !== null) {
+      const n = Number(raw);
+      if (Number.isFinite(n) && n > 0) ratios[category] = Math.round(n);
+    }
+  }
+
+  const next: MoneyRules = {
+    childId: child.id,
+    mode,
+    autoSplit: { ...child.rules.autoSplit, ratios },
+  };
+
+  const check = validateAutoSplit(next);
+  const back = `/rules?child=${childId}`;
+  if (!check.ok) redirect(`${back}&e=${check.errorKey ?? 'failed'}`);
+
+  const { error } = await serviceClient().from('money_rules')
+    .update({
+      mode: next.mode,
+      auto_split_enabled: next.autoSplit.enabled,
+      ratios,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('child_id', child.id);
+
+  if (error) {
+    console.error('saveMoneyRules gagal:', error.message);
+    redirect(`${back}&e=failed`);
+  }
+
+  revalidatePath('/rules');
+  revalidateAll();
+  redirect(`${back}&saved=1`);
+}
+
+/**
+ * Add a child — satu langkah ortu, empat penulisan yang harus jadi atau gagal bersama.
+ *
+ * Anak tanpa wallet awal adalah anak yang tidak bisa menerima uang. Anak tanpa `money_rules`
+ * membuat layar Sort-nya kosong. Anak tanpa `child_economy` membuat layar Me-nya pecah. Ketiganya
+ * bukan "nanti diisi" — mereka bagian dari apa artinya seorang anak ada di sistem ini.
+ *
+ * PIN wajib unik dalam keluarga (ADR-0012 §A2), dan itu TIDAK bisa dijaga constraint karena
+ * bcrypt memberi salt berbeda tiap baris. Diperiksa `family_pin_taken()` sebelum menulis.
+ */
+export async function addChild(formData: FormData): Promise<void> {
+  const name = String(formData.get('name') ?? '').trim();
+  const birthMonth = Number(formData.get('month') ?? 0);
+  const birthYear = Number(formData.get('year') ?? 0);
+  const tier = String(formData.get('tier') ?? 'middle') as Tier;
+  const pin = String(formData.get('pin') ?? '').trim();
+
+  const data = await getParentData();
+  const db = serviceClient();
+
+  const q = new URLSearchParams({ name, month: String(birthMonth), year: String(birthYear), tier });
+  const back = `/children/new?${q.toString()}`;
+
+  // Keluarga si ortu — dibaca SETELAH identitasnya terbukti dari token, bukan dari input.
+  const { data: me } = await db.from('parents')
+    .select('family_id').eq('id', data.parentId).maybeSingle();
+  if (!me) redirect('/login');
+
+  // PIN kembar bikin login "kode keluarga + PIN" tidak punya jawaban tunggal (ADR-0012 §A1),
+  // dan keunikannya tidak bisa dijaga constraint karena salt bcrypt berbeda tiap baris.
+  const { data: taken } = await db.rpc('family_pin_taken', {
+    p_family_id: me.family_id, p_pin: pin,
+  });
+
+  const check = validateChild(
+    { name, birthMonth, birthYear, tier, pin },
+    data.today,
+    { pinTakenInFamily: taken === true },
+  );
+  if (!check.ok) redirect(`${back}&e=${check.errorKey ?? 'failed'}`);
+
+  // SATU panggilan, satu transaksi: anak + wallet awal + money_rules + child_economy.
+  // Kalau salah satu gagal, tidak ada anak setengah jadi yang tertinggal (migrasi 0012).
+  // `STARTER_WALLETS` dikirim dari core supaya daftar itu tidak punya rumah kedua di SQL.
+  const { data: childId, error } = await db.rpc('create_child', {
+    p_family_id: me.family_id,
+    p_name: name,
+    p_birth_month: birthMonth,
+    p_birth_year: birthYear,
+    p_tier: tier,
+    p_pin: pin,
+    p_wallets: STARTER_WALLETS,
+  });
+
+  if (error || !childId) {
+    console.error('addChild gagal:', error?.message);
+    redirect(`${back}&e=failed`);
+  }
+
+  revalidateAll();
+  redirect(`/?child=${childId}&added=1`);
 }
