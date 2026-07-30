@@ -253,8 +253,8 @@ Rinciannya di [ADR-0012 §A3](decisions/0012-auth-anak-kode-keluarga-pin.md).
 | # | Hal | Kenapa memblokir |
 |---|---|---|
 | ~~1~~ | ~~**Layar login anak**~~ | ✅ **selesai 29 Juli 2026.** Anak masuk dengan kode keluarga + PIN, token di cookie httpOnly, dan Home/Wallets/Sort/Requests membaca database. Diuji ujung ke ujung dari browser, termasuk token palsu dan PIN salah |
-| 2 | Belum ada baris `parents` | `parents.id` mereferensi `auth.users`, jadi ortu harus mendaftar lewat Supabase Auth dulu. Perintah penautannya di kaki `seed.sql` |
-| 3 | Ketiga app belum menyentuh Supabase | `apps/kid`, `apps/parent`, `apps/console` masih membaca `lib/data.ts`. Semua flow tetap berhenti di "menunggu orang tua" sampai ini dikerjakan |
+| ~~2~~ | ~~Belum ada baris `parents`~~ | ✅ **selesai 30 Juli 2026.** Ortu pertama ("Ayah", primary) tertaut ke `NUMMI1` lewat Admin API. **RLS sisi ortu akhirnya diuji dengan baris nyata** — jalur yang dulu rekursif fatal sebelum 0004: 1 anak, 11 wallet, 11 saldo, 4 request, total 484.711. Ortu asing melihat nol; token anak melihat wallet-nya sendiri tapi **nol baris ortu** |
+| 3 | **App ortu belum menyentuh Supabase** | `apps/kid` sudah membaca DAN menulis. `apps/parent` + `apps/console` masih 100% `lib/data.ts`. Akibatnya **4 request menggantung tanpa siapa pun yang bisa menyetujuinya** — siklus uang belum bisa tutup. Ini pekerjaan berikutnya, dan tidak ada lagi yang memblokirnya |
 | ~~4~~ | ~~**Jalur tulis anak**~~ | ✅ **selesai 29 Juli 2026** — Sort menulis sungguhan dari app: Unsorted 50.000 → 0, Spend +20k, Save +20k, Give +10k, total tetap **484.711**, I1 tegak, nol orphan. Ketiga baris ber-`created_at` identik = satu pernyataan, atomik |
 | ~~5~~ | ~~**Sort ganda**~~ | ✅ **selesai 29 Juli 2026 (migrasi 0010).** Dua klik bersamaan diuji sungguhan: satu lolos, satu ditolak, tepat 3 baris tertulis (bukan 6), Unsorted 0 bukan −50.000. Saldo negatif berhenti jadi laporan, jadi kemustahilan |
 | 6 | Penghapusan data masih mustahil | trigger append-only membatalkan `delete from families`. Janji privasi belum bisa dipenuhi — butuh keputusan produk karena menyentuh ADR-0014 (`supabase/README.md`) |

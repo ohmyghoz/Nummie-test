@@ -74,8 +74,13 @@ constraint (salt bcrypt berbeda tiap baris), jadi penegakannya di waktu tulis le
 **App anak sudah tersambung** — membaca (Home/Wallets/Sort/Requests) dan **menulis** (Sort).
 Saldo di atas kini bergerak karena anak sungguhan menekan tombol, bukan karena seed.
 
-Yang **belum**: belum ada baris di `parents` (ortu harus daftar lewat Supabase Auth dulu — perintah
-penautannya ada di kaki `seed.sql`), dan `apps/parent` + `apps/console` masih membaca `lib/data.ts`.
+**Ortu pertama sudah tertaut** (30 Juli 2026): akun Auth dibuat lewat Admin API, lalu disisipkan
+ke `parents` sebagai "Ayah" primary di `NUMMI1`. RLS sisi ortu diuji dengan baris nyata — 1 anak,
+11 wallet, 11 saldo, total 484.711; ortu asing nol; **token anak melihat nol baris ortu** (policy
+`parents_read_child_blocked`).
+
+Yang **belum**: `apps/parent` + `apps/console` masih membaca `lib/data.ts`, jadi request yang
+diajukan anak belum bisa disetujui siapa pun.
 
 ## Tentang JWT: project ini pakai kunci asimetris, tapi login anak masih HS256
 

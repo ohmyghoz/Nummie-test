@@ -202,8 +202,10 @@ Database berdiri, terisi seed kanonik, isolasi RLS diuji per-role, dan login ana
   satu permintaan. **Setiap policy INSERT harus diuji dengan mencoba menyalahgunakannya**, bukan
   dengan membaca ulang kalimatnya. Klien + `.env`, lalu `lib/data.ts` ditukar query nyata
   permukaan demi permukaan. Ini pekerjaan S2/S3 yang sebenarnya, bukan permukaan baru.
-- **U-3 · Tautkan ortu pertama.** `parents.id` mereferensi `auth.users` → ortu daftar lewat Auth
-  dulu; perintahnya sudah ada di kaki `seed.sql`.
+- ~~**U-3 · Tautkan ortu pertama.**~~ ✅ **selesai 30 Juli 2026.** Akun dibuat lewat Admin API
+  (bukan dashboard — service key sudah ada di mesin, jadi `POST /auth/v1/admin/users` cukup),
+  lalu ditautkan sebagai "Ayah" primary di `NUMMI1`. Sekaligus jadi uji pertama RLS sisi ortu
+  dengan baris `parents` yang nyata: jalur yang dulu `stack depth limit exceeded` sebelum 0004.
 - **U-4 · Penghapusan data (privasi).** `delete from families` mustahil karena trigger append-only.
   **Butuh keputusan produk, bukan tambalan** — menyentuh ADR-0014. Usulan paling ringan (purge yang
   harus dinyalakan sadar per-transaksi) ada di `supabase/README.md`.
