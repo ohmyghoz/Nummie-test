@@ -159,7 +159,7 @@ export default async function SettingsPage({
             <input type="hidden" name="child" value={child.id} />
             {([['m3', 3], ['m6', 6], ['m12', 12]] as const).map(([key, months]) => (
               <div className="row" key={key}>
-                <span className="nm">{months} months</span>
+                <span className="nm">{fill(dict.settings.months, { n: months })}</span>
                 <input
                   className="field" type="text" inputMode="decimal" name={key}
                   defaultValue={rates[key]}

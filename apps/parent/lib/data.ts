@@ -62,6 +62,12 @@ export interface ChildView {
   pockets: Record<Pocket, number>;
   balances: Record<string, number>;
   wallets: Wallet[];
+  /**
+   * Ledger anak ini, apa adanya. Layar Transactions dulu memakai `SEED_LEDGER` statis dari core
+   * sementara Dashboard di sesi yang sama sudah membaca database — dua angka untuk satu hal,
+   * kelas bug yang persis dibunuh oleh keberadaan satu sumber kebenaran.
+   */
+  ledger: LedgerEntry[];
   requests: MoneyRequest[];
   /** menunggu keputusan ortu */
   openRequests: MoneyRequest[];
@@ -281,6 +287,7 @@ export async function getParentData(): Promise<ParentData> {
       pockets: pocketBalances(ledger, wallets),
       balances: byWallet,
       wallets,
+      ledger,
       requests,
       openRequests: requests.filter(
         (r) => r.status === 'needs_ok' || r.status === 'talk_about_it',

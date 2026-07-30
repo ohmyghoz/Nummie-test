@@ -1,5 +1,5 @@
 import {
-  DATE_RANGES, SEED_LEDGER, filterByRange, formatRp, summarise, txnRows,
+  DATE_RANGES, filterByRange, formatRp, summarise, txnRows,
   type DateRange, type LedgerEntry,
 } from '@nummi/core';
 import { findChild, getParentData } from '../../lib/data';
@@ -17,7 +17,7 @@ const REASON_LABEL: Record<LedgerEntry['reason'], string> = {
   reward_money: dict.sendSource.prize,
   sort: dict.sort.title,
   move: dict.move.title,
-  cash_out: 'Cash out',
+  cash_out: dict.requestKind.cash_out,
   grow_in: dict.grow.title,
   harvest: dict.grow.harvest,
   give_away: dict.give.giveItAway,
@@ -35,7 +35,9 @@ export default async function TransactionsPage({
     ? (sp.range as DateRange)
     : 'all';
 
-  const entries = filterByRange(SEED_LEDGER, range, data.today);
+  // Ledger anak yang sedang dilihat, dari database — bukan `SEED_LEDGER` statis. Sebelum ini
+  // Dashboard dan Transactions bisa menampilkan dua angka berbeda di sesi yang sama.
+  const entries = filterByRange(child.ledger, range, data.today);
   const summary = summarise(entries);
   const rows = txnRows(entries, child.wallets);
 

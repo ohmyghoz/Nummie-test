@@ -25,6 +25,10 @@ export const id: Dictionary = {
     tagline: 'Uang kecil, kebiasaan besar.',
     positioning:
       'Nummi adalah aplikasi Parent as Banking untuk anak belajar memakai, menyimpan, berbagi dan mengelola uangnya.',
+    kidApp: 'Nummi',
+    kidAppShort: 'Nummi',
+    parentApp: 'Nummi — untuk orang tua',
+    parentAppShort: 'Nummi Ortu',
   },
 
   category: { little: CATEGORY_ID, middle: CATEGORY_ID, teen: CATEGORY_ID },
@@ -270,6 +274,15 @@ export const id: Dictionary = {
     growProtected: 'Bertumbuh hanya keluar lewat Harvest',
   },
 
+  requestKind: {
+    cash_out: 'Tarik uang',
+    give_away: 'Berbagi',
+    prize: 'Hadiah',
+    mission_claim: 'Misi',
+    grow_in: 'Bertumbuh',
+    harvest: 'Panen',
+  },
+
   settings: {
     title: 'Pengaturan',
     allowance: 'Jadwal uang saku',
@@ -305,6 +318,7 @@ export const id: Dictionary = {
     ratesTooHigh: 'Bunga itu sepertinya salah ketik',
     save: 'Simpan',
     saved: 'Tersimpan. Anakmu sudah melihatnya.',
+    months: '{n} bulan',
   },
 
   addChild: {
@@ -328,6 +342,10 @@ export const id: Dictionary = {
     pinLength: 'PIN harus {length} digit',
     pinDigitsOnly: 'Angka saja',
     pinTaken: 'PIN ini sudah dipakai anggota keluarga lain. Pilih yang lain.',
+    tierOnly: 'Uji awal ini untuk satu kelompok usia: {tier}, umur {min}–{max}.',
+    tierOutsideScope:
+      'Sekadar info: {name} di luar umur {min}–{max} yang jadi acuan uji ini. Kamu tetap bisa lanjut.',
+    tierUnavailable: 'Kelompok usia itu belum dibuka di uji ini.',
   },
 
   jobs: {

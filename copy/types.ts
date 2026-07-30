@@ -12,7 +12,16 @@ export type CategoryTerms = Record<Pocket, string>;
  * sebagai galat tipe — bukan sebagai layar berbahasa Inggris yang lolos ke tangan anak.
  */
 export interface Dictionary {
-  brand: { name: string; tagline: string; positioning: string };
+  /**
+   * `*App` / `*AppShort` dipakai judul halaman DAN manifest PWA (ADR-0019). `short` adalah yang
+   * muncul di bawah ikon Home Screen — iOS memotong sekitar 12 karakter, jadi ia sengaja terpisah
+   * dan bukan hasil truncate otomatis.
+   */
+  brand: {
+    name: string; tagline: string; positioning: string;
+    kidApp: string; kidAppShort: string;
+    parentApp: string; parentAppShort: string;
+  };
 
   /**
    * Lookup [tier][category]. D2 sudah dijawab: istilahnya **sama untuk ketiga tier**
@@ -138,6 +147,17 @@ export interface Dictionary {
 
   takeLock: Record<'dreamProtected' | 'giveProtected' | 'growProtected', string>;
 
+  /**
+   * Label lima jalur approval inbox + Grow. Dulu ditulis mati sebagai `KIND_LABEL` di
+   * `apps/parent/app/requests/page.tsx` — satu-satunya peta label di app ortu yang melewati kamus.
+   * Kuncinya sengaja sama persis dengan `MoneyRequest['kind']` di core, jadi jalur baru tidak bisa
+   * ditambahkan tanpa memberinya nama di sini.
+   */
+  requestKind: Record<
+    'cash_out' | 'give_away' | 'prize' | 'mission_claim' | 'grow_in' | 'harvest',
+    string
+  >;
+
   settings: Record<
     'title' | 'allowance' | 'rates' | 'prices' | 'investments'
     | 'allowanceOn' | 'allowanceOff' | 'amount' | 'frequency' | 'day' | 'nextDates'
@@ -146,7 +166,7 @@ export interface Dictionary {
     | 'pricesTitle' | 'goldSell' | 'goldBuyback' | 'spread' | 'fx' | 'pricesFrom'
     | 'investmentsTitle' | 'matured' | 'daysLeft' | 'startedOn' | 'placeholderDates'
     | 'amountRequired' | 'dayOutOfRange' | 'ratesNegative' | 'ratesTooHigh'
-    | 'save' | 'saved',
+    | 'save' | 'saved' | 'months',
     string
   >;
 
@@ -154,7 +174,10 @@ export interface Dictionary {
     'title' | 'name' | 'birth' | 'month' | 'year' | 'tier' | 'tierSuggested' | 'tierOverride'
     | 'pin' | 'pinHint' | 'privacy' | 'submit' | 'starterWallets' | 'created'
     | 'nameRequired' | 'birthMonthInvalid' | 'birthYearInvalid' | 'pinLength' | 'pinDigitsOnly'
-    | 'pinTaken',
+    | 'pinTaken'
+    // Cakupan MVP — ADR-0020 (D5). `tierOnly` menggantikan pilihan tier selama hanya satu tersedia;
+    // `tierOutsideScope` memberi tahu, TIDAK menghalangi (catatan 2 `onboarding.ts`).
+    | 'tierOnly' | 'tierOutsideScope' | 'tierUnavailable',
     string
   >;
 

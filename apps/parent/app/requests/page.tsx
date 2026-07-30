@@ -6,10 +6,9 @@ import {
   approveRequest, declineRequest, markRequestDone, talkAboutRequest,
 } from '../../lib/actions';
 
-const KIND_LABEL: Record<MoneyRequest['kind'], string> = {
-  cash_out: 'Cash out', give_away: 'Giving', prize: 'Prize',
-  mission_claim: 'Mission', grow_in: 'Grow', harvest: 'Harvest',
-};
+// Lewat kamus, bukan teks mati (aturan copy CLAUDE.md). Tipenya tetap dikunci ke
+// `MoneyRequest['kind']` supaya jalur keenam tidak bisa lahir tanpa label.
+const KIND_LABEL: Record<MoneyRequest['kind'], string> = dict.requestKind;
 
 /**
  * Approval inbox lima jalur — layar tempat siklus uang benar-benar ditutup.

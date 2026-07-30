@@ -19,9 +19,15 @@ const CATEGORY_EN = {
 export const en: Dictionary = {
   brand: {
     name: 'Nummi',
-    tagline: 'Uang kecil, kebiasaan besar.',
+    // Padanan Inggris dari "Uang kecil, kebiasaan besar." — bukan terjemahan harfiah, karena yang
+    // ditiru adalah bentuknya: dua frasa pendek, kontras kecil↔besar, tanpa kata kerja.
+    tagline: 'Small money, big habits.',
     positioning:
-      'Nummi adalah aplikasi Parent as Banking untuk anak belajar memakai, menyimpan, berbagi dan mengelola uangnya.',
+      'Nummi is Parent as Banking — where children learn to spend, save, give, and grow their own money.',
+    kidApp: 'Nummi',
+    kidAppShort: 'Nummi',
+    parentApp: 'Nummi — for grown-ups',
+    parentAppShort: 'Nummi Parent',
   },
 
   // Sama untuk ketiga tier — DIPUTUSKAN (ADR-0017), bukan lagi keadaan sementara.
@@ -275,6 +281,16 @@ export const en: Dictionary = {
     growProtected: 'Grow only leaves through Harvest',
   },
 
+  // Kunci = `MoneyRequest['kind']` di core. Jalur baru tidak bisa lahir tanpa nama di sini.
+  requestKind: {
+    cash_out: 'Cash out',
+    give_away: 'Giving',
+    prize: 'Prize',
+    mission_claim: 'Mission',
+    grow_in: 'Grow',
+    harvest: 'Harvest',
+  },
+
   settings: {
     title: 'Settings',
     allowance: 'Allowance schedule',
@@ -312,6 +328,7 @@ export const en: Dictionary = {
     ratesTooHigh: 'That rate looks like a typo',
     save: 'Save',
     saved: 'Saved. Your child sees this now.',
+    months: '{n} months',
   },
 
   addChild: {
@@ -338,6 +355,13 @@ export const en: Dictionary = {
     // Tidak menyebut anak yang mana: ortu tahu keluarganya sendiri, dan menyebut nama membuat
     // pesan ini jadi cara memancing siapa saja yang ada di keluarga itu.
     pinTaken: 'Someone in the family already uses this PIN. Pick another.',
+    // ADR-0020: selama hanya satu tier tersedia, tidak ada yang perlu dipilih — jadi jangan
+    // menampilkan pilihan palsu. Ini pernyataan cakupan, bukan pertanyaan.
+    tierOnly: 'This early test runs one age group: {tier}, ages {min}–{max}.',
+    // Memberi tahu, bukan menghalangi. Tidak ada "yakin?" — lihat catatan 2 di `onboarding.ts`.
+    tierOutsideScope:
+      'Heads up: {name} is outside {min}–{max}, the ages this test was built around. You can still continue.',
+    tierUnavailable: 'That age group is not open in this test yet.',
   },
 
   jobs: {
