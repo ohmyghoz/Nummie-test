@@ -1,6 +1,6 @@
 # ADR-0010 — iOS pasar utama, Apple IAP wajib, entitlement 4 tabel
 
-**Status:** 🔒 terkunci untuk jalur & arsitektur · ⏳ **harga belum final (D3)**
+**Status:** 🔒 terkunci untuk jalur & arsitektur · ✅ **harga final 30 Juli 2026** ([ADR-0018](0018-harga-sekali-bayar.md))
 
 ## Keputusan
 - **iOS adalah pasar utama.** Ini membalik asumsi awal dan mempengaruhi semua keputusan monetisasi.
@@ -30,10 +30,16 @@ Empat tabel — `entitlements`, `iap_receipts`, `schools`, `school_members` — 
 `premium-setting.md` §8 masih menulis *"QRIS/GoPay/transfer via checkout web bukan opsional"*.
 Untuk iOS itu **sudah tidak berlaku**. Dicatat sebagai K9.
 
-## ⚠️ Yang masih terbuka (D3)
-`premium-setting.md` mengunci one-time Rp399.000. Risiko struktural sekali-bayar (pendapatan sekali,
-kewajiban seumur pemakaian) sudah teridentifikasi; usulan model hibrida (slot founding-member seumur
-hidup terbatas → langganan) **belum diputuskan**.
+## ~~⚠️ Yang masih terbuka (D3)~~ ✅ ditutup
+**Sekali bayar Rp399.000** — [ADR-0018](0018-harga-sekali-bayar.md). Empat model dipertimbangkan;
+yang menentukan bukan angkanya melainkan bahwa *"Rp3.700 sebulan sampai Grade 9"* adalah satu-satunya
+klaim yang langganan **secara struktural tidak bisa mengucapkannya**, ditambah nol churn/dunning
+untuk founder yang bekerja akhir pekan.
+
+Risiko yang diterima sadar, dan dicatat di ADR-nya: kewajiban ~10 tahun dari satu kali bayar, serta
+**ketidakadilan antar keluarga** (KG B dapat 10 tahun, Grade 8 dapat 1,5 tahun, harga sama). Jalan
+keluarnya kalau terbukti menyakitkan adalah sekali-bayar **per tahap**, yang berarti menambah produk
+IAP — bukan mengubah model.
 
 ## Catatan silang dengan ADR-0013
 Kalau D4 nanti jatuh ke PWA, seluruh bab ini berubah bentuk: tanpa app store, tanpa potongan 15%,

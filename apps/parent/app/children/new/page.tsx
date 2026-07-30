@@ -5,6 +5,7 @@ import {
 import { getParentData } from '../../../lib/data';
 import { dict, fill } from '../../../lib/copy';
 import { Nav, TopBar } from '../../../components/ui';
+import { Upsell } from '../../../components/upsell';
 import { addChild } from '../../../lib/actions';
 
 const TIERS: Tier[] = ['little', 'middle', 'teen'];
@@ -103,7 +104,12 @@ export default async function AddChildPage({
           </button>
         </form>
 
-        {sp.e && (
+        {/* Upsell menggantikan pesan galat saat yang menabrak adalah BATAS, bukan kesalahan
+            input — "gagal" dan "belum dibuka" adalah dua hal yang berbeda bagi ortu. */}
+        {sp.e === 'limit.maxChildren' && (
+          <Upsell reason="maxChildren" plan={data.plan} isSchool={data.isSchool} />
+        )}
+        {sp.e && sp.e !== 'limit.maxChildren' && (
           <div className="errbox" style={{ marginTop: 12 }}>
             {ERROR_COPY[sp.e] ?? dict.parent.decisionFailed}
           </div>

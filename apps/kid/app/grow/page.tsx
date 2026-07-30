@@ -3,6 +3,7 @@ import {
   tdHarvestOutcome, tenorRate,
   type HarvestChoice, type Tenor,
 } from '@nummi/core';
+import { notFound } from 'next/navigation';
 import { getKidData } from '../../lib/data';
 import { dict, fill } from '../../lib/copy';
 import { Brand, Nav, POCKET_COLOR } from '../../components/ui';
@@ -32,6 +33,13 @@ export default async function GrowPage({
   const sp = await searchParams;
   const { harvest } = sp;
   const data = await getKidData();
+
+  /*
+   * Menyembunyikan tautan tidak cukup — anak yang mengetik /grow harus tetap tidak menemukannya
+   * (C1). `notFound()` dan bukan pesan "khusus Pro": pesan itu sendiri adalah gembok, dan gembok
+   * di app anak dilarang.
+   */
+  if (!data.can.grow) notFound();
   const target = data.grow.find((g) => g.wallet.id === harvest);
 
   /* ── Mode ketiga: mendanai instrumen (U-14) ────────────────────────────────

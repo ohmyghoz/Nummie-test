@@ -186,6 +186,23 @@ export const id: Dictionary = {
     talkAboutIt: '{child} sedang di Bab {n} — bagus untuk ditanyakan saat makan malam.',
   },
 
+  upsell: {
+    title: 'Nummi Pro',
+    price: '{amount}',
+    framing: 'Sekali bayar. Dari KG B sampai Grade 9.',
+    perMonth: 'Sekitar {amount} sebulan — di bawah jajan sekali.',
+    cta: 'Buka Pro',
+    notNow: 'Nanti saja',
+    maxChildren: 'Free untuk satu anak. Pro sampai empat, dengan harga yang sama.',
+    maxActiveJobs: 'Free menjalankan {n} kerjaan. Pro tanpa batas.',
+    maxPrizes: 'Free menyimpan {n} hadiah. Pro tanpa batas.',
+    maxDreams: 'Free menyimpan satu impian sekaligus. Pro tanpa batas.',
+    strictFlexibleDial: 'Mode Ketat bagian dari Pro. Aturan proteksinya tetap gratis.',
+    autoSplitEditor: 'Mengubah pembagian bagian dari Pro. Default 40/40/20 tetap gratis.',
+    grow: 'Deposito, emas, dan valas bagian dari Pro. Bunga tabungan tetap gratis.',
+    report: 'Rapor Literasi Finansial bagian dari Pro.',
+  },
+
   parent: {
     dashboard: 'Beranda',
     inbox: 'Permintaan',

@@ -31,7 +31,7 @@ import { redirect } from 'next/navigation';
 import {
   CATEGORIES,
   approve, decline, markDone, postsLedgerOn, talkAboutIt, tdHarvestOutcome, tenorRate,
-  STARTER_WALLETS, nextAllowanceDates, validateAllowance, validateAutoSplit, validateBankRates,
+  STARTER_WALLETS, canAdd, nextAllowanceDates, validateAllowance, validateAutoSplit, validateBankRates,
   validateChild, validateJob, validatePrize, validateSend, validateTake,
   type AllowanceFrequency, type AllowanceSchedule, type JobKind, type Prices,
   type RewardKind, type Tenor,
@@ -509,6 +509,17 @@ export async function saveMoneyRules(formData: FormData): Promise<void> {
   const child = data.children.find((c) => c.id === childId);
   if (!child || (mode !== 'flexible' && mode !== 'strict')) redirect('/');
 
+  /*
+   * Strict/Flexible dan editor rasio keduanya Pro (premium-setting §2).
+   *
+   * Diperiksa DI SINI, bukan cuma dengan menyembunyikan form: layar bisa berubah, yang menentukan
+   * adalah apa yang boleh masuk database. Aturan proteksi DEFAULT tetap gratis — yang Pro adalah
+   * kemampuan mengubahnya.
+   */
+  if (!data.limits.strictFlexibleDial && mode !== child.rules.mode) {
+    redirect(`/rules?child=${childId}&e=limit.strictFlexibleDial`);
+  }
+
   const ratios: Partial<Record<Category, number>> = {};
   for (const category of CATEGORIES) {
     const raw = formData.get(`ratio_${category}`);
@@ -516,6 +527,13 @@ export async function saveMoneyRules(formData: FormData): Promise<void> {
       const n = Number(raw);
       if (Number.isFinite(n) && n > 0) ratios[category] = Math.round(n);
     }
+  }
+
+  const ratiosChanged = CATEGORIES.some(
+    (c) => (ratios[c] ?? 0) !== (child.rules.autoSplit.ratios[c] ?? 0),
+  );
+  if (!data.limits.autoSplitEditor && ratiosChanged) {
+    redirect(`/rules?child=${childId}&e=limit.autoSplitEditor`);
   }
 
   const next: MoneyRules = {
@@ -569,6 +587,15 @@ export async function addChild(formData: FormData): Promise<void> {
 
   const q = new URLSearchParams({ name, month: String(birthMonth), year: String(birthYear), tier });
   const back = `/children/new?${q.toString()}`;
+
+  /*
+   * Kuota Free (premium-setting §3). Aturannya: **tampilkan upsell, jangan gagal diam-diam** (§8).
+   * Karena itu `e=limit.maxChildren`, bukan sekadar `failed` — layar yang menerimanya tahu harus
+   * menjelaskan apa yang dibatasi, bukan cuma bahwa sesuatu gagal.
+   */
+  if (!canAdd(data.plan, 'maxChildren', data.children.length)) {
+    redirect(`${back}&e=limit.maxChildren`);
+  }
 
   // Keluarga si ortu — dibaca SETELAH identitasnya terbukti dari token, bukan dari input.
   const { data: me } = await db.from('parents')
@@ -731,6 +758,19 @@ export async function createJob(formData: FormData): Promise<void> {
   const q = new URLSearchParams({ child: childId, kind, title, reward, amount: String(amount) });
   const back = `/jobs?${q.toString()}`;
 
+  /*
+   * DUA batas berbeda, dan bedanya penting:
+   *   maxActiveJobs      → berapa BANYAK (Free: 3)
+   *   customJobBuilder   → boleh membuat SENDIRI atau hanya memakai template (Free: tidak)
+   *
+   * Yang kedua belum bisa ditegakkan sungguhan: template kurasi belum ada, jadi melarangnya
+   * sekarang akan membuat Jobs mati total di Free — bukan dibatasi, tapi hilang. Dicatat di
+   * backlog, tidak dipalsukan di sini.
+   */
+  if (!canAdd(data.plan, 'maxActiveJobs', child.jobs.length)) {
+    redirect(`${back}&e=limit.maxActiveJobs`);
+  }
+
   // `validateJob` yang menegakkan ADR-0004: kontribusi keluarga tidak boleh dibayar uang.
   // Diperiksa ulang di sini, bukan cuma dipakai merender form.
   const check = validateJob({ kind, title, reward, amount });
@@ -765,6 +805,10 @@ export async function createPrize(formData: FormData): Promise<void> {
 
   const q = new URLSearchParams({ child: childId, prize: title, cost: String(gemCost) });
   const back = `/jobs?${q.toString()}`;
+
+  if (!canAdd(data.plan, 'maxPrizes', child.prizes.length)) {
+    redirect(`${back}&e=limit.maxPrizes`);
+  }
 
   const check = validatePrize({ title, gemCost });
   if (!check.ok) redirect(`${back}&e=${check.errorKey ?? 'failed'}`);

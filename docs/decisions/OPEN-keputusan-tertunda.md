@@ -1,4 +1,4 @@
-# Keputusan yang MASIH TERBUKA (D3–D5)
+# Keputusan yang MASIH TERBUKA (D4–D5)
 
 **Jangan menjawab salah satu dari ini lewat kode.** Kalau sebuah tugas memaksanya, hentikan dan tanyakan.
 
@@ -36,12 +36,20 @@ mati — ketiga nilainya identik, tapi bentuknya yang menjaga keputusan ini mura
 
 ---
 
-## D3 — Model harga
+## ~~D3 — Model harga~~ ✅ DIPUTUSKAN
 
-`premium-setting.md` mengunci one-time Rp399.000. Risiko struktural sekali-bayar sudah
-teridentifikasi; usulan model hibrida (founding-member seumur hidup terbatas → langganan) belum final.
+**Sekali bayar Rp399.000.** Lihat [ADR-0018](0018-harga-sekali-bayar.md).
 
-**Aturan sementara:** resolver `isPro()` sudah ada dan dipakai; bentuk paywall belum dibangun.
+`LIMITS` di `premium-setting.md` §3 sekarang jadi kode (`packages/core/src/plan.ts`) dan
+**ditegakkan** — sebelum ini `isPro()` tidak pernah dipanggil satu app pun.
+
+**Ditinjau ulang kalau** biaya marjinal per keluarga berhenti mendekati nol · keluarga yang masuk
+terlambat terbukti menolak harganya · atau **D4 jatuh ke PWA** (tanpa potongan 15%, QRIS kembali
+mungkin).
+
+**Yang BELUM dibangun, dan sengaja tidak dipalsukan:** pembelian sungguhan. Apple IAP butuh app
+native, dan D4 belum dijawab — jadi tombol "Buka Pro" belum menjanjikan apa pun. Checkout palsu di
+prototipe uji akan mengajari kesimpulan yang salah tentang minat membeli.
 
 ---
 

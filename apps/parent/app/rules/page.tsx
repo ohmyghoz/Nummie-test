@@ -5,6 +5,7 @@ import {
 import { findChild, getParentData } from '../../lib/data';
 import { categoryLabel, dict, fill } from '../../lib/copy';
 import { Nav, POCKET_COLOR, TopBar } from '../../components/ui';
+import { Upsell } from '../../components/upsell';
 import { saveMoneyRules } from '../../lib/actions';
 
 const RATIO_ERROR: Record<string, string> = {
@@ -44,7 +45,15 @@ export default async function RulesPage({
         <p className="sub" style={{ marginBottom: 12 }}>{dict.parent.enforcedOnKid}</p>
 
         {sp.saved && <p className="pill ok" style={{ display: 'inline-block', marginBottom: 10 }}>{dict.settings.saved}</p>}
-        {sp.e && <div className="errbox">{dict.parent.decisionFailed}</div>}
+        {sp.e === 'limit.strictFlexibleDial' && (
+          <Upsell reason="strictFlexibleDial" plan={data.plan} isSchool={data.isSchool} />
+        )}
+        {sp.e === 'limit.autoSplitEditor' && (
+          <Upsell reason="autoSplitEditor" plan={data.plan} isSchool={data.isSchool} />
+        )}
+        {sp.e && !sp.e.startsWith('limit.') && (
+          <div className="errbox">{dict.parent.decisionFailed}</div>
+        )}
 
         {/* Sampai 30 Juli 2026 mode cuma tautan `?mode=` yang mengubah PRATINJAU, dan rasio
             hanya dipajang tanpa satu pun input. Sekarang keduanya satu form yang tersimpan —

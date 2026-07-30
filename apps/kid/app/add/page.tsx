@@ -24,14 +24,20 @@ export default async function AddPage() {
       href: '/give', icon: '🎁', title: dict.give.giveItAway,
       sub: fill(dict.give.available, { amount: formatRp(data.giveBalance) }),
     },
-    { href: '/grow', icon: '🌱', title: dict.grow.title, sub: dict.grow.onlyWayOut },
+    /*
+     * C1/I3 — Grow TIDAK DIRENDER kalau tidak aktif. Bukan kartu dengan 🔒, bukan "upgrade untuk
+     * membuka": tidak ada. Sampai 30 Juli 2026 baris ini tanpa syarat, jadi keluarga Free pun
+     * melihat Grow penuh — keputusan "Grow = Pro" hidup hanya di premium-setting.md.
+     */
+    data.can.grow && { href: '/grow', icon: '🌱', title: dict.grow.title, sub: dict.grow.onlyWayOut },
     /*
      * Menanam, terpisah dari melihat Grow. Gerbangnya DUA syarat sekaligus (I3 — yang tidak bisa
      * dilakukan tidak dirender): harus ada instrumen yang siap menerima setoran, DAN harus ada
      * kantong yang isinya bisa didanakan. Anak yang semua kantongnya kosong tidak melihat pintu
      * yang cuma akan menolaknya.
      */
-    data.growInTargets.length > 0
+    data.can.grow
+      && data.growInTargets.length > 0
       && data.growInSources.some((w) => (data.balances[w.id] ?? 0) > 0) && {
       href: '/grow', icon: '🪴', title: dict.grow.addMoney, sub: dict.grow.needsGrownUp,
     },

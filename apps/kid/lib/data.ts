@@ -30,6 +30,7 @@ import {
   SEED_PRICES,
   availableJobs,
   bigPrizesUnlocked,
+  limitsFor,
   choresUnlocked,
   closedGiving,
   growPosition,
@@ -91,6 +92,15 @@ export interface KidData {
   growInSources: Wallet[];
   /** instrumen yang siap menerima setoran; deposito yang sedang berjalan tidak ikut (0014) */
   growInTargets: Wallet[];
+  /**
+   * KAPABILITAS yang aktif — bukan plan.
+   *
+   * App anak tidak pernah tahu keluarganya "Free" atau "Pro", dan itu disengaja (C1). Ia hanya
+   * tahu apa yang ada. Fitur yang tidak aktif **tidak dirender**; tidak ada gembok, tidak ada
+   * "upgrade untuk membuka". Produk ini mengajari anak menahan impuls konsumtif — memakai impuls
+   * anak untuk berjualan akan membunuh premisnya.
+   */
+  can: { grow: boolean };
   giveBalance: number;
   /** id wallet Give — dicari lewat `kind`, tidak pernah ditulis mati (id kini UUID) */
   giveWalletId: string;
@@ -121,7 +131,7 @@ export async function getKidData(mode?: RuleMode): Promise<KidData> {
   // Satu perjalanan, bukan enam berurutan. Kelimanya tidak saling bergantung.
   const [
     childRes, walletRes, ledgerRes, rulesRes, requestRes, economyRes,
-    gemRes, jobRes, prizeRes, ratesRes, pricesRes,
+    gemRes, proRes, jobRes, prizeRes, ratesRes, pricesRes,
   ] = await Promise.all([
     db.from('children').select('id, name, tier').limit(1).maybeSingle(),
     db.from('wallets').select('id, child_id, name, category, kind, target_amount, instrument, tenor_months, locked_rate_pct, started_at')
@@ -134,6 +144,12 @@ export async function getKidData(mode?: RuleMode): Promise<KidData> {
     db.from('child_economy').select('stars_balance, stars_lifetime').maybeSingle(),
     // 💎 diturunkan dari ledger-nya (0015), bukan dibaca dari penghitung — pola sama dengan uang.
     db.from('gem_balances').select('balance').maybeSingle(),
+    /*
+     * Resolver yang SAMA yang dipakai app ortu (ADR-0010). App anak memakainya untuk memutuskan
+     * apa yang DIRENDER, bukan untuk memasang gembok — C1: fitur yang tidak aktif tidak tampil,
+     * dan tidak ada `<ProLock/>` di app anak.
+     */
+    db.rpc('my_family_is_pro'),
     db.from('jobs').select('id, child_id, kind, title, reward, amount, frequency')
       .is('archived_at', null).order('created_at'),
     db.from('prizes').select('id, child_id, title, gem_cost')
@@ -265,6 +281,7 @@ export async function getKidData(mode?: RuleMode): Promise<KidData> {
     harvestTargets: harvestDestinations(wallets),
     growInSources: growInSources(wallets),
     growInTargets: growInTargets(wallets),
+    can: { grow: limitsFor(proRes.data === true ? 'pro' : 'free').grow },
     giveBalance: giveWallet ? byWallet[giveWallet.id] ?? 0 : 0,
     giveWalletId: giveWallet?.id ?? '',
     unsortedWalletId: unsortedWallet?.id ?? '',

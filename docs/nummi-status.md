@@ -152,9 +152,15 @@ dipertahankan walau ketiganya identik; itu yang menjaga keputusan ini murah diba
 > warna kategori sudah kamu kunci sebagai alat belajar yang tak pernah berubah — istilahnya sebaiknya
 > mengikuti logika yang sama, kalau tidak anak yang naik tier harus belajar ulang nama benda yang sama.
 
-**D3 — Model harga.** `premium-setting.md` masih mengunci one-time Rp399.000. Analisis berikutnya
-menandai risiko struktural pendapatan sekali-bayar terhadap kewajiban seumur hidup, dan mengusulkan
-model hibrida (slot founding-member seumur hidup terbatas → langganan). Belum final.
+**~~D3 — Model harga.~~ ✅ DIPUTUSKAN: sekali bayar Rp399.000**
+([ADR-0018](decisions/0018-harga-sekali-bayar.md)). Yang menentukan bukan angkanya, melainkan bahwa
+*"Rp3.700 sebulan sampai Grade 9"* adalah satu-satunya klaim yang langganan tidak bisa mengucapkannya
+— plus nol churn/dunning untuk founder yang bekerja akhir pekan. Dua risiko diterima sadar dan
+dicatat: kewajiban ~10 tahun dari satu kali bayar, dan **ketidakadilan antar keluarga**.
+
+Konsekuensi yang langsung: `LIMITS` berhenti jadi spec dan jadi `packages/core/src/plan.ts`, lalu
+**ditegakkan** — sebelum 30 Juli 2026 `isPro()` **tidak pernah dipanggil satu app pun**, jadi
+"Grow = Pro" dan C1/I3 hidup hanya di dokumen.
 
 **D4 — Distribusi.** Native/Expo vs PWA. Ini menghambat mulainya M1 dan belum terjawab.
 
@@ -184,7 +190,7 @@ Yang berlaku sekarang:
 - **Arsitektur entitlement**: empat tabel (`entitlements`, `iap_receipts`, `schools`, `school_members`)
   dengan satu resolver `isPro(user)`.
 
-Yang masih terbuka: **D3 (model harga)**.
+Yang masih terbuka: **D4 (distribusi)** — dan ia yang bisa mengubah seluruh bab ini.
 
 ---
 

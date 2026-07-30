@@ -164,6 +164,18 @@ Grow kini simulasi, tapi **harganya riil**. Mockup pakai harga statis + tombol d
 Database berdiri, terisi seed kanonik, isolasi RLS diuji per-role, dan login anak sudah hidup
 (`docs/nummi-status.md` §9). Yang tersisa, urut dari yang paling memblokir:
 
+- **U-16 · Entitlement ditegakkan, tapi tiga hal masih terbuka.** ADR-0018 menutup D3, dan `LIMITS`
+  sekarang benar-benar dijalankan. Sisanya:
+  1. **Pembelian sungguhan** — Apple IAP butuh app native (D4). Tombol "Buka Pro" sengaja belum
+     menjanjikan apa pun; checkout palsu di prototipe akan mengajari kesimpulan yang salah.
+  2. **`customJobBuilder` / `customPrizeBuilder` belum ditegakkan.** Free seharusnya hanya memakai
+     **template kurasi**, dan templatenya belum ada. Melarang builder sekarang membuat Jobs mati
+     total di Free — bukan dibatasi, tapi hilang. Butuh template dulu.
+  3. **`maxDreams` / `maxEnvelopes` belum ditegakkan** karena app anak belum bisa MEMBUAT dream atau
+     envelope sama sekali. Batas untuk aksi yang belum ada tidak perlu ditulis.
+  Yang sudah ditegakkan: `maxChildren`, `maxActiveJobs`, `maxPrizes`, `grow`, `strictFlexibleDial`,
+  `autoSplitEditor`, dan I5 (sekolah tidak pernah melihat tombol beli).
+
 - ~~**U-1 · Deploy `child-login`**~~ ✅ **selesai 29 Juli 2026.** v2 ACTIVE, diuji ujung ke ujung.
 - ~~**U-7 · Jalan masuk anak**~~ ✅ **selesai 29 Juli 2026 — opsi 2 dipilih**: kode keluarga + PIN
   saja, tanpa memilih anak lebih dulu. Ditolak: endpoint publik berisi nama anak (kode keluarga jadi

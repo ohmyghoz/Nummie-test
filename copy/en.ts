@@ -190,6 +190,23 @@ export const en: Dictionary = {
     talkAboutIt: '{child} is on Chapter {n} — a good thing to ask about at dinner.',
   },
 
+  upsell: {
+    title: 'Nummi Pro',
+    price: '{amount}',
+    framing: 'Pay once. From KG B to Grade 9.',
+    perMonth: 'About {amount} a month — less than one snack.',
+    cta: 'Unlock Pro',
+    notNow: 'Not now',
+    maxChildren: 'Free covers one child. Pro covers up to four, at the same price.',
+    maxActiveJobs: 'Free keeps {n} jobs running. Pro has no limit.',
+    maxPrizes: 'Free keeps {n} prize. Pro has no limit.',
+    maxDreams: 'Free keeps one dream at a time. Pro has no limit.',
+    strictFlexibleDial: 'Strict mode is part of Pro. The protection rules stay free.',
+    autoSplitEditor: 'Changing the split is part of Pro. The default 40/40/20 stays free.',
+    grow: 'Time Deposit, Gold and currencies are part of Pro. Interest on savings stays free.',
+    report: 'The Financial Literacy report is part of Pro.',
+  },
+
   parent: {
     dashboard: 'Dashboard',
     inbox: 'Requests',

@@ -23,6 +23,7 @@ import { redirect } from 'next/navigation';
 import {
   POCKETS,
   SEED_PRICES,
+  limitsFor,
   SEED_TD_START,
   SEED_TODAY,
   pocketBalances,
@@ -40,6 +41,8 @@ import {
   type Economy,
   type Job,
   type LedgerEntry,
+  type Plan,
+  type PlanLimits,
   type Prize,
   type RuleMode,
   type Tier,
@@ -86,6 +89,17 @@ export interface ChildView {
 export interface ParentData {
   parentId: string;
   parentName: string;
+  /**
+   * Plan keluarga (ADR-0018). Dibaca lewat resolver `is_pro()` di database, **bukan** dengan
+   * memeriksa tabel `entitlements` langsung — ADR-0010: "Semua permukaan memanggil resolver itu."
+   */
+  plan: Plan;
+  limits: PlanLimits;
+  /**
+   * Keluarga sekolah. I5: tombol upgrade **tidak pernah** tampil untuk mereka — sekolah
+   * diprovisikan sepenuhnya di luar app store, jadi tombol beli menyalahi jalur pengadaannya.
+   */
+  isSchool: boolean;
   children: ChildView[];
   prices: Prices;
   /** "hari ini" dari seed — pratinjau tanggal tidak boleh bergantung jam mesin */
@@ -106,7 +120,8 @@ export async function getParentData(): Promise<ParentData> {
 
   const [
     meRes, childRes, walletRes, ledgerRes, requestRes, rulesRes,
-    allowanceRes, ratesRes, jobRes, prizeRes, gemRes, economyRes, pricesRes,
+    allowanceRes, ratesRes, jobRes, prizeRes, gemRes, economyRes,
+    proRes, schoolRes, pricesRes,
   ] = await Promise.all([
     db.from('parents').select('id, display_name').limit(1).maybeSingle(),
     db.from('children').select('id, name, tier').order('created_at'),
@@ -128,6 +143,9 @@ export async function getParentData(): Promise<ParentData> {
       .is('archived_at', null).order('gem_cost'),
     db.from('gem_balances').select('child_id, balance'),
     db.from('child_economy').select('child_id, stars_balance, stars_lifetime'),
+    // SATU resolver, dipanggil semua permukaan (ADR-0010) — bukan `select` ke `entitlements`.
+    db.rpc('my_family_is_pro'),
+    db.from('school_members').select('family_id').limit(1),
     // Baris terbaru = harga hari ini. Riwayatnya tetap ada (price_date jadi PK di 0013), jadi
     // nilai lama anak masih bisa dijelaskan kalau harga berubah — syarat backlog T.
     db.from('daily_prices')
@@ -294,9 +312,14 @@ export async function getParentData(): Promise<ParentData> {
     };
   });
 
+  const plan: Plan = proRes.data === true ? 'pro' : 'free';
+
   return {
     parentId: meRes.data.id,
     parentName: meRes.data.display_name ?? 'Parent',
+    plan,
+    limits: limitsFor(plan),
+    isSchool: (schoolRes.data ?? []).length > 0,
     children,
     prices,
     today: SEED_TODAY,

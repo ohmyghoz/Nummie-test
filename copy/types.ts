@@ -101,6 +101,17 @@ export interface Dictionary {
     string
   >;
 
+  /**
+   * Upsell & paywall — **hanya app ortu** (C1). Setiap pesan menyebut apa yang dibuka, bukan apa
+   * yang terkunci: §8 menuntut "selalu tunjukkan value, jangan gagal diam-diam".
+   */
+  upsell: Record<
+    'title' | 'price' | 'framing' | 'perMonth' | 'cta' | 'notNow'
+    | 'maxChildren' | 'maxActiveJobs' | 'maxPrizes' | 'maxDreams'
+    | 'strictFlexibleDial' | 'autoSplitEditor' | 'grow' | 'report',
+    string
+  >;
+
   /** Sisi ortu (S3). Bahasa produk = Inggris, sama dengan app anak (ADR-0016). */
   parent: Record<
     'dashboard' | 'inbox' | 'send' | 'take' | 'rules' | 'noPending' | 'pendingCount'

@@ -134,7 +134,7 @@ mengimpor dari `apps/*`.
 |---|---|---|
 | ~~D1~~ | ~~Bahasa produk~~ | ✅ **diputuskan: Inggris** (ADR-0016) |
 | ~~D2~~ | ~~Tabel istilah kategori × tier~~ | ✅ **diputuskan: sama lintas tier** (ADR-0017) |
-| **D3** | Model harga | `isPro()` sudah ada; bentuk paywall belum dibangun |
+| ~~D3~~ | ~~Model harga~~ | ✅ **diputuskan: sekali bayar Rp399.000** (ADR-0018). `LIMITS` ditegakkan lewat `packages/core/src/plan.ts` |
 | **D4** | Distribusi (native/Expo vs PWA) | **web = prototipe validasi, BUKAN jawaban D4** |
 | **D5** | Little & Teen masuk MVP? | tier = feature flag, jangan hapus kodenya |
 

@@ -7,6 +7,7 @@ import {
 import { findChild, getParentData } from '../../lib/data';
 import { dict, fill } from '../../lib/copy';
 import { Nav, TopBar } from '../../components/ui';
+import { Upsell } from '../../components/upsell';
 import { archiveJob, archivePrize, createJob, createPrize } from '../../lib/actions';
 
 const KINDS: JobKind[] = ['family_contribution', 'extra_work', 'achievement'];
@@ -181,7 +182,13 @@ export default async function JobsPage({
         {sp.saved && (
           <p className="pill ok" style={{ display: 'inline-block' }}>{dict.settings.saved}</p>
         )}
-        {sp.e && !jobCheck && !prizeCheck && (
+        {sp.e === 'limit.maxActiveJobs' && (
+          <Upsell reason="maxActiveJobs" plan={data.plan} isSchool={data.isSchool} />
+        )}
+        {sp.e === 'limit.maxPrizes' && (
+          <Upsell reason="maxPrizes" plan={data.plan} isSchool={data.isSchool} />
+        )}
+        {sp.e?.startsWith('limit.') === false && !jobCheck && !prizeCheck && (
           <div className="errbox">{ERROR_COPY[sp.e] ?? dict.parent.decisionFailed}</div>
         )}
 
