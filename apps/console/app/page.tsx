@@ -3,6 +3,7 @@ import {
   getConsoleData,
   POCKETS,
   type ChildView,
+  type ConsoleData,
   type LedgerEntry,
   type MoneyRequest,
   type Pocket,
@@ -68,7 +69,7 @@ function Rail() {
   );
 }
 
-function Strip({ totals }: { totals: ReturnType<typeof getConsoleData>['totals'] }) {
+function Strip({ totals }: { totals: ConsoleData['totals'] }) {
   return (
     <div className="strip">
       <div className="stat"><div className="k">Keluarga</div><div className="v num">{totals.families}</div></div>
@@ -220,8 +221,8 @@ function InvariantPanel({ inv }: { inv: ChildView['invariant'] }) {
             I1 — jumlah kantong ({formatRp(inv.pocketSum)}) sama dengan total ({formatRp(inv.total)})
           </div>
           <div className="checkline">
-            <span className={`mk ${inv.reconcilesCanonical ? 'ok' : 'bad'}`}>{inv.reconcilesCanonical ? '✓' : '✕'}</span>
-            Rekonsiliasi angka kanonik handoff — {formatRp(inv.canonicalTotal)}
+            <span className={`mk ${inv.matchesDbView ? 'ok' : 'bad'}`}>{inv.matchesDbView ? '✓' : '✕'}</span>
+            Core cocok dengan view database — {formatRp(inv.dbViewTotal)}
           </div>
           <div className="checkline">
             <span className={`mk ${inv.health.length === 0 ? 'ok' : 'bad'}`}>{inv.health.length === 0 ? '✓' : '✕'}</span>
@@ -272,8 +273,8 @@ function ChildSection({ child }: { child: ChildView }) {
   );
 }
 
-export default function ConsolePage() {
-  const data = getConsoleData();
+export default async function ConsolePage() {
+  const data = await getConsoleData();
   return (
     <div className="shell">
       <Rail />

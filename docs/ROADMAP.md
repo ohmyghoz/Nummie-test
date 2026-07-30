@@ -30,8 +30,10 @@ melainkan **menyambungkan permukaan yang sudah ada**:
 3. ~~**Irisan 3 — app ortu.**~~ 🟢 **Potongan penutup-siklus selesai 30 Juli 2026.** Login ortu,
    pembacaan nyata, dan approval inbox yang menulis ledger. **Siklus uang sudah pernah tutup utuh
    sekali**: anak mengajukan → ortu memutuskan → uang bergerak → anak melihat ceritanya.
-   Sisa: Send/Take/Rules/Settings/Add-a-child/Jobs masih pratinjau, dan `apps/console`
-   belum tersambung.
+   Send · Take · Money rules · Add a child ikut menulis, sesi ortu diperbarui otomatis (U-11),
+   dan **console tersambung** lintas keluarga sebagai permukaan baca-saja dengan pemeriksaan
+   silang core-vs-database. Sisa: Settings & Jobs/Prizes — **belum punya tabel**, bukan belum
+   disambungkan (U-12/U-13), dan "Add money to Grow" di app anak butuh aturan produk baru (U-14).
 
 Konsol (S1c) sengaja terakhir: ia memakai service role dan tidak memblokir uji ortu–anak.
 

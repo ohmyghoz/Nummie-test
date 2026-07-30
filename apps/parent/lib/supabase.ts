@@ -8,14 +8,16 @@
  * Bedanya cuma sumber tokennya: anak lewat Edge Function `child-login` (kode keluarga + PIN),
  * ortu lewat Supabase Auth biasa (email + password) — ADR-0012.
  *
- * ⚠️ BATAS YANG DIKETAHUI: access token Supabase berumur ~1 jam dan berkas ini TIDAK
- * memperbaruinya. Sesi ortu yang lewat satu jam akan dilempar ke layar masuk. Untuk uji
- * prototipe itu cukup; refresh token otomatis dicatat sebagai U-11.
+ * Access token Supabase berumur ~1 jam. Yang memperbaruinya `middleware.ts`, bukan berkas ini —
+ * server component tidak bisa memasang cookie, jadi penukaran refresh token HARUS terjadi di
+ * middleware (satu-satunya tempat di Next yang boleh menulis cookie sebelum halaman dirender).
  */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
 export const SESSION_COOKIE = 'nummi_parent';
+/** Refresh token — ditukar jadi access token baru oleh `middleware.ts` (U-11). */
+export const REFRESH_COOKIE = 'nummi_parent_refresh';
 
 function env(name: string): string {
   const value = process.env[name];

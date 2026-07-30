@@ -41,3 +41,31 @@ C-7 validasi ambang status 14/21/30 hari dengan data nyata.
 
 **Keluarga aktif mingguan dengan siklus uang lengkap** — bukan DAU. Mengejar DAU bertentangan
 dengan misi produk, dan console tidak boleh jadi alat yang menggodanya.
+
+## Tersambung Supabase (30 Juli 2026) — lintas keluarga, baca-saja
+
+Console memakai **service role**, dan di sini itu memang alatnya. Di app anak & ortu service role
+adalah pengecualian yang dijaga ketat; console justru harus melihat semua keluarga sekaligus untuk
+menjawab pertanyaan yang tidak bisa dijawab dari dalam satu keluarga: *"apakah ada invarian yang
+pecah di suatu tempat?"*
+
+Konsekuensinya: console **tidak punya login** dan **tidak boleh dipublikasikan** bersama app
+produk. Operator menjalankannya di lingkungan yang dia kendalikan (ADR-0015). Tetap **baca-saja**
+(C-1) — tidak ada satu pun penulisan.
+
+### Pemeriksaan silang menggantikan rekonsiliasi seed
+
+Dulu console memeriksa `total === SEED_TOTAL` — masuk akal selama datanya seed, tidak berarti
+apa-apa begitu ada keluarga sungguhan. Sekarang ia membandingkan **dua perhitungan independen atas
+angka yang sama**: `@nummi/core` menghitung dari baris ledger, view `wallet_balances` menghitung di
+database. Berbeda = salah satu salah, dan itu dihitung sebagai insiden P0 apa pun penyebabnya.
+
+Karena itu console TIDAK memakai angka database untuk kedua sisi. Kalau ia melakukan itu, ia cuma
+membandingkan sesuatu dengan dirinya sendiri.
+
+### Galat query melempar, tidak ditelan
+
+Versi pertama saya memakai `?? []` untuk semua query. Hasilnya: saat query gagal, console
+menampilkan **"0 keluarga · 0 insiden P0"** — melaporkan SEHAT justru ketika ia tidak tahu apa-apa.
+Itu kebohongan paling berbahaya yang bisa dilakukan permukaan ini, jadi sekarang setiap galat
+query melempar.

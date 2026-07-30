@@ -199,7 +199,17 @@ Database berdiri, terisi seed kanonik, isolasi RLS diuji per-role, dan login ana
 - **U-13 · Jobs & Prizes belum punya tabel.** Builder di sisi ortu memvalidasi lewat core dan
   layarnya berdiri, tapi tidak ada `jobs`/`prizes` untuk menyimpannya — dan sisi anak belum punya
   layarnya sama sekali. **Butuh keputusan skema.**
-- **U-11 · Sesi ortu tidak diperbarui.** Access token Supabase berumur ~1 jam dan
+- ~~**U-11 · Sesi ortu tidak diperbarui.**~~ ✅ **selesai 30 Juli 2026.** `apps/parent/middleware.ts`
+  menukar refresh token 2 menit sebelum access token mati. Diuji dengan menanam access token
+  kedaluwarsa + refresh token asli: dashboard tetap terbuka dan token baru dipasang. "Keluar"
+  ikut menghapus refresh cookie — tanpa itu middleware akan membangkitkan sesi yang baru ditutup.
+- **U-14 · "Add money to Grow" belum ada di app anak, dan butuh ATURAN PRODUK baru.** Anak bisa
+  memanen tapi tidak bisa menanam. Move sengaja melarang Grow sebagai tujuan, jadi ini harus jalur
+  pengajuan sendiri (`grow_in`, disetujui ortu — ADR-0003). Yang belum diputuskan: **kantong mana
+  yang boleh mendanai Grow.** Kalau wallet Save (dream) diizinkan, anak bisa menguras "BMX Bike" ke
+  emas — melewati gerbang ortu dan denda ⭐ raid-dream sekaligus. Usulan konservatif: hanya Unsorted
+  dan Free savings; dream tidak pernah. **Butuh persetujuan sebelum dibangun.**
+- **U-11-lama · (dipindah)** Access token Supabase berumur ~1 jam dan
   `apps/parent/lib/supabase.ts` tidak me-refresh-nya — ortu terlempar ke layar masuk setelah satu
   jam. Refresh token perlu ditukar di middleware (server component tidak bisa memasang cookie).
   Cukup untuk uji prototipe; jadi menyakitkan begitu ada ortu sungguhan yang memakainya seharian.
