@@ -6,6 +6,7 @@ import {
 import { findChild, getParentData } from '../../lib/data';
 import { dict, fill } from '../../lib/copy';
 import { Nav, POCKET_COLOR, TopBar } from '../../components/ui';
+import { saveAllowance, saveBankRates } from '../../lib/actions';
 
 const FREQUENCIES: AllowanceFrequency[] = ['weekly', 'biweekly', 'monthly'];
 const WEEKDAYS = ['0', '1', '2', '3', '4', '5', '6'] as const;
@@ -20,14 +21,18 @@ const ERROR_COPY: Record<string, string> = {
 export default async function SettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ child?: string; amount?: string; freq?: string; day?: string; off?: string }>;
+  searchParams: Promise<{
+    child?: string; amount?: string; freq?: string; day?: string; off?: string;
+    saved?: string; e?: string;
+  }>;
 }) {
   const sp = await searchParams;
   const data = await getParentData();
   const child = findChild(data, sp.child);
   const pending = data.children.reduce((n, c) => n + c.openRequests.length, 0);
 
-  // Jadwal yang sedang dilihat — dari seed, bisa ditimpa lewat query untuk mencobanya.
+  // Jadwal yang sedang dilihat: dari DATABASE (0013), bisa ditimpa lewat query supaya ortu bisa
+  // mencoba kombinasi lain dan melihat tanggalnya SEBELUM menyimpan.
   const freq = FREQUENCIES.includes(sp.freq as AllowanceFrequency)
     ? (sp.freq as AllowanceFrequency)
     : child.allowance.frequency;
@@ -55,6 +60,13 @@ export default async function SettingsPage({
         <h1 style={{ fontSize: 19, fontWeight: 800, marginBottom: 12 }}>
           {dict.settings.title} · {child.name}
         </h1>
+
+        {sp.saved && (
+          <p className="pill ok" style={{ display: 'inline-block', marginBottom: 10 }}>
+            {dict.settings.saved}
+          </p>
+        )}
+        {sp.e && <div className="errbox">{ERROR_COPY[sp.e] ?? dict.parent.decisionFailed}</div>}
 
         {/* ── Allowance schedule ─────────────────────────────────────────────── */}
         <div className="card">
@@ -120,29 +132,55 @@ export default async function SettingsPage({
               ))}
             </div>
           )}
-          <div className="btnrow">
-            <a className="btn ghost" href={keep({ off: schedule.enabled ? '1' : '0' })}>
-              {schedule.enabled ? dict.settings.allowanceOff : dict.settings.allowanceOn}
-            </a>
-          </div>
+          {/* SIMPAN — sampai 30 Juli 2026 layar ini seluruhnya pratinjau: form di atas hanya
+              menulis query param, dan tidak ada satu pun tombol yang menyimpan. */}
+          <form action={saveAllowance} style={{ marginTop: 12 }}>
+            <input type="hidden" name="child" value={child.id} />
+            <input type="hidden" name="amount" value={schedule.amount} />
+            <input type="hidden" name="frequency" value={schedule.frequency} />
+            <input type="hidden" name="day" value={schedule.day} />
+            <label className="choice">
+              <input type="checkbox" name="enabled" defaultChecked={schedule.enabled} />
+              <span>{schedule.enabled ? dict.settings.allowanceOn : dict.settings.allowanceOff}</span>
+            </label>
+            <button className="btn primary" type="submit" style={{ marginTop: 8 }}>
+              {dict.settings.save}
+            </button>
+          </form>
         </div>
 
         {/* ── Your bank rates ────────────────────────────────────────────────── */}
         <div className="card">
           <h2>{dict.settings.ratesTitle}</h2>
           <p className="sub" style={{ marginTop: -6, marginBottom: 8 }}>{dict.settings.ratesHint}</p>
-          {([['m3', 3], ['m6', 6], ['m12', 12]] as const).map(([key, months]) => (
-            <div className="row" key={key}>
-              <span className="nm">{months} months</span>
-              <span className="amt num">{rates[key]}%</span>
-            </div>
-          ))}
-          {!ratesCheck.ok && ratesCheck.errorKey && (
-            <div className="errbox" style={{ marginTop: 10 }}>{ERROR_COPY[ratesCheck.errorKey]}</div>
-          )}
-          {/* Petunjuk, BUKAN larangan — ortu tetap bank-nya (ADR-0003). */}
-          {!patient && <p className="note" style={{ marginTop: 10 }}>{dict.settings.ratesUpsideDown}</p>}
-          <p className="sub" style={{ marginTop: 8 }}>{dict.settings.oneTapApprove}</p>
+          {/* Sampai 30 Juli 2026 ketiga baris ini hanya TAMPILAN, padahal copy di atasnya
+              berbunyi "You are the bank." Sekarang benar-benar bisa disetel. */}
+          <form action={saveBankRates}>
+            <input type="hidden" name="child" value={child.id} />
+            {([['m3', 3], ['m6', 6], ['m12', 12]] as const).map(([key, months]) => (
+              <div className="row" key={key}>
+                <span className="nm">{months} months</span>
+                <input
+                  className="field" type="text" inputMode="decimal" name={key}
+                  defaultValue={rates[key]}
+                  style={{ width: 84, textAlign: 'right', marginLeft: 'auto' }}
+                />
+                <span className="sub">%</span>
+              </div>
+            ))}
+
+            {!ratesCheck.ok && ratesCheck.errorKey && (
+              <div className="errbox" style={{ marginTop: 10 }}>{ERROR_COPY[ratesCheck.errorKey]}</div>
+            )}
+            {/* Petunjuk, BUKAN larangan — ortu tetap bank-nya (ADR-0003). Rate terbalik
+                tetap tersimpan; layar cuma menyebutkan bahwa itu terbalik. */}
+            {!patient && <p className="note" style={{ marginTop: 10 }}>{dict.settings.ratesUpsideDown}</p>}
+            <p className="sub" style={{ marginTop: 8 }}>{dict.settings.oneTapApprove}</p>
+
+            <button className="btn primary" type="submit" style={{ marginTop: 10 }}>
+              {dict.settings.save}
+            </button>
+          </form>
         </div>
 
         {/* ── Today's prices ─────────────────────────────────────────────────── */}

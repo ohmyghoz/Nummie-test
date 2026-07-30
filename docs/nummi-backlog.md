@@ -193,9 +193,13 @@ Database berdiri, terisi seed kanonik, isolasi RLS diuji per-role, dan login ana
   membaca dari Supabase, dan **approval inbox sudah menulis**: Approve/Decline/Talk/Mark-done
   benar-benar mengubah database, dengan ADR-0002 & ADR-0006 ditegakkan `@nummi/core`. Sisa:
   Send/Take/Rules/Settings/Add-a-child/Jobs masih pratinjau (baca nyata, tulis belum).
-- **U-12 · Settings ortu belum punya tabel.** Jadwal uang saku, bunga bank, dan harga harian
-  masih dari `SEED_*`. Uang saku butuh tabel sendiri (+ scheduler, backlog T); bunga bank juga.
-  Harga sengaja di luar cakupan S1–S3. **Butuh keputusan skema sebelum bisa disambungkan.**
+- ~~**U-12 · Settings ortu belum punya tabel.**~~ ✅ **selesai 30 Juli 2026 (migrasi 0013).**
+  Tiga tabel, dipisah menurut PEMILIKNYA: `allowance_schedules` (per anak, ditulis ortu) ·
+  `bank_rates` (per keluarga — ortu = bank) · `daily_prices` (global, ditulis mesin;
+  `price_date` sebagai PK memberi audit trail yang dituntut backlog T). Harga masih **dummy**,
+  tapi sumbernya sudah database — feed nanti cuma menambah baris.
+  Ikut tertutup: **jadwal uang saku yang diwarisi diam-diam** (satu objek `SEED_ALLOWANCE`
+  dipakai semua anak) dan **biweekly tanpa anchor** (handoff §232).
 - **U-13 · Jobs & Prizes belum punya tabel.** Builder di sisi ortu memvalidasi lewat core dan
   layarnya berdiri, tapi tidak ada `jobs`/`prizes` untuk menyimpannya — dan sisi anak belum punya
   layarnya sama sekali. **Butuh keputusan skema.**

@@ -104,3 +104,37 @@ describe('jatuh tempo deposito', () => {
     expect(isMatured('2026-07-01', 6, '2026-07-28')).toBe(false);
   });
 });
+
+describe('biweekly punya anchor — jadwalnya tidak bergeser tiap layar dibuka', () => {
+  // Cacat yang ditutup: tanpa anchor, "dua mingguan hari Senin" dihitung dari HARI INI, jadi
+  // ortu yang membuka Settings di minggu berbeda melihat dua jadwal berbeda untuk setelan yang
+  // sama persis — dan uang saku anak bergeser satu minggu tiap kali setelannya disentuh.
+  const biweekly = (anchorDate?: string): AllowanceSchedule => ({
+    enabled: true, amount: 50_000, frequency: 'biweekly', day: 1, anchorDate,
+  });
+
+  it('jadwal sama walau dilihat dari minggu yang berbeda', () => {
+    const anchor = '2026-07-06';   // Senin
+    const dariMingguIni = nextAllowanceDates(biweekly(anchor), '2026-07-28', 3);
+    const dariMingguDepan = nextAllowanceDates(biweekly(anchor), '2026-08-04', 3);
+
+    // Tanggal yang masih di depan keduanya harus SAMA — bukan bergeser tujuh hari.
+    for (const tanggal of dariMingguDepan) {
+      if (dariMingguIni.includes(tanggal)) continue;
+      expect(tanggal > dariMingguIni[dariMingguIni.length - 1]!).toBe(true);
+    }
+    expect(dariMingguIni.every((d) => d >= '2026-07-28')).toBe(true);
+  });
+
+  it('semua tanggal jatuh di kisi 14 hari dari anchor', () => {
+    const anchor = '2026-07-06';
+    for (const iso of nextAllowanceDates(biweekly(anchor), '2026-07-28', 4)) {
+      const selisih = (Date.parse(iso) - Date.parse(anchor)) / 86_400_000;
+      expect(selisih % 14).toBe(0);
+    }
+  });
+
+  it('tanpa anchor tetap jalan — weekly & monthly tidak membutuhkannya', () => {
+    expect(nextAllowanceDates(biweekly(undefined), '2026-07-28', 2)).toHaveLength(2);
+  });
+});

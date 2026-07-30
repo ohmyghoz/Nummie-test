@@ -10,15 +10,15 @@
 -- Aman diulang: kalau family_code-nya sudah ada, seluruh blok dilewati.
 -- Tidak butuh dependency apa pun — hash PIN memakai pgcrypto (sudah aktif di 0001_init.sql).
 --
--- CATATAN: jalankan SETELAH 0001 → 0002 → 0003.
+-- CATATAN: jalankan SETELAH seluruh migrasi (0001 … 0013).
 
 do $$
 declare
   -- ── yang boleh kamu ubah ────────────────────────────────────────────────────
   v_family_code text := 'NUMMI1';       -- pendek & mudah diketik anak; dibandingkan huruf besar
   v_child_pin   text := '135790';       -- GANTI sebelum dipakai keluarga sungguhan
-  -- ⚠️ Panjang PIN masih kontradiktif di repo: skema bilang 4 digit (0001_init.sql:42),
-  --    Edge Function bilang 4–6 (index.ts:11), backlog bilang 6. Belum diputuskan.
+  -- Panjang PIN: 6 digit, dikunci (K15 → ADR-0012 §A2). Wajib UNIK dalam satu keluarga —
+  -- login memakai kode keluarga + PIN saja, jadi PIN kembar bikin "ini siapa?" tak berjawab.
   -- ────────────────────────────────────────────────────────────────────────────
 
   v_family  uuid;
@@ -98,6 +98,16 @@ begin
   insert into child_economy (child_id, stars_balance, stars_lifetime, gems)
   values (v_child, 120, 120, 12);
 
+  -- ── Settings (migrasi 0013) ─────────────────────────────────────────────────
+  -- Uang saku PER ANAK. Angka kanonik handoff: Rp50.000 mingguan tiap Senin.
+  insert into allowance_schedules (child_id, enabled, amount, frequency, day)
+  values (v_child, true, 50000, 'weekly', 1)
+  on conflict (child_id) do nothing;
+
+  -- Bunga bank milik KELUARGA, bukan anak (ortu = bank, ADR-0003).
+  insert into bank_rates (family_id, m3, m6, m12) values (v_family, 1.5, 2.5, 4.0)
+  on conflict (family_id) do nothing;
+
   -- ── verifikasi langsung: harus 484711, kalau tidak seed ini dibatalkan ───────
   select total into v_total from invariant_check where child_id = v_child;
 
@@ -107,6 +117,16 @@ begin
 
   raise notice 'Seed OK. Keluarga %, anak Arthur %, total Rp484.711 cocok dengan packages/core.', v_family_code, v_child;
 end $$;
+
+-- ── Harga harian (0013) ──────────────────────────────────────────────────────
+-- GLOBAL, bukan milik keluarga mana pun — feed nanti yang menambah baris tiap hari.
+-- Isinya masih dummy; `source` yang membedakannya dari harga sungguhan nanti.
+insert into daily_prices (
+  price_date, gold_sell_per_gram, gold_buyback_per_gram, fx_mid, fx_spread, source
+) values (
+  '2026-07-28', 1450000, 1320000,
+  '{"USD": 16000, "SGD": 12000, "EUR": 17000}'::jsonb, 0.01, 'dummy'
+) on conflict (price_date) do nothing;
 
 -- ── Hasil: bandingkan dengan console (@nummi/core) ────────────────────────────
 select * from invariant_check;

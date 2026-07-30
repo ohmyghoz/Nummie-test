@@ -6,8 +6,12 @@
  * ORTU — jadi RLS yang memutuskan anak siapa yang terlihat, bukan kode di sini. Ortu yang
  * bukan anggota keluarga itu tidak melihat apa pun (sudah diuji per-role).
  *
- * **Masih dari seed, dan kenapa:** harga Grow (feed di luar cakupan S1–S3, backlog T),
- * jadwal uang saku (`SEED_ALLOWANCE` — belum ada tabelnya), `today`/`tdStart`, dan avatar anak.
+ * **Masih dari seed, dan kenapa:** `today`/`tdStart` (tanggal acuan pratinjau) dan avatar anak
+ * (`children` belum punya kolomnya).
+ *
+ * Uang saku, bunga bank, dan harga sudah punya tabelnya sendiri (migrasi 0013). Harga tetap
+ * berisi **data dummy** sampai feed dibangun (backlog T) — tapi sumbernya sudah database, jadi
+ * feed nanti tinggal menambah baris dan tidak ada kode yang perlu berubah.
  *
  * Saldo TIDAK diambil dari view `wallet_balances`: tetap dihitung `@nummi/core` dari baris
  * ledger, sama seperti app anak. Dua permukaan yang menghitung dengan kode yang sama tidak
@@ -18,7 +22,6 @@
 import { redirect } from 'next/navigation';
 import {
   POCKETS,
-  SEED_ALLOWANCE,
   SEED_PRICES,
   SEED_TD_START,
   SEED_TODAY,
@@ -85,7 +88,10 @@ export async function getParentData(): Promise<ParentData> {
 
   const db = clientWithToken(token);
 
-  const [meRes, childRes, walletRes, ledgerRes, requestRes, rulesRes] = await Promise.all([
+  const [
+    meRes, childRes, walletRes, ledgerRes, requestRes, rulesRes,
+    allowanceRes, ratesRes, pricesRes,
+  ] = await Promise.all([
     db.from('parents').select('id, display_name').limit(1).maybeSingle(),
     db.from('children').select('id, name, tier').order('created_at'),
     db.from('wallets').select('id, child_id, name, category, kind, target_amount, instrument')
@@ -97,11 +103,40 @@ export async function getParentData(): Promise<ParentData> {
       .select('id, child_id, kind, amount, source_wallet_id, destination_wallet_id, harvest_choice, reason, status, fulfilment, fulfilment_story')
       .order('created_at', { ascending: false }),
     db.from('money_rules').select('child_id, mode, auto_split_enabled, ratios, destinations'),
+    db.from('allowance_schedules')
+      .select('child_id, enabled, amount, frequency, day, anchor_date'),
+    db.from('bank_rates').select('m3, m6, m12').maybeSingle(),
+    // Baris terbaru = harga hari ini. Riwayatnya tetap ada (price_date jadi PK di 0013), jadi
+    // nilai lama anak masih bisa dijelaskan kalau harga berubah — syarat backlog T.
+    db.from('daily_prices')
+      .select('price_date, gold_sell_per_gram, gold_buyback_per_gram, fx_mid, fx_spread')
+      .order('price_date', { ascending: false }).limit(1).maybeSingle(),
   ]);
 
   // Token kedaluwarsa (~1 jam, U-11) tampak sebagai "tidak ada ortu yang terlihat".
   // Perlakukan sebagai belum masuk, bukan sebagai layar kosong yang membingungkan.
   if (meRes.error || !meRes.data) redirect('/login');
+
+  /**
+   * `Prices` di core mencampur harga feed DAN bunga bank yang ditetapkan ortu. Di database
+   * keduanya sengaja dipisah (0013) karena penulisnya berbeda — mesin vs manusia. Di sini
+   * keduanya disusun kembali jadi satu bentuk baca, supaya UI dan `@nummi/core` tidak perlu
+   * tahu-menahu soal pemisahan itu.
+   */
+  const dbPrices = pricesRes.data;
+  const dbRates = ratesRes.data;
+  const prices: Prices = {
+    goldSellPerGram: Number(dbPrices?.gold_sell_per_gram ?? SEED_PRICES.goldSellPerGram),
+    goldBuybackPerGram: Number(dbPrices?.gold_buyback_per_gram ?? SEED_PRICES.goldBuybackPerGram),
+    fxMid: (dbPrices?.fx_mid ?? SEED_PRICES.fxMid) as Record<string, number>,
+    fxSpread: Number(dbPrices?.fx_spread ?? SEED_PRICES.fxSpread),
+    bankRates: {
+      m3: Number(dbRates?.m3 ?? SEED_PRICES.bankRates.m3),
+      m6: Number(dbRates?.m6 ?? SEED_PRICES.bankRates.m6),
+      m12: Number(dbRates?.m12 ?? SEED_PRICES.bankRates.m12),
+    },
+    updatedAt: String(dbPrices?.price_date ?? SEED_PRICES.updatedAt),
+  };
 
   const allWallets: Wallet[] = (walletRes.data ?? []).map((w) => ({
     id: w.id,
@@ -134,6 +169,24 @@ export async function getParentData(): Promise<ParentData> {
     fulfilment: r.fulfilment,
     fulfilmentStory: r.fulfilment_story ?? undefined,
   }));
+
+  /**
+   * Jadwal uang saku PER ANAK — dan itu inti dari migrasi 0013.
+   *
+   * Sebelumnya baris ini `allowance: SEED_ALLOWANCE`, satu objek yang sama untuk setiap anak di
+   * dalam `children.map()`. Anak kedua otomatis mewarisi Rp50.000 mingguan tiap Senin tanpa ada
+   * yang pernah memutuskannya.
+   */
+  const allowanceFor = (childId: string): AllowanceSchedule => {
+    const row = (allowanceRes.data ?? []).find((a) => a.child_id === childId);
+    return {
+      enabled: row?.enabled ?? false,
+      amount: Number(row?.amount ?? 0),
+      frequency: (row?.frequency as AllowanceSchedule['frequency']) ?? 'weekly',
+      day: Number(row?.day ?? 1),
+      anchorDate: row?.anchor_date ?? undefined,
+    };
+  };
 
   // Multi-anak sudah jadi bentuk datanya sejak awal: strip pending harus PER-ANAK,
   // bukan gabungan semua anak (perbaikan lintas-app yang sudah dikunci).
@@ -171,7 +224,7 @@ export async function getParentData(): Promise<ParentData> {
       rules,
       takeTargets: takeTargets(wallets),
       unsortedWallet: sendLandsIn(wallets),
-      allowance: SEED_ALLOWANCE,
+      allowance: allowanceFor(c.id),
       // Modal & nilai KEDUANYA dari ledger — harga hanya menjelaskan (lihat core/grow.ts).
       investments: wallets
         .filter((w) => w.category === 'grow')
@@ -189,7 +242,7 @@ export async function getParentData(): Promise<ParentData> {
     parentId: meRes.data.id,
     parentName: meRes.data.display_name ?? 'Parent',
     children,
-    prices: SEED_PRICES,
+    prices,
     today: SEED_TODAY,
     tdStart: SEED_TD_START,
   };

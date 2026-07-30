@@ -42,6 +42,8 @@ bukan konfigurasi yang salah.
 | `migrations/0009_no_direct_writes.sql` | cabut hak tulis anak — anak tidak lagi bisa mencetak uang | ✅ jalan |
 | `migrations/0010_no_overdraft.sql` | saldo negatif jadi mustahil, bukan sekadar dilaporkan | ✅ jalan |
 | `migrations/0011_harvest_destination.sql` | tujuan + pilihan deposito saat Harvest punya tempat | ✅ jalan |
+| `migrations/0012_create_child.sql` | tambah anak = satu transaksi (anak + wallet + aturan + ekonomi) | ✅ jalan |
+| `migrations/0013_settings_tables.sql` | uang saku (per anak) · bunga bank (per keluarga) · harga harian (global) | ✅ jalan |
 | `functions/child-login/` | Edge Function: kode keluarga + PIN → JWT ber-claim | ✅ **v4, ACTIVE** |
 | `seed.sql` | data uji kanonik (cermin `packages/core/src/seed.ts`) — jalankan **setelah** migrasi | ✅ jalan (`NUMMI1`) |
 

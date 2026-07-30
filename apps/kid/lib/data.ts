@@ -7,7 +7,9 @@
  * memutuskan apa yang terlihat, bukan kode di sini.
  *
  * **Yang MASIH dari seed, dan kenapa:**
- *   - `prices`   — feed harga sengaja di luar cakupan S1–S3 (backlog T). Belum ada tabelnya.
+ *   - `prices`   — SUDAH dari `daily_prices` (0013), tapi isinya masih **data dummy** sampai
+ *                  feed dibangun (backlog T). Sumbernya database, jadi feed nanti tinggal
+ *                  menambah baris tanpa mengubah kode di sini.
  *   - `economy.chaptersDone/Total` — kurikulum Missions belum punya tabel sama sekali.
  *   - `child.avatar` — `children` belum punya kolomnya; avatar shop (Fase 4) belum persisten.
  * Artinya Home/Wallets/Sort menampilkan angka sungguhan, sementara Grow dan Missions masih
@@ -102,7 +104,9 @@ export async function getKidData(mode?: RuleMode): Promise<KidData> {
   const db = clientWithToken(token);
 
   // Satu perjalanan, bukan enam berurutan. Kelimanya tidak saling bergantung.
-  const [childRes, walletRes, ledgerRes, rulesRes, requestRes, economyRes] = await Promise.all([
+  const [
+    childRes, walletRes, ledgerRes, rulesRes, requestRes, economyRes, ratesRes, pricesRes,
+  ] = await Promise.all([
     db.from('children').select('id, name, tier').limit(1).maybeSingle(),
     db.from('wallets').select('id, child_id, name, category, kind, target_amount, instrument')
       .is('archived_at', null).order('created_at'),
@@ -112,6 +116,12 @@ export async function getKidData(mode?: RuleMode): Promise<KidData> {
     db.from('requests').select('id, child_id, kind, amount, source_wallet_id, reason, status, fulfilment, fulfilment_story')
       .order('created_at', { ascending: false }),
     db.from('child_economy').select('stars_balance, stars_lifetime, gems').maybeSingle(),
+    // Bunga bank tidak dipakai layar anak, tapi `Prices` di core satu bentuk — jadi ikut dibaca
+    // supaya angka yang dilihat anak dan ortu berasal dari baris yang sama.
+    db.from('bank_rates').select('m3, m6, m12').maybeSingle(),
+    db.from('daily_prices')
+      .select('price_date, gold_sell_per_gram, gold_buyback_per_gram, fx_mid, fx_spread')
+      .order('price_date', { ascending: false }).limit(1).maybeSingle(),
   ]);
 
   // Token kedaluwarsa (12 jam) tampak sebagai "tidak ada anak yang terlihat", bukan sebagai
@@ -185,6 +195,23 @@ export async function getKidData(mode?: RuleMode): Promise<KidData> {
 
   const economy = economyRes.data;
 
+  // Disusun dari dua tabel (0013 memisahkan harga-feed dari bunga-yang-ditetapkan-ortu), lalu
+  // dikembalikan sebagai satu bentuk `Prices` supaya core & UI tidak perlu tahu pemisahannya.
+  const dbPrices = pricesRes.data;
+  const dbRates = ratesRes.data;
+  const prices: Prices = {
+    goldSellPerGram: Number(dbPrices?.gold_sell_per_gram ?? SEED_PRICES.goldSellPerGram),
+    goldBuybackPerGram: Number(dbPrices?.gold_buyback_per_gram ?? SEED_PRICES.goldBuybackPerGram),
+    fxMid: (dbPrices?.fx_mid ?? SEED_PRICES.fxMid) as Record<string, number>,
+    fxSpread: Number(dbPrices?.fx_spread ?? SEED_PRICES.fxSpread),
+    bankRates: {
+      m3: Number(dbRates?.m3 ?? SEED_PRICES.bankRates.m3),
+      m6: Number(dbRates?.m6 ?? SEED_PRICES.bankRates.m6),
+      m12: Number(dbRates?.m12 ?? SEED_PRICES.bankRates.m12),
+    },
+    updatedAt: String(dbPrices?.price_date ?? SEED_PRICES.updatedAt),
+  };
+
   return {
     grow,
     balances: byWallet,
@@ -193,7 +220,7 @@ export async function getKidData(mode?: RuleMode): Promise<KidData> {
     giveWalletId: giveWallet?.id ?? '',
     unsortedWalletId: unsortedWallet?.id ?? '',
     givingStories: closedGiving(requests),
-    prices: SEED_PRICES,
+    prices,
     child: { id: child.id, name: child.name, tier: child.tier as Tier, avatar: AVATAR_DEFAULT },
     total: totalBalance(ledger, wallets),
     pockets,

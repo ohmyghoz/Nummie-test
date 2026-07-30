@@ -31,7 +31,9 @@ import { redirect } from 'next/navigation';
 import {
   CATEGORIES,
   approve, decline, markDone, postsLedgerOn, talkAboutIt, tdHarvestOutcome,
-  STARTER_WALLETS, validateAutoSplit, validateChild, validateSend, validateTake,
+  STARTER_WALLETS, nextAllowanceDates, validateAllowance, validateAutoSplit, validateBankRates,
+  validateChild, validateSend, validateTake,
+  type AllowanceFrequency, type AllowanceSchedule,
   type Category, type MoneyRequest, type MoneyRules, type RuleMode, type SendSource,
   type Tier,
 } from '@nummi/core';
@@ -459,4 +461,103 @@ export async function addChild(formData: FormData): Promise<void> {
 
   revalidateAll();
   redirect(`/?child=${childId}&added=1`);
+}
+
+/**
+ * Jadwal uang saku — per anak, bukan per keluarga.
+ *
+ * Sebelum migrasi 0013, `apps/parent/lib/data.ts` menyuntik satu objek `SEED_ALLOWANCE` yang sama
+ * untuk setiap anak, jadi anak kedua otomatis mewarisi jadwal anak pertama tanpa ada yang pernah
+ * memutuskannya. Baris ini yang menutupnya.
+ */
+export async function saveAllowance(formData: FormData): Promise<void> {
+  const childId = String(formData.get('child') ?? '');
+  const enabled = formData.get('enabled') === 'on';
+  const amount = Number(formData.get('amount') ?? 0);
+  const frequency = String(formData.get('frequency') ?? 'weekly') as AllowanceFrequency;
+  const day = Number(formData.get('day') ?? 1);
+
+  const data = await getParentData();
+  const child = data.children.find((c) => c.id === childId);
+  if (!child) redirect('/settings');
+
+  const back = `/settings?child=${childId}`;
+  if (!['weekly', 'biweekly', 'monthly'].includes(frequency)) redirect(back);
+
+  /**
+   * Anchor hanya berarti untuk biweekly, dan tanpa ia "dua mingguan" bergeser satu minggu tiap
+   * kali setelannya disentuh (handoff §232). Anchor lama dipertahankan kalau sudah ada — kalau
+   * di-reset ke hari ini setiap kali ortu menyimpan, jadwalnya bergeser justru karena disimpan.
+   */
+  const anchorDate = frequency === 'biweekly'
+    ? (child.allowance.anchorDate ?? nextAllowanceDates(
+        { enabled: true, amount: 1, frequency: 'weekly', day }, data.today, 1,
+      )[0] ?? data.today)
+    : null;
+
+  const next: AllowanceSchedule = { enabled, amount, frequency, day, anchorDate: anchorDate ?? undefined };
+  const check = validateAllowance(next);
+  if (!check.ok) redirect(`${back}&e=${check.errorKey ?? 'failed'}`);
+
+  const { error } = await serviceClient().from('allowance_schedules')
+    .update({
+      enabled, amount, frequency, day,
+      anchor_date: anchorDate,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('child_id', childId);
+
+  if (error) {
+    console.error('saveAllowance gagal:', error.message);
+    redirect(`${back}&e=failed`);
+  }
+
+  revalidatePath('/settings');
+  revalidateAll();
+  redirect(`${back}&saved=1`);
+}
+
+/**
+ * Bunga bank — per KELUARGA, bukan per anak. Ortu adalah bank-nya (ADR-0003), dan bank yang
+ * memberi bunga berbeda ke dua anak di rumah yang sama sedang mengajarkan sesuatu yang lain.
+ *
+ * Rate terbalik (tenor panjang membayar lebih kecil) **diterima**, hanya diberi petunjuk.
+ * `ratesRewardPatience()` sengaja bukan aturan: ortu berhak menetapkan rate apa pun.
+ */
+export async function saveBankRates(formData: FormData): Promise<void> {
+  const childId = String(formData.get('child') ?? '');
+  const rates = {
+    m3: Number(formData.get('m3') ?? 0),
+    m6: Number(formData.get('m6') ?? 0),
+    m12: Number(formData.get('m12') ?? 0),
+  };
+
+  const data = await getParentData();
+  const back = `/settings?child=${childId}`;
+
+  const check = validateBankRates(rates);
+  if (!check.ok) redirect(`${back}&e=${check.errorKey ?? 'failed'}`);
+
+  const db = serviceClient();
+  const { data: me } = await db.from('parents')
+    .select('family_id').eq('id', data.parentId).maybeSingle();
+  if (!me) redirect('/login');
+
+  const { error } = await db.from('bank_rates')
+    .update({ ...rates, updated_at: new Date().toISOString() })
+    .eq('family_id', me.family_id);
+
+  if (error) {
+    console.error('saveBankRates gagal:', error.message);
+    redirect(`${back}&e=failed`);
+  }
+
+  /**
+   * CATATAN yang akan penting di Fase 2: mengubah rate di sini TIDAK boleh mengubah bunga
+   * deposito yang sudah berjalan. "TD tidak ikut pasar — bunganya terkunci di kesepakatan"
+   * (ADR-0003), jadi rate dibekukan ke wallet saat ortu menyetujui pengajuannya.
+   */
+  revalidatePath('/settings');
+  revalidateAll();
+  redirect(`${back}&saved=1`);
 }

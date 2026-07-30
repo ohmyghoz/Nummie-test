@@ -17,6 +17,14 @@ export interface AllowanceSchedule {
   frequency: AllowanceFrequency;
   /** weekly & biweekly: 0–6 (Minggu–Sabtu). monthly: 1–28. */
   day: number;
+  /**
+   * Titik awal kisi 14 hari — **wajib untuk biweekly**, tidak dipakai frekuensi lain.
+   *
+   * Tanpa ini, "dua mingguan" dihitung dari kapan layar dibuka, jadi jadwalnya bergeser satu
+   * minggu tiap kali ada yang menyentuh setelannya. Cacat yang tercatat di handoff §232, dan
+   * ditegakkan constraint `biweekly_needs_anchor` di migrasi 0013.
+   */
+  anchorDate?: string;
 }
 
 export type AllowanceErrorKey =
@@ -86,6 +94,27 @@ export function nextAllowanceDates(
   let delta = (s.day - from.getUTCDay() + 7) % 7;
   if (delta === 0) delta = 7; // eksklusif — hari ini tidak dihitung
   let cursor = addDays(from, delta);
+
+  /**
+   * ANCHOR — yang membuat "dua mingguan" benar-benar dua mingguan.
+   *
+   * Tanpa ini, biweekly cuma "hari X berikutnya, lalu +14" — dan hari X berikutnya dihitung dari
+   * KAPAN ORTU MEMBUKA LAYAR. Ortu yang membuka Settings di minggu yang berbeda melihat dua
+   * jadwal berbeda untuk setelan yang sama persis, dan uang sakunya akan bergeser satu minggu
+   * tiap kali ada yang menyentuh setelannya. Itu cacat yang sudah tercatat di handoff §232.
+   *
+   * Dengan anchor, jadwalnya milik ANCHOR-nya, bukan milik hari ini: yang dicari adalah
+   * kemunculan berikutnya pada kisi 14 hari yang berawal di `anchorDate`.
+   */
+  if (s.frequency === 'biweekly' && s.anchorDate) {
+    const anchor = toUTC(s.anchorDate);
+    const daysSince = Math.round((cursor.getTime() - anchor.getTime()) / 86_400_000);
+    // Geser ke kisi anchor. Sisa bagi bisa negatif kalau anchor di masa depan — `% step` di JS
+    // mengikuti tanda pembilang, jadi ditambah `step` dulu sebelum dimodulo lagi.
+    const offGrid = ((daysSince % step) + step) % step;
+    if (offGrid !== 0) cursor = addDays(cursor, step - offGrid);
+  }
+
   for (let i = 0; i < count; i += 1) {
     out.push(toISO(cursor));
     cursor = addDays(cursor, step);
