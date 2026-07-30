@@ -125,10 +125,11 @@ Diurutkan dari yang paling mahal kalau dibiarkan.
 
 ---
 
-## 5. Keputusan yang menunggu kamu (blocker sebenarnya)
+## 5. Keputusan D1–D5 — semuanya terjawab per 30 Juli 2026
 
-Ini bukan pekerjaan build — ini keputusan yang, selama belum diambil, membuat setiap pekerjaan
-berikutnya berisiko dikerjakan dua kali.
+Bagian ini dulu berjudul *"keputusan yang menunggu kamu (blocker sebenarnya)"*. Sekarang ia arsip:
+yang berharga bukan lagi keputusannya, melainkan **pemicu tinjau ulang** masing-masing — itu yang
+memberi tahu kapan sesuatu harus dibuka lagi.
 
 **~~D1 — Bahasa produk.~~ ✅ DIPUTUSKAN: tetap Inggris** ([ADR-0016](decisions/0016-bahasa-produk-inggris.md)).
 Rekomendasi di dokumen ini sebelumnya Indonesia, bersandar pada anak KG B–Grade 2 yang belum bisa
@@ -163,11 +164,31 @@ Konsekuensi yang langsung: `LIMITS` berhenti jadi spec dan jadi `packages/core/s
 **ditegakkan** — sebelum 30 Juli 2026 `isPro()` **tidak pernah dipanggil satu app pun**, jadi
 "Grow = Pro" dan C1/I3 hidup hanya di dokumen.
 
-**D4 — Distribusi.** Native/Expo vs PWA. Ini menghambat mulainya M1 dan belum terjawab.
+**~~D4 — Distribusi.~~ ✅ DIJAWAB UNTUK MVP: PWA** ([ADR-0019](decisions/0019-d4-pwa-untuk-mvp.md)).
+Bisa dipasang ke Home Screen, **sengaja tidak offline** — nol service worker, karena menyimpan saldo
+di cache berarti menampilkan angka uang yang basi, dan repo ini punya nol JavaScript klien hari ini.
+Yang membuatnya bisa dijawab bukan data baru melainkan cakupan: satu-satunya pemaksa native adalah
+Apple IAP, dan MVP tidak menjual apa pun.
 
-**D5 — Nasib Little & Teen.** Di app anak, pemilih tier sengaja dimatikan (`harness()` mengembalikan
-`null`) sehingga hanya Middle yang bisa didemokan, walaupun logikanya ada. Untuk MVP: cukup Middle,
-atau ketiganya?
+> **Distribusi v1 tetap terbuka**, dan itu disengaja. ADR-0013 memperingatkan bahwa beginilah
+> keputusan besar mati diam-diam. Jawabannya harus datang dari data uji 30 keluarga.
+
+**~~D5 — Nasib Little & Teen.~~ ✅ DIPUTUSKAN: Middle saja**
+([ADR-0020](decisions/0020-d5-middle-saja-untuk-mvp.md)). Kode Little & Teen tetap hidup (tier =
+feature flag), tapi tidak ditawarkan di jalur tulis.
+
+> ⚠️ **Kalimat lama di sini keliru** dan sempat membuat D5 tampak sudah beres: *"pemilih tier
+> dimatikan, `harness()` mengembalikan `null`."* Itu menggambarkan **mockup beku di `legacy/`** —
+> fungsi itu tidak ada di app nyata. `apps/kid` membaca tier dari database, dan
+> `apps/parent/app/children/new` menawarkan **ketiga tier**. Sekarang ditegakkan lewat `MVP_TIERS`
+> + `validateChild()` di `packages/core`, dengan test.
+>
+> **Ikut tertutup:** pemicu tinjau ulang ADR-0016 (bahasa) & ADR-0017 (istilah) sama-sama bergantung
+> pada D5 memasukkan Little/Teen. Keduanya tidak menyala di MVP — tiga keputusan berhenti bersyarat
+> sekaligus.
+>
+> **Batasan rekrutmen yang paling mudah terlupakan:** `middle` = usia **9–12**. 30 keluarga harus
+> direkrut dalam rentang itu, atau datanya tidak menjawab pertanyaan yang sedang diuji.
 
 ---
 
@@ -214,7 +235,8 @@ Kalau memang masih relevan, unggah; kalau sudah mati, catat matinya supaya tidak
 3. **Turunkan Fase 6 ke sisi anak** (auto-split & money rules ditegakkan di app anak).
 4. **Tutup paritas iPad** (§2) atau putuskan iPad keluar dari cakupan MVP.
 5. **Bawa brand masuk ke app anak** (wordmark + maskot) setelah K8 diselesaikan.
-6. **D3 + D4** sebelum baris kode produksi pertama.
+   ✅ Wordmark sudah ada (`apps/kid/components/ui.tsx`). Sisa: maskot.
+6. ~~**D3 + D4** sebelum baris kode produksi pertama.~~ ✅ keduanya terjawab (ADR-0018, ADR-0019).
 
 ---
 
@@ -266,3 +288,36 @@ Rinciannya di [ADR-0012 §A3](decisions/0012-auth-anak-kode-keluarga-pin.md).
 | ~~5~~ | ~~**Sort ganda**~~ | ✅ **selesai 29 Juli 2026 (migrasi 0010).** Dua klik bersamaan diuji sungguhan: satu lolos, satu ditolak, tepat 3 baris tertulis (bukan 6), Unsorted 0 bukan −50.000. Saldo negatif berhenti jadi laporan, jadi kemustahilan |
 | 6 | Penghapusan data masih mustahil | trigger append-only membatalkan `delete from families`. Janji privasi belum bisa dipenuhi — butuh keputusan produk karena menyentuh ADR-0014 (`supabase/README.md`) |
 | 7 | Login anak menumpang JWT secret legacy | project sudah pakai ES256; token anak masih HS256 dengan kunci berstatus `Previously used`. **Jangan revoke kunci itu** sebelum backlog **U-6** selesai |
+
+---
+
+## 10. Kesiapan deploy (30 Juli 2026) — D4 dijawab, dan satu P0 ditemukan
+
+D4 jatuh ke **PWA untuk MVP** ([ADR-0019](decisions/0019-d4-pwa-untuk-mvp.md)) dan D5 ke **Middle
+saja** ([ADR-0020](decisions/0020-d5-middle-saja-untuk-mvp.md)). Langkah deploy lengkap ada di
+[`DEPLOY.md`](DEPLOY.md). Yang perlu dicatat di sini:
+
+**🚨 P0 yang ditemukan sebelum baris pertama di-deploy — dan cara ia bersembunyi.**
+`apps/console` tidak memakai `cookies()` di mana pun, jadi Next menganggap `/` **statis** dan
+memprerender-nya **saat build** — memanggil service role lintas keluarga lalu menulis hasilnya ke
+`.next/server/app/index.html`. Berkas itu terbukti berisi 58 KB saldo nyata (`Rp484.711`,
+`Rp279.140`) sebagai HTML datar yang siap di-cache CDN, di app yang **tidak punya login sama
+sekali**. Ditutup dengan `force-dynamic` + middleware basic-auth **gagal-tertutup**, dan keduanya
+**diuji dengan permintaan sungguhan**: tanpa auth `401` nol nominal bocor, tanpa `CONSOLE_PASSWORD`
+`503` untuk semua permintaan termasuk yang membawa password benar.
+
+> Ini bentuk keempat dari pelajaran yang sama. Tiga sebelumnya: RLS rekursif, view yang melewati
+> RLS, rate limit yang tak pernah menghitung. Kali ini penyebabnya bukan policy yang salah tulis
+> melainkan **default framework** — Next memilih statis kalau tidak ada yang menghalangi, dan
+> "statis" untuk halaman service-role berarti "diterbitkan".
+
+**Enam item backlog ternyata sudah beres** (X1–X5, X10). Semuanya ditulis terhadap mockup beku;
+kode nyata sudah benar sejak ditulis. Rinciannya di `nummi-backlog.md` §PALING ATAS.
+
+**Yang ikut ditutup saat menyiapkan deploy:** CI tidak pernah mem-build satu app pun · `vercel.json`
+root menunjuk `legacy/` · `env(safe-area-inset-bottom)` selalu bernilai 0 tanpa `viewportFit` ·
+font brand tidak pernah dimuat (semua permukaan diam-diam `system-ui`) · Transactions ortu membaca
+`SEED_LEDGER` statis padahal Dashboard di sesi yang sama membaca database.
+
+**Status verifikasi:** 219 test lulus · typecheck bersih · ketiga app build tanpa env Supabase
+(kalau salah satu mulai membutuhkannya saat build, itu tanda ia memanggil database di waktu build).

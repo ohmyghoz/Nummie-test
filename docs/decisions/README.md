@@ -27,13 +27,22 @@ kelihatannya lebih masuk akal.
 | [0014](0014-ledger-append-only.md) | Ledger append-only, saldo diturunkan |
 | [0015](0015-console-duluan-tipis.md) | Console dibangun duluan dan tipis |
 | [0016](0016-bahasa-produk-inggris.md) | Bahasa produk tetap Inggris (menutup D1) |
+| [0017](0017-istilah-kategori-sama-lintas-tier.md) | Istilah kategori sama lintas tier (menutup D2) |
+| [0018](0018-harga-sekali-bayar.md) | Harga sekali bayar Rp399.000 (menutup D3) |
+| [0019](0019-d4-pwa-untuk-mvp.md) | PWA untuk MVP — bisa dipasang, sengaja tidak offline (menjawab D4) |
+| [0020](0020-d5-middle-saja-untuk-mvp.md) | Middle saja untuk MVP, kode Little & Teen tetap hidup (menutup D5) |
 
 ## Terbuka — jangan dijawab lewat kode
 
-[`OPEN-keputusan-tertunda.md`](OPEN-keputusan-tertunda.md) — D3 harga ·
-D4 distribusi · D5 tier.
+**Per 30 Juli 2026, D1–D5 sudah terjawab.** Yang tersisa satu, dan sengaja tidak dipaksakan:
 
-~~D1 bahasa~~ → sudah diputuskan, lihat [ADR-0016](0016-bahasa-produk-inggris.md).
+**Distribusi v1** — ADR-0019 menjawab D4 hanya untuk **cakupan MVP**. Pertanyaan native-vs-PWA untuk
+v1 dijawab oleh **hasil uji 30 keluarga**, memakai daftar data di
+[ADR-0013](0013-web-first-d4-tetap-terbuka.md) §"Data yang harus dikumpulkan". Jangan menjawabnya
+lewat inersia — itu peringatan utama ADR-0013.
+
+[`OPEN-keputusan-tertunda.md`](OPEN-keputusan-tertunda.md) menyimpan riwayat kelimanya beserta
+pemicu tinjau ulang masing-masing.
 
 ## Menambah ADR baru
 

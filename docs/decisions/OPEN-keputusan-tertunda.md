@@ -1,6 +1,12 @@
-# Keputusan yang MASIH TERBUKA (D4–D5)
+# Keputusan D1–D5 — semuanya sudah terjawab (30 Juli 2026)
 
-**Jangan menjawab salah satu dari ini lewat kode.** Kalau sebuah tugas memaksanya, hentikan dan tanyakan.
+**Berkas ini sekarang arsip, bukan daftar tugas.** Ia dipertahankan karena yang berharga bukan
+keputusannya melainkan **pemicu tinjau ulang** masing-masing: itu yang memberi tahu kapan sebuah
+keputusan harus dibuka lagi, dan tanpanya keputusan lama membeku jadi kebenaran.
+
+Satu pertanyaan tetap terbuka dan sengaja tidak dipaksakan: **distribusi v1** (native vs PWA).
+ADR-0019 menjawab D4 hanya untuk cakupan MVP; versi v1 dijawab oleh **data uji 30 keluarga**
+(daftar datanya di [ADR-0013](0013-web-first-d4-tetap-terbuka.md)).
 
 Rincian dan rekomendasi ada di `../nummi-status.md` §5.
 
@@ -53,19 +59,37 @@ prototipe uji akan mengajari kesimpulan yang salah tentang minat membeli.
 
 ---
 
-## D4 — Distribusi (native/Expo vs PWA)
+## ~~D4 — Distribusi (native/Expo vs PWA)~~ ✅ DIJAWAB UNTUK MVP
 
-Lihat [ADR-0013](0013-web-first-d4-tetap-terbuka.md). Web-first adalah alat validasi, bukan jawaban.
+**PWA — bisa dipasang, sengaja tidak offline.** Lihat [ADR-0019](0019-d4-pwa-untuk-mvp.md).
 
-**Aturan sementara:** seluruh logika bisnis tinggal di `packages/core` tanpa dependency framework,
-supaya pilihan apa pun tetap murah.
+Yang membuatnya bisa dijawab bukan data baru melainkan **cakupan**: satu-satunya hal yang memaksa
+native adalah Apple IAP (ADR-0010), dan MVP tidak menjual apa pun. Tanpa penjualan, pemaksanya hilang.
+
+Tidak ada service worker — menyimpan saldo di cache berarti menampilkan angka uang yang basi, dan
+repo ini punya nol JavaScript klien hari ini.
+
+**Ditinjau ulang kalau** pembayaran sungguhan masuk cakupan · ortu terbukti tidak mau
+add-to-homescreen · ada alur yang benar-benar butuh push notification andal.
+
+**Yang masih terbuka:** distribusi **v1**. ADR-0013 tetap berlaku sebagai penjaga — jawabannya harus
+datang dari data uji, bukan dari inersia karena "sudah jalan di web".
 
 ---
 
-## D5 — Little & Teen masuk MVP atau tidak
+## ~~D5 — Little & Teen masuk MVP atau tidak~~ ✅ DIPUTUSKAN
 
-Di app anak, pemilih tier sengaja dimatikan (`harness()` mengembalikan `null`) sehingga hanya Middle
-yang bisa didemokan, walaupun logika Little & Teen ada di kodenya.
+**Middle saja.** Lihat [ADR-0020](0020-d5-middle-saja-untuk-mvp.md).
 
-**Aturan sementara:** tier = feature flag. **Jangan menghapus kode Little/Teen** — biayanya besar
-untuk dibangun ulang, kecil untuk dibiarkan mati sementara.
+⚠️ **Kalimat lama di berkas ini keliru** dan sempat membuat D5 tampak sudah beres: *"pemilih tier
+sudah dimatikan, `harness()` mengembalikan `null`."* Itu menggambarkan mockup beku di `legacy/`.
+Di app nyata tier dibaca dari database dan **ketiga tier ditawarkan** saat menambah anak. D5 sekarang
+ditegakkan lewat `MVP_TIERS` + `validateChild()` di `packages/core`, dengan test.
+
+**Aturan yang TETAP berlaku:** tier = feature flag. **Jangan menghapus kode Little/Teen.**
+
+Ikut tertutup: pemicu tinjau ulang ADR-0016 (bahasa) dan ADR-0017 (istilah) keduanya bergantung pada
+D5 memasukkan Little/Teen — keduanya tidak menyala di MVP.
+
+**Ditinjau ulang kalau** cakupan diperlebar setelah MVP. Kalau yang ditambahkan Little, tinjau
+ADR-0016 **lebih dulu**, sebelum layarnya dibangun.

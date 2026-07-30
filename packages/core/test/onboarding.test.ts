@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
-  PIN_LENGTH, STARTER_WALLETS,
+  PIN_LENGTH, STARTER_WALLETS, MVP_TIERS,
   ageFrom, allowedRewards, defaultReward, suggestTier,
+  isTierAvailable, isAgeOutsideMvpScope, tierAgeRange,
   validateChild, validateJob, validatePrize, weeksToEarn,
 } from '../src/index.js';
 import type { ChildDraft, JobDraft } from '../src/index.js';
@@ -25,9 +26,49 @@ describe('tier DISARANKAN, tidak ditetapkan', () => {
     expect(suggestTier(1, 2011, TODAY)).toBe('teen');    // 15
   });
 
-  it('ortu boleh menimpanya, dan itu tidak pernah ditolak', () => {
-    // anak 7 tahun disetel Teen: aneh, tapi sah — tidak ada penghakiman di validasi
-    expect(validateChild(child({ birthYear: 2019, tier: 'teen' }), TODAY).ok).toBe(true);
+  it('ortu boleh menimpanya, dan itu tidak pernah ditolak KARENA USIA', () => {
+    // anak 7 tahun disetel Middle: aneh, tapi sah — tidak ada penghakiman usia di validasi.
+    // Dulu test ini memakai tier 'teen'; dipisah setelah ADR-0020 karena kalimat aslinya
+    // mencampur dua hal — "usia tidak menghakimi" dan "tier apa saja boleh".
+    expect(validateChild(child({ birthYear: 2019, tier: 'middle' }), TODAY).ok).toBe(true);
+    expect(validateChild(child({ birthYear: 2005, tier: 'middle' }), TODAY).ok).toBe(true);
+  });
+});
+
+describe('cakupan MVP: Middle saja (ADR-0020 menutup D5)', () => {
+  it('hanya tier yang tersedia yang lolos — dan penegaknya di core, bukan di layar', () => {
+    expect(MVP_TIERS).toEqual(['middle']);
+    expect(validateChild(child({ tier: 'middle' }), TODAY).ok).toBe(true);
+    expect(validateChild(child({ tier: 'little' }), TODAY).errorKey).toBe('child.tierUnavailable');
+    expect(validateChild(child({ tier: 'teen' }), TODAY).errorKey).toBe('child.tierUnavailable');
+  });
+
+  it('yang ditolak adalah CAKUPAN, bukan usianya', () => {
+    // anak 15 tahun pun ditolak untuk Teen — alasannya tier itu belum dibuka, bukan umurnya.
+    expect(validateChild(child({ birthYear: 2011, tier: 'teen' }), TODAY).errorKey)
+      .toBe('child.tierUnavailable');
+  });
+
+  it('logika Little & Teen tetap hidup — dibatasi, bukan dihapus (aturan CLAUDE.md)', () => {
+    // `suggestTier` masih tahu ketiganya. Kalau ini mati, menambah tier kembali jadi mahal.
+    expect(suggestTier(1, 2019, TODAY)).toBe('little');
+    expect(suggestTier(1, 2011, TODAY)).toBe('teen');
+    expect(isTierAvailable('little')).toBe(false);
+    expect(isTierAvailable('middle')).toBe(true);
+  });
+
+  it('usia di luar cakupan diberi tahu, bukan dihalangi', () => {
+    expect(isAgeOutsideMvpScope(1, 2019, TODAY)).toBe(true);   // 7 → little
+    expect(isAgeOutsideMvpScope(1, 2011, TODAY)).toBe(true);   // 15 → teen
+    expect(isAgeOutsideMvpScope(1, 2015, TODAY)).toBe(false);  // 11 → middle
+    // ...dan tetap boleh dibuat, selama tier-nya yang tersedia.
+    expect(validateChild(child({ birthYear: 2019, tier: 'middle' }), TODAY).ok).toBe(true);
+  });
+
+  it('rentang usia diturunkan dari konstanta, tidak ditulis mati di layar', () => {
+    expect(tierAgeRange('middle')).toEqual({ min: 9, max: 12 });
+    expect(tierAgeRange('little')).toEqual({ min: 0, max: 8 });
+    expect(tierAgeRange('teen')).toEqual({ min: 13, max: null });
   });
 });
 

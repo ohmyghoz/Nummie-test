@@ -10,6 +10,29 @@ lengkap ada di `nummi-status.md`.*
 
 ## ‼️ PALING ATAS — bersih-bersih hasil audit (murah, dan menghentikan angka yang saling bertentangan)
 
+> ### ✅ Diaudit ulang 30 Juli 2026 — sebagian besar bagian ini sudah tidak berlaku
+>
+> Daftar X1–X10 lahir saat repo ini **hanya berisi mockup**. Audit lintas-berkas terhadap kode
+> nyata (`apps/*`, `packages/core`, `copy/`, `supabase/`) menemukan bahwa **X1–X5 dan X10 sudah
+> benar sejak kodenya ditulis** — yang salah adalah mockup beku di `legacy/`, dan itu memang tidak
+> untuk diperbaiki.
+>
+> | Item | Keadaan di kode nyata |
+> |---|---|
+> | X1 format rupiah | ✅ `formatRp()` satu-satunya perender uang. Nol `toLocaleString`, nol literal `Rp` |
+> | X2 target dream | ✅ `seed.ts` BMX 300.000 / Headphones 100.000, dan `supabase/seed.sql` setuju |
+> | X3 request pending | ✅ satu-satunya: cash_out 25.000 dari Snacks |
+> | X4 rasio auto-split | ✅ 40/40/20, ditegakkan `validateAutoSplit()`, default kolom SQL sama |
+> | X5 badge streak | ✅ nol kemunculan `streak`/`🔥` di seluruh kode |
+> | X10 Practice/Practise | ✅ "Practice" konsisten; "Practise" hanya tersisa di satu komentar |
+>
+> **Pelajarannya, dan ia berlaku ke seluruh dokumen ini:** backlog yang ditulis terhadap mockup
+> tidak otomatis berlaku untuk kode. Sebelum mengerjakan item lama, **periksa dulu apakah ia masih
+> nyata** — enam item di atas akan jadi enam pekerjaan yang mengubah kode yang sudah benar.
+>
+> Yang **masih nyata**: X6 (maskot — wordmark sudah ada, maskot belum), X8 (tiga judul `docs/`
+> masih "Celengan"), X9.
+
 - **X1. Format rupiah** → `Rp50.000` (brand §17). Sekarang semua mockup produk memakai `Rp 10,000`,
   bahkan antar-mockup anak beda (`Rp 900.000.` vs `Rp 900,000.`). Satu titik ubah per berkas:
   fungsi `rp()` di app anak, `fmt()` di app ortu. Console sudah benar — pakai itu sebagai contoh.
@@ -20,9 +43,10 @@ lengkap ada di `nummi-status.md`.*
 - **X5. Badge "🔥 7-day streak" yatim** di app anak (HP + iPad) — streak sudah dihapus total di Fase 5,
   jadi badge ini mustahil didapat. Hapus, atau ganti badge berbasis perilaku
   (mis. "3 minggu berturut-turut menyortir dalam 2 hari").
-- **X6. App anak tidak menyebut "Nummi" sama sekali** dan tidak memuat maskot — satu-satunya permukaan
-  tanpa brand, padahal paling sering dilihat anak. Sudah tidak terhalang — X7 selesai, bentuk maskot
-  sekarang tunggal dan jelas.
+- **X6. Maskot di app anak** — ⚠️ **separuh selesai.** Wordmark sudah ada (`apps/kid/components/ui.tsx`
+  → komponen `Brand`, koin ber-"n" + kata "Nummi"), jadi app anak tidak lagi tanpa brand. **Maskot
+  kancil masih belum.** Ikut selesai 30 Juli 2026: ikon PWA memakai symbol mark resmi (koin emas
+  berwajah + kecambah, brand §2/§7) — jadi brand kini muncul di home screen, bukan cuma di dalam app.
 - ~~**X7. Kontradiksi maskot di brand system**~~ ✅ **selesai 28 Juli 2026** — §8.2 ditulis ulang mengikuti
   lembar karakter yang disetujui (kancil emas, selendang ungu ber-monogram **n**, kecambah hijau), plus
   catatan agar §8.1/§8.2/lembar karakter tidak pernah lagi diubah sendiri-sendiri.
@@ -119,9 +143,12 @@ Matriks lengkap ada di `nummi-status.md` §2. Yang perlu dikerjakan:
 - Missions lebih ringkas: tidak ada progress "Chapter 1 of 6", event THR, atau panel "Your active lesson".
 
 **Anak (kedua permukaan):**
-- **Pemilih tier dimatikan** — fungsi `harness()` di app anak diawali `return null;` sehingga hanya mode
-  Middle yang bisa didemokan, walaupun logika Little & Teen ada di kode. Perlu keputusan: MVP cuma Middle,
-  atau ketiganya bisa didemokan? (D5 di `nummi-status.md`)
+- ~~**Pemilih tier dimatikan** — fungsi `harness()` diawali `return null;`~~ ⚠️ **kalimat ini keliru dan
+  sudah dikoreksi** oleh [ADR-0020](decisions/0020-d5-middle-saja-untuk-mvp.md). `harness()` hanya ada di
+  **mockup beku `legacy/`**. Di `apps/kid` yang nyata, tier dibaca dari kolom database, dan
+  `apps/parent/app/children/new` menawarkan **ketiga tier** — jadi D5 tidak pernah benar-benar ditegakkan,
+  ia cuma tampak begitu. ✅ **D5 sekarang diputuskan (Middle saja) dan ditegakkan** lewat `MVP_TIERS` +
+  `validateChild()` di `packages/core`, dengan test.
 
 **Ortu HP tertinggal dari ortu Web:** halaman Insight versi ringkas, tidak ada dashboard lintas-anak
 (*"From all your children"*) dan *"Rules, per child"*. Sebagian ini mungkin memang benar — layar kecil
@@ -463,5 +490,5 @@ Rincian & rekomendasi ada di `nummi-status.md` §5. Ringkasnya:
 | ~~D1~~ | ~~Bahasa produk~~ | ✅ **diputuskan: Inggris** (ADR-0016) — tidak lagi memblokir |
 | ~~D2~~ | ~~Tabel istilah final kategori × tier~~ | ✅ **sama lintas tier** (ADR-0017) |
 | ~~D3~~ | ~~Model harga~~ | ✅ **diputuskan: sekali bayar Rp399.000** (ADR-0018) — `LIMITS` ditegakkan di `packages/core/src/plan.ts` |
-| **D4** | Distribusi (native/Expo vs PWA) | memblokir mulainya M1 |
-| **D5** | Little & Teen masuk MVP atau tidak | menentukan besar cakupan app anak |
+| ~~D4~~ | ~~Distribusi (native/Expo vs PWA)~~ | ✅ **PWA untuk MVP** (ADR-0019) — bisa dipasang, sengaja tidak offline. **Distribusi v1 tetap terbuka**, dijawab oleh data uji |
+| ~~D5~~ | ~~Little & Teen masuk MVP atau tidak~~ | ✅ **Middle saja** (ADR-0020) — ditegakkan lewat `MVP_TIERS`, kode Little/Teen tidak dihapus |

@@ -84,6 +84,16 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // Aset statis tidak perlu sesi; menukar token untuk setiap gambar itu pemborosan.
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  /**
+   * Aset statis tidak perlu sesi; menukar token untuk setiap gambar itu pemborosan.
+   *
+   * Daftar ini bertambah saat PWA masuk (ADR-0019). Sebelumnya hanya `_next/*` + `favicon.ico`
+   * yang dikecualikan — padahal `apps/parent/public/` kini berisi manifest dan empat ikon, dan
+   * **semuanya diminta ulang** oleh sistem operasi tiap kali app dipasang atau ikonnya disegarkan.
+   * Tanpa baris ini, setiap permintaan ikon berpotensi memicu satu penukaran refresh token ke
+   * Supabase — beban yang tidak terlihat di dev dan baru terasa saat 30 keluarga memasangnya.
+   */
+  matcher: [
+    '/((?!_next/static|_next/image|favicon|icon-|apple-touch-icon|manifest\\.webmanifest).*)',
+  ],
 };

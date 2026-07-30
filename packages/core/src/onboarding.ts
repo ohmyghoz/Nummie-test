@@ -41,6 +41,51 @@ export const PIN_LENGTH = 6;
 export const LITTLE_MAX_AGE = 8;
 export const MIDDLE_MAX_AGE = 12;
 
+/**
+ * Tier yang benar-benar TERSEDIA di MVP — **Middle saja** (ADR-0020, menutup D5).
+ *
+ * Kenapa ini ada sebagai konstanta yang ditegakkan, bukan catatan di dokumen: D5 selama berbulan-bulan
+ * *terasa* sudah dijawab karena sebuah kalimat di status/backlog menyebut pemilih tier "sudah dimatikan
+ * lewat `harness()`". Fungsi itu hanya ada di mockup beku `legacy/`. Di app nyata tier dibaca dari
+ * database dan layar "Add a child" menawarkan ketiganya — jadi tidak ada satu pun penegak. Pola yang
+ * sama persis dengan `isPro()` sebelum ADR-0018: hidup di dokumen, tidak pernah dipanggil.
+ *
+ * ⚠️ **Ini batas CAKUPAN, bukan gerbang usia.** Catatan 2 di kepala berkas mengunci bahwa tier
+ * disarankan dan boleh ditimpa ortu **tanpa dihakimi** — tidak ada peringatan, tidak ada "yakin?".
+ * Memblokir ortu karena anaknya 7 tahun akan melanggar itu. Yang dilakukan: hanya tier yang tersedia
+ * yang ditawarkan, dan kalau usia anak menyarankan tier di luar cakupan, ortu **diberi tahu apa
+ * adanya** (uji tertutup untuk usia 9–12) — diberi tahu, bukan dihalangi.
+ *
+ * Menambah tier kembali = mengubah baris ini. Kode Little & Teen sengaja tidak dihapus.
+ */
+export const MVP_TIERS: readonly Tier[] = ['middle'];
+
+export function isTierAvailable(tier: Tier): boolean {
+  return MVP_TIERS.includes(tier);
+}
+
+/**
+ * Rentang usia sebuah tier, diturunkan dari batas saran di atas — supaya layar tidak pernah menulis
+ * "9–12" sebagai teks mati. `max: null` berarti tak berbatas atas.
+ */
+export function tierAgeRange(tier: Tier): { min: number; max: number | null } {
+  if (tier === 'little') return { min: 0, max: LITTLE_MAX_AGE };
+  if (tier === 'middle') return { min: LITTLE_MAX_AGE + 1, max: MIDDLE_MAX_AGE };
+  return { min: MIDDLE_MAX_AGE + 1, max: null };
+}
+
+/**
+ * Apakah usia anak menyarankan tier di luar cakupan MVP? Dipakai untuk memberi tahu ortu, **bukan**
+ * untuk menolak. Lihat peringatan di `MVP_TIERS`.
+ */
+export function isAgeOutsideMvpScope(
+  birthMonth: number,
+  birthYear: number,
+  todayISO: string,
+): boolean {
+  return !isTierAvailable(suggestTier(birthMonth, birthYear, todayISO));
+}
+
 export interface ChildDraft {
   name: string;
   birthMonth: number;
@@ -55,7 +100,8 @@ export type ChildErrorKey =
   | 'child.birthYearInvalid'
   | 'child.pinLength'
   | 'child.pinDigitsOnly'
-  | 'child.pinTaken';
+  | 'child.pinTaken'
+  | 'child.tierUnavailable';
 
 /**
  * Konteks yang hanya diketahui pemanggil. `pinTakenInFamily` sengaja berupa jawaban, bukan
@@ -97,6 +143,10 @@ export function validateChild(
   if (!Number.isInteger(draft.birthYear) || draft.birthYear < thisYear - 25 || draft.birthYear > thisYear) {
     return { ok: false, errorKey: 'child.birthYearInvalid' };
   }
+
+  // Cakupan MVP (ADR-0020). Layar hanya menawarkan tier yang tersedia, jadi ini menangkap permintaan
+  // yang tidak lewat layar — dan itu justru titik yang penting: penegaknya di sini, bukan di UI.
+  if (!isTierAvailable(draft.tier)) return { ok: false, errorKey: 'child.tierUnavailable' };
 
   if (!/^\d+$/.test(draft.pin)) return { ok: false, errorKey: 'child.pinDigitsOnly' };
   if (draft.pin.length !== PIN_LENGTH) return { ok: false, errorKey: 'child.pinLength' };

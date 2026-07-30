@@ -1,6 +1,7 @@
 import {
-  PIN_LENGTH, STARTER_WALLETS,
-  ageFrom, suggestTier, validateChild, type Tier,
+  PIN_LENGTH, STARTER_WALLETS, MVP_TIERS,
+  ageFrom, suggestTier, validateChild, isTierAvailable, isAgeOutsideMvpScope, tierAgeRange,
+  type Tier,
 } from '@nummi/core';
 import { getParentData } from '../../../lib/data';
 import { dict, fill } from '../../../lib/copy';
@@ -8,7 +9,9 @@ import { Nav, TopBar } from '../../../components/ui';
 import { Upsell } from '../../../components/upsell';
 import { addChild } from '../../../lib/actions';
 
-const TIERS: Tier[] = ['little', 'middle', 'teen'];
+// Cakupan MVP, bukan daftar tier yang ada (ADR-0020 menutup D5). Kode Little & Teen tetap hidup;
+// yang dibatasi adalah apa yang ditawarkan. Menambah tier kembali = mengubah `MVP_TIERS` di core.
+const TIERS: readonly Tier[] = MVP_TIERS;
 
 const ERROR_COPY: Record<string, string> = {
   'child.nameRequired': dict.addChild.nameRequired,
@@ -19,6 +22,9 @@ const ERROR_COPY: Record<string, string> = {
   // Postgres, dan layar ini masih membaca `lib/data.ts` (backlog U-2). Dipetakan sekarang
   // supaya saat disambungkan tidak ada errorKey yang jatuh tanpa copy.
   'child.pinTaken': dict.addChild.pinTaken,
+  // Layar hanya menawarkan tier yang tersedia, jadi ini hanya terpicu oleh permintaan yang tidak
+  // lewat layar — dan itu memang gunanya: penegaknya di `validateChild()`, bukan di markup.
+  'child.tierUnavailable': dict.addChild.tierUnavailable,
 };
 
 export default async function AddChildPage({
@@ -40,8 +46,17 @@ export default async function AddChildPage({
 
   const canSuggest = month >= 1 && month <= 12 && year > 1900;
   const suggested = canSuggest ? suggestTier(month, year, data.today) : undefined;
-  // Saran hanya default; pilihan ortu selalu menang.
-  const tier = (TIERS.includes(sp.tier as Tier) ? (sp.tier as Tier) : suggested) ?? 'middle';
+  // Saran hanya default; pilihan ortu selalu menang — di dalam tier yang tersedia (ADR-0020).
+  const chosen = TIERS.includes(sp.tier as Tier) ? (sp.tier as Tier) : undefined;
+  const suggestedAvailable = suggested && isTierAvailable(suggested) ? suggested : undefined;
+  const tier = chosen ?? suggestedAvailable ?? TIERS[0] ?? 'middle';
+
+  // Satu tier tersedia = tidak ada yang perlu dipilih. Menampilkan radio berisi satu opsi adalah
+  // pilihan palsu; yang jujur adalah menyatakan cakupannya.
+  const onlyTier = TIERS.length === 1 ? TIERS[0] : undefined;
+  const range = tierAgeRange(tier);
+  // Memberi tahu, TIDAK menghalangi — catatan 2 di `onboarding.ts` mengunci "tanpa dihakimi".
+  const outsideScope = canSuggest && isAgeOutsideMvpScope(month, year, data.today);
 
   const check = submitted
     ? validateChild({ name, birthMonth: month, birthYear: year, tier, pin }, data.today)
@@ -72,22 +87,49 @@ export default async function AddChildPage({
 
           <div className="card">
             <h2>{dict.addChild.tier}</h2>
-            {TIERS.map((t) => (
-              <label className="choice" key={t}>
-                <input type="radio" name="tier" value={t} defaultChecked={tier === t} />
-                <span>
-                  {dict.tierName[t]}
-                  {suggested === t && (
-                    <span className="pill" style={{ marginLeft: 8 }}>{dict.addChild.tierSuggested}</span>
-                  )}
-                </span>
-              </label>
-            ))}
-            {/* Ditimpa tanpa dihakimi — tidak ada peringatan, tidak ada "yakin?". */}
-            <p className="sub" style={{ marginTop: 6 }}>
-              {dict.addChild.tierOverride}
-              {canSuggest && ` (${ageFrom(month, year, data.today)})`}
-            </p>
+            {onlyTier ? (
+              <>
+                {/* Pernyataan cakupan, bukan pertanyaan (ADR-0020). */}
+                <p className="sub">
+                  {fill(dict.addChild.tierOnly, {
+                    tier: dict.tierName[onlyTier],
+                    min: range.min,
+                    max: range.max ?? '+',
+                  })}
+                </p>
+                <input type="hidden" name="tier" value={onlyTier} />
+              </>
+            ) : (
+              <>
+                {TIERS.map((t) => (
+                  <label className="choice" key={t}>
+                    <input type="radio" name="tier" value={t} defaultChecked={tier === t} />
+                    <span>
+                      {dict.tierName[t]}
+                      {suggested === t && (
+                        <span className="pill" style={{ marginLeft: 8 }}>{dict.addChild.tierSuggested}</span>
+                      )}
+                    </span>
+                  </label>
+                ))}
+                {/* Ditimpa tanpa dihakimi — tidak ada peringatan, tidak ada "yakin?". */}
+                <p className="sub" style={{ marginTop: 6 }}>
+                  {dict.addChild.tierOverride}
+                  {canSuggest && ` (${ageFrom(month, year, data.today)})`}
+                </p>
+              </>
+            )}
+
+            {/* Usia di luar cakupan: diberi tahu, tidak dihalangi. Tombol lanjut tetap hidup. */}
+            {outsideScope && (
+              <p className="note" style={{ marginTop: 8 }}>
+                {fill(dict.addChild.tierOutsideScope, {
+                  name: name || dict.addChild.name,
+                  min: range.min,
+                  max: range.max ?? '+',
+                })}
+              </p>
+            )}
           </div>
 
           <div className="card">

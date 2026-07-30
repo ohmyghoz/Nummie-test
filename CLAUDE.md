@@ -128,18 +128,29 @@ mengimpor dari `apps/*`.
 
 ---
 
-## Keputusan yang MASIH TERBUKA (jangan diputuskan sendiri)
+## Keputusan D1–D5 — semuanya sudah terjawab (30 Juli 2026)
 
-| # | Keputusan | Aturan sementara |
+| # | Keputusan | Hasil |
 |---|---|---|
-| ~~D1~~ | ~~Bahasa produk~~ | ✅ **diputuskan: Inggris** (ADR-0016) |
-| ~~D2~~ | ~~Tabel istilah kategori × tier~~ | ✅ **diputuskan: sama lintas tier** (ADR-0017) |
-| ~~D3~~ | ~~Model harga~~ | ✅ **diputuskan: sekali bayar Rp399.000** (ADR-0018). `LIMITS` ditegakkan lewat `packages/core/src/plan.ts` |
-| **D4** | Distribusi (native/Expo vs PWA) | **web = prototipe validasi, BUKAN jawaban D4** |
-| **D5** | Little & Teen masuk MVP? | tier = feature flag, jangan hapus kodenya |
+| ~~D1~~ | ~~Bahasa produk~~ | ✅ **Inggris** (ADR-0016) |
+| ~~D2~~ | ~~Tabel istilah kategori × tier~~ | ✅ **sama lintas tier** (ADR-0017) |
+| ~~D3~~ | ~~Model harga~~ | ✅ **sekali bayar Rp399.000** (ADR-0018). `LIMITS` ditegakkan lewat `packages/core/src/plan.ts` |
+| ~~D4~~ | ~~Distribusi~~ | ✅ **PWA untuk MVP** (ADR-0019) — bisa dipasang, **sengaja tidak offline**. Nol service worker |
+| ~~D5~~ | ~~Little & Teen masuk MVP?~~ | ✅ **Middle saja** (ADR-0020). Ditegakkan lewat `MVP_TIERS`. **Kode Little/Teen tetap tidak boleh dihapus** |
 
-Kalau sebuah tugas memaksa salah satu keputusan ini, **hentikan dan tanyakan.** Menjawabnya
-diam-diam lewat kode adalah kegagalan paling mahal yang bisa terjadi di repo ini.
+**Satu pertanyaan sengaja dibiarkan terbuka: distribusi v1.** ADR-0019 menjawab D4 hanya untuk
+cakupan MVP. Native-vs-PWA untuk v1 dijawab oleh **data uji 30 keluarga** (daftarnya di ADR-0013) —
+**jangan menjawabnya lewat inersia** karena "sudah jalan di web". Itu peringatan utama ADR-0013 dan
+ia belum gugur.
+
+Kalau sebuah tugas memaksa pertanyaan itu, **hentikan dan tanyakan.** Menjawabnya diam-diam lewat
+kode adalah kegagalan paling mahal yang bisa terjadi di repo ini.
+
+**Pelajaran yang baru saja terjadi dua kali, dan layak dibaca sebelum menutup keputusan apa pun:**
+D3 dan D5 sama-sama *terasa* sudah beres padahal tidak punya penegak. `isPro()` hidup di dokumen
+berbulan-bulan tanpa pernah dipanggil (ditutup ADR-0018), dan D5 tampak beres karena sebuah kalimat
+tentang `harness()` yang ternyata menggambarkan mockup beku, bukan app nyata (dikoreksi ADR-0020).
+**Keputusan tanpa penegak bukan keputusan.**
 
 ---
 
