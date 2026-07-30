@@ -71,3 +71,59 @@ export function weeksToEarn(gemCost: number, gemsPerWeek: number): number | null
   if (gemsPerWeek <= 0) return null;
   return Math.ceil(gemCost / gemsPerWeek);
 }
+
+/* ── Entitas yang tersimpan ───────────────────────────────────────────────────
+ *
+ * `JobDraft`/`PrizeDraft` di atas adalah apa yang ORTU ISI di form. Yang di bawah adalah apa yang
+ * TERSIMPAN — dan bedanya bukan formalitas: yang tersimpan punya id (dipakai request untuk
+ * menyebut job mana yang diklaim) dan frekuensi (yang draft-nya belum pernah punya, padahal
+ * handoff §246 dan mockup lama sama-sama menyebutnya).
+ */
+
+export type JobFrequency = 'once' | 'weekly';
+
+export interface Job {
+  id: string;
+  childId: string;
+  kind: JobKind;
+  title: string;
+  reward: RewardKind;
+  /** 💎 kalau reward gems, rupiah kalau money */
+  amount: number;
+  frequency: JobFrequency;
+}
+
+export interface Prize {
+  id: string;
+  childId: string;
+  title: string;
+  gemCost: number;
+}
+
+/**
+ * 💎 per minggu yang benar-benar bisa didapat — dijumlahkan dari job MINGGUAN ber-reward 💎.
+ *
+ * Handoff §250 menuntut angka ini "hidup": menambah job mingguan harus mengubah estimasi
+ * "berapa lama sampai bisa menukar hadiah". Sebelumnya ortu MENGETIK angka ini sendiri di form,
+ * yang artinya estimasinya bisa optimistis tanpa dasar apa pun.
+ *
+ * Selama UI hanya menawarkan job sekali-jalan, fungsi ini mengembalikan 0 — dan itu jawaban yang
+ * benar, bukan bug: tanpa job mingguan memang tidak ada 💎 yang datang tiap minggu.
+ */
+export function gemsPerWeek(jobs: Job[]): number {
+  return jobs
+    .filter((j) => j.frequency === 'weekly' && j.reward === 'gems')
+    .reduce((sum, j) => sum + j.amount, 0);
+}
+
+/**
+ * Job mana yang boleh dikerjakan anak sekarang.
+ *
+ * Gerbang 1 (⭐ lifetime ≥ 100) membuka SISTEM chores-nya; gerbang 2 (Chapter 2) membuka jenis
+ * `achievement`. Keduanya dari ADR-0004, dan keduanya soal APA YANG TAMPIL — job yang terkunci
+ * tidak dirender sebagai baris mati di app anak (I3).
+ */
+export function availableJobs(jobs: Job[], choresOpen: boolean, achievementOpen: boolean): Job[] {
+  if (!choresOpen) return [];
+  return jobs.filter((j) => j.kind !== 'achievement' || achievementOpen);
+}

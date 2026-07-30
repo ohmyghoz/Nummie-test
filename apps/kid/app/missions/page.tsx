@@ -1,10 +1,11 @@
 import {
   CHAPTERS, CHAPTER_COUNT, STARS_PER_LESSON,
-  canRedeemGems, chapterStatus, lessonMix,
+  canRedeemGems, chapterStatus, formatRp, lessonMix,
 } from '@nummi/core';
 import { getKidData } from '../../lib/data';
 import { dict, fill } from '../../lib/copy';
 import { Brand, Nav } from '../../components/ui';
+import { claimJob } from '../../lib/actions';
 
 export default async function MissionsPage() {
   const data = await getKidData();
@@ -73,6 +74,50 @@ export default async function MissionsPage() {
             );
           })}
         </div>
+
+        {/*
+          "Jobs from home" — SECTION TERPISAH dari kurikulum, di halaman yang sama (handoff §129).
+          Terpisah karena sumbernya berbeda: kurikulum memberi ⭐ (kosmetik), kerjaan dari rumah
+          memberi 💎 (hadiah nyata). Menyatukannya akan mengaburkan pembedaan yang justru inti
+          ADR-0004.
+
+          Kalau gerbang 1 (⭐ lifetime ≥ 100) belum terbuka, `data.jobs` KOSONG — daftar ini tidak
+          dirender sebagai baris mati (I3). Yang dirender panel gerbangnya, di layar Me.
+        */}
+        {data.jobs.length > 0 && (
+          <div className="card" style={{ marginTop: 16 }}>
+            <h2>🧹 {dict.kidJobs.title}</h2>
+            {data.jobs.map((job) => {
+              const claiming = data.requests.some(
+                (r) => r.kind === 'mission_claim' && r.status === 'needs_ok' && r.jobId === job.id,
+              );
+              return (
+                <div className="slot" key={job.id}>
+                  <div>
+                    <div className="nm">{job.title}</div>
+                    <div className="pct">
+                      {job.reward === 'gems'
+                        ? fill(dict.kidJobs.paidInGems, { amount: job.amount })
+                        : fill(dict.kidJobs.paidInMoney, { amount: formatRp(job.amount) })}
+                    </div>
+                  </div>
+                  {/* Sudah diklaim = tidak ada tombol kedua. Satu pekerjaan, satu klaim. */}
+                  {claiming ? (
+                    <span className="pill">{dict.kidJobs.waiting}</span>
+                  ) : (
+                    <form action={claimJob} style={{ marginLeft: 'auto' }}>
+                      <input type="hidden" name="job" value={job.id} />
+                      <button className="pill" type="submit"
+                        style={{ border: 'none', font: 'inherit', cursor: 'pointer' }}>
+                        {dict.kidJobs.markDone}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </main>
       <Nav active="missions" />
     </>

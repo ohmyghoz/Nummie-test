@@ -69,6 +69,14 @@ export interface Dictionary {
     string
   >;
 
+  /** "Jobs from home" & penukaran hadiah di sisi ANAK (U-13). Builder ortu ada di `jobs`. */
+  kidJobs: Record<
+    'title' | 'empty' | 'markDone' | 'waiting' | 'paidInGems' | 'paidInMoney'
+    | 'prizesTitle' | 'prizesEmpty' | 'redeem' | 'yourGems' | 'tooExpensive'
+    | 'bigPrizeLocked' | 'weeklyLocked' | 'failed',
+    string
+  >;
+
   /** Judul chapter — kuncinya di core (`CHAPTERS`). */
   chapter: Record<ChapterKey, string>;
 

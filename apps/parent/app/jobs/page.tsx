@@ -5,6 +5,7 @@ import {
 import { findChild, getParentData } from '../../lib/data';
 import { dict, fill } from '../../lib/copy';
 import { Nav, TopBar } from '../../components/ui';
+import { createJob, createPrize } from '../../lib/actions';
 
 const KINDS: JobKind[] = ['family_contribution', 'extra_work', 'achievement'];
 
@@ -22,6 +23,7 @@ export default async function JobsPage({
   searchParams: Promise<{
     child?: string; kind?: string; title?: string; reward?: string; amount?: string;
     prize?: string; cost?: string; perWeek?: string;
+    saved?: string; e?: string;
   }>;
 }) {
   const sp = await searchParams;
@@ -112,7 +114,12 @@ export default async function JobsPage({
           <div className="errbox">{ERROR_COPY[jobCheck.errorKey]}</div>
         )}
         {jobCheck?.ok && (
-          <div className="card">
+          <form action={createJob} className="card">
+            <input type="hidden" name="child" value={child.id} />
+            <input type="hidden" name="kind" value={kind} />
+            <input type="hidden" name="title" value={sp.title ?? ''} />
+            <input type="hidden" name="reward" value={reward} />
+            <input type="hidden" name="amount" value={amount} />
             <div className="row">
               <span className="nm">{sp.title}</span>
               <span className="sub">{dict.jobKind[kind]}</span>
@@ -120,7 +127,11 @@ export default async function JobsPage({
                 {reward === 'gems' ? `${amount} 💎` : formatRp(amount)}
               </span>
             </div>
-          </div>
+            {/* Langkah kedua yang benar-benar menyimpan. Sebelum ini kartu ini cuma pratinjau. */}
+            <button className="btn primary" type="submit" style={{ marginTop: 10 }}>
+              {dict.settings.save}
+            </button>
+          </form>
         )}
 
         <form method="get" action="/jobs">
@@ -147,11 +158,51 @@ export default async function JobsPage({
         {/* "Berapa lama untuk dapat" — pratinjau yang menghentikan ortu memasang hadiah
             mustahil. Hadiah yang tak akan pernah tercapai DITANDAI, bukan disembunyikan. */}
         {weeks !== undefined && (
-          <div className="card">
+          <form action={createPrize} className="card">
+            <input type="hidden" name="child" value={child.id} />
+            <input type="hidden" name="title" value={sp.prize ?? ''} />
+            <input type="hidden" name="cost" value={sp.cost ?? ''} />
             <h2>{dict.jobs.timeToEarn}</h2>
             <p className={weeks === null ? 'errbox' : 'note'}>
               {weeks === null ? dict.jobs.never : fill(dict.jobs.weeks, { weeks })}
             </p>
+            {/* Hadiah yang tak akan pernah tercapai tetap BOLEH disimpan — ortu sudah diberi tahu,
+                dan melarangnya berarti app memutuskan menggantikan ortu. */}
+            {prizeCheck?.ok && (
+              <button className="btn primary" type="submit" style={{ marginTop: 10 }}>
+                {dict.settings.save}
+              </button>
+            )}
+          </form>
+        )}
+
+        {sp.saved && (
+          <p className="pill ok" style={{ display: 'inline-block' }}>{dict.settings.saved}</p>
+        )}
+        {sp.e && !jobCheck && !prizeCheck && (
+          <div className="errbox">{ERROR_COPY[sp.e] ?? dict.parent.decisionFailed}</div>
+        )}
+
+        {/* Daftar yang SUDAH tersimpan — sebelum ini layar ini tidak pernah menampilkan apa pun
+            yang pernah dibuat, karena tidak ada yang pernah tersimpan. */}
+        {(child.jobs.length > 0 || child.prizes.length > 0) && (
+          <div className="card">
+            <h2>{dict.jobs.title} · {dict.jobs.prizes}</h2>
+            {child.jobs.map((j) => (
+              <div className="row" key={j.id}>
+                <span className="nm">{j.title}</span>
+                <span className="sub">{dict.jobKind[j.kind]}</span>
+                <span className="amt num">
+                  {j.reward === 'gems' ? `${j.amount} 💎` : formatRp(j.amount)}
+                </span>
+              </div>
+            ))}
+            {child.prizes.map((pr) => (
+              <div className="row" key={pr.id}>
+                <span className="nm">🎁 {pr.title}</span>
+                <span className="amt num">{pr.gemCost} 💎</span>
+              </div>
+            ))}
           </div>
         )}
       </main>

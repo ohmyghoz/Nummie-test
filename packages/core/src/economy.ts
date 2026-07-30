@@ -81,8 +81,26 @@ export function canEarnGems(): boolean {
   return true;
 }
 
+/**
+ * Gerbang 3 — dan perhatikan `undefined` diperlakukan BERBEDA dari `false`.
+ *
+ *   true      → materi minggu ini selesai, silakan tukar
+ *   false     → belum selesai, gerbang menutup (inilah gerbangnya)
+ *   undefined → **belum ada materi mingguan sama sekali**, jadi tidak ada yang bisa digerbang
+ *
+ * Kenapa `undefined` membuka: kurikulum belum punya tabel, jadi `weeklyMaterialDone` tidak pernah
+ * bisa bernilai apa pun. Memperlakukannya sebagai "belum selesai" akan menutup gerbang ini
+ * **selamanya** — 💎 bisa dikumpulkan tapi tidak pernah bisa ditukar, dan seluruh ekonomi 💎 jadi
+ * hiasan. Gerbang yang menjaga syarat yang tidak ada bukan penjagaan, ia cuma kebuntuan.
+ *
+ * ADR-0004 tidak dibalik: gerbangnya tetap ada dan tetap menutup begitu ada materi mingguan yang
+ * bisa dinilai. Yang berubah cuma cara membaca "tidak ada data".
+ *
+ * ⚠️ Begitu kurikulum punya tabel, `weeklyMaterialDone` harus jadi boolean sungguhan — dan sejak
+ * saat itu baris ini menutup gerbangnya sendiri tanpa perubahan kode.
+ */
 export function canRedeemGems(e: Economy): boolean {
-  return e.weeklyMaterialDone === true;
+  return e.weeklyMaterialDone !== false;
 }
 
 /** Menukar 💎 jadi hadiah nyata: melewati gerbang mingguan, gerbang hadiah besar, lalu saldo. */

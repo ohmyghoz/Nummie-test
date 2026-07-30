@@ -28,6 +28,9 @@ import { redirect } from 'next/navigation';
 import {
   POCKETS,
   SEED_PRICES,
+  availableJobs,
+  bigPrizesUnlocked,
+  choresUnlocked,
   closedGiving,
   growPosition,
   growInSources,
@@ -38,8 +41,11 @@ import {
   sortPlan,
   totalBalance,
   walletBalances,
+  type Economy,
   type GrowPosition,
+  type Job,
   type LedgerEntry,
+  type Prize,
   type MoneyRequest,
   type MoneyRules,
   type Pocket,
@@ -75,7 +81,10 @@ export interface KidData {
   promiseDebt: MoneyRequest[];
   rules: MoneyRules;
   plan: SortPlan;
-  economy: { starsBalance: number; starsLifetime: number; gems: number; chaptersDone: number; chaptersTotal: number };
+  economy: Economy & { chaptersTotal: number };
+  /** job yang boleh dikerjakan sekarang — yang tergerbang tidak ikut (I3) */
+  jobs: Job[];
+  prizes: Prize[];
   grow: GrowRow[];
   harvestTargets: Wallet[];
   /** kantong yang boleh mendanai Grow — dream TIDAK PERNAH ada di sini (ADR-0005) */
@@ -111,7 +120,8 @@ export async function getKidData(mode?: RuleMode): Promise<KidData> {
 
   // Satu perjalanan, bukan enam berurutan. Kelimanya tidak saling bergantung.
   const [
-    childRes, walletRes, ledgerRes, rulesRes, requestRes, economyRes, ratesRes, pricesRes,
+    childRes, walletRes, ledgerRes, rulesRes, requestRes, economyRes,
+    gemRes, jobRes, prizeRes, ratesRes, pricesRes,
   ] = await Promise.all([
     db.from('children').select('id, name, tier').limit(1).maybeSingle(),
     db.from('wallets').select('id, child_id, name, category, kind, target_amount, instrument, tenor_months, locked_rate_pct, started_at')
@@ -119,9 +129,15 @@ export async function getKidData(mode?: RuleMode): Promise<KidData> {
     db.from('ledger_entries').select('id, child_id, from_wallet_id, to_wallet_id, amount, reason, created_at')
       .order('created_at'),
     db.from('money_rules').select('child_id, mode, auto_split_enabled, ratios, destinations').maybeSingle(),
-    db.from('requests').select('id, child_id, kind, amount, source_wallet_id, destination_wallet_id, reason, status, fulfilment, fulfilment_story')
+    db.from('requests').select('id, child_id, kind, amount, source_wallet_id, destination_wallet_id, reason, status, fulfilment, fulfilment_story, job_id, prize_id')
       .order('created_at', { ascending: false }),
-    db.from('child_economy').select('stars_balance, stars_lifetime, gems').maybeSingle(),
+    db.from('child_economy').select('stars_balance, stars_lifetime').maybeSingle(),
+    // 💎 diturunkan dari ledger-nya (0015), bukan dibaca dari penghitung — pola sama dengan uang.
+    db.from('gem_balances').select('balance').maybeSingle(),
+    db.from('jobs').select('id, child_id, kind, title, reward, amount, frequency')
+      .is('archived_at', null).order('created_at'),
+    db.from('prizes').select('id, child_id, title, gem_cost')
+      .is('archived_at', null).order('gem_cost'),
     // Bunga bank tidak dipakai layar anak, tapi `Prices` di core satu bentuk — jadi ikut dibaca
     // supaya angka yang dilihat anak dan ortu berasal dari baris yang sama.
     db.from('bank_rates').select('m3, m6, m12').maybeSingle(),
@@ -170,6 +186,8 @@ export async function getKidData(mode?: RuleMode): Promise<KidData> {
     status: r.status,
     fulfilment: r.fulfilment,
     fulfilmentStory: r.fulfilment_story ?? undefined,
+    jobId: r.job_id ?? undefined,
+    prizeId: r.prize_id ?? undefined,
   }));
 
   const dbRules = rulesRes.data;
@@ -204,7 +222,25 @@ export async function getKidData(mode?: RuleMode): Promise<KidData> {
       return { wallet, position: growPosition(rupiahIn, byWallet[wallet.id] ?? 0) };
     });
 
-  const economy = economyRes.data;
+  /**
+   * ⭐ tetap penghitung, 💎 dari ledger. Bukan inkonsistensi: ⭐ hanya membeli kosmetik in-app,
+   * 💎 ditukar jadi hadiah dunia nyata — pembedaan yang sama dengan ADR-0004.
+   *
+   * `weeklyMaterialDone` sengaja TIDAK diset: kurikulum belum punya tabel, dan `undefined`
+   * berarti "belum ada materi mingguan", bukan "belum selesai" (lihat canRedeemGems di core).
+   */
+  const economy: Economy & { chaptersTotal: number } = {
+    starsBalance: economyRes.data?.stars_balance ?? 0,
+    starsLifetime: economyRes.data?.stars_lifetime ?? 0,
+    gems: Number(gemRes.data?.balance ?? 0),
+    chaptersDone: CHAPTERS_DONE,
+    chaptersTotal: CHAPTERS_TOTAL,
+  };
+
+  const allJobs: Job[] = (jobRes.data ?? []).map((j) => ({
+    id: j.id, childId: j.child_id, kind: j.kind, title: j.title,
+    reward: j.reward, amount: Number(j.amount), frequency: j.frequency,
+  }));
 
   // Disusun dari dua tabel (0013 memisahkan harga-feed dari bunga-yang-ditetapkan-ortu), lalu
   // dikembalikan sebagai satu bentuk `Prices` supaya core & UI tidak perlu tahu pemisahannya.
@@ -244,12 +280,10 @@ export async function getKidData(mode?: RuleMode): Promise<KidData> {
     promiseDebt: promiseDebt(requests),
     rules,
     plan: sortPlan(unsortedBalance, rules, wallets),
-    economy: {
-      starsBalance: economy?.stars_balance ?? 0,
-      starsLifetime: economy?.stars_lifetime ?? 0,
-      gems: economy?.gems ?? 0,
-      chaptersDone: CHAPTERS_DONE,
-      chaptersTotal: CHAPTERS_TOTAL,
-    },
+    economy,
+    jobs: availableJobs(allJobs, choresUnlocked(economy), bigPrizesUnlocked(economy)),
+    prizes: (prizeRes.data ?? []).map((p) => ({
+      id: p.id, childId: p.child_id, title: p.title, gemCost: p.gem_cost,
+    })),
   };
 }

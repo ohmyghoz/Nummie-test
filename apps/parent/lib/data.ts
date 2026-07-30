@@ -37,7 +37,9 @@ import {
   type Prices,
   type Pocket,
   type TakeTarget,
+  type Job,
   type LedgerEntry,
+  type Prize,
   type RuleMode,
   type Tier,
   type Wallet,
@@ -67,6 +69,11 @@ export interface ChildView {
   allowance: AllowanceSchedule;
   /** instrumen Grow + modal & nilai sekarang, keduanya dari ledger */
   investments: { wallet: Wallet; rupiahIn: number; valueNow: number }[];
+  /** job & hadiah yang sudah tersimpan (0015) — layar builder tidak pernah bisa menampilkannya */
+  jobs: Job[];
+  prizes: Prize[];
+  /** 💎 dari ledger-nya sendiri, bukan penghitung */
+  gems: number;
 }
 
 export interface ParentData {
@@ -90,7 +97,7 @@ export async function getParentData(): Promise<ParentData> {
 
   const [
     meRes, childRes, walletRes, ledgerRes, requestRes, rulesRes,
-    allowanceRes, ratesRes, pricesRes,
+    allowanceRes, ratesRes, jobRes, prizeRes, gemRes, pricesRes,
   ] = await Promise.all([
     db.from('parents').select('id, display_name').limit(1).maybeSingle(),
     db.from('children').select('id, name, tier').order('created_at'),
@@ -100,12 +107,17 @@ export async function getParentData(): Promise<ParentData> {
       .select('id, child_id, from_wallet_id, to_wallet_id, amount, reason, created_at')
       .order('created_at'),
     db.from('requests')
-      .select('id, child_id, kind, amount, source_wallet_id, destination_wallet_id, harvest_choice, reason, status, fulfilment, fulfilment_story')
+      .select('id, child_id, kind, amount, source_wallet_id, destination_wallet_id, harvest_choice, reason, status, fulfilment, fulfilment_story, job_id, prize_id')
       .order('created_at', { ascending: false }),
     db.from('money_rules').select('child_id, mode, auto_split_enabled, ratios, destinations'),
     db.from('allowance_schedules')
       .select('child_id, enabled, amount, frequency, day, anchor_date'),
     db.from('bank_rates').select('m3, m6, m12').maybeSingle(),
+    db.from('jobs').select('id, child_id, kind, title, reward, amount, frequency')
+      .is('archived_at', null).order('created_at'),
+    db.from('prizes').select('id, child_id, title, gem_cost')
+      .is('archived_at', null).order('gem_cost'),
+    db.from('gem_balances').select('child_id, balance'),
     // Baris terbaru = harga hari ini. Riwayatnya tetap ada (price_date jadi PK di 0013), jadi
     // nilai lama anak masih bisa dijelaskan kalau harga berubah — syarat backlog T.
     db.from('daily_prices')
@@ -173,6 +185,8 @@ export async function getParentData(): Promise<ParentData> {
     status: r.status,
     fulfilment: r.fulfilment,
     fulfilmentStory: r.fulfilment_story ?? undefined,
+    jobId: r.job_id ?? undefined,
+    prizeId: r.prize_id ?? undefined,
   }));
 
   /**
@@ -230,6 +244,14 @@ export async function getParentData(): Promise<ParentData> {
       takeTargets: takeTargets(wallets),
       unsortedWallet: sendLandsIn(wallets),
       allowance: allowanceFor(c.id),
+      jobs: (jobRes.data ?? []).filter((j) => j.child_id === c.id).map((j) => ({
+        id: j.id, childId: j.child_id, kind: j.kind, title: j.title,
+        reward: j.reward, amount: Number(j.amount), frequency: j.frequency,
+      })),
+      prizes: (prizeRes.data ?? []).filter((pr) => pr.child_id === c.id).map((pr) => ({
+        id: pr.id, childId: pr.child_id, title: pr.title, gemCost: pr.gem_cost,
+      })),
+      gems: Number((gemRes.data ?? []).find((g) => g.child_id === c.id)?.balance ?? 0),
       // Modal & nilai KEDUANYA dari ledger — harga hanya menjelaskan (lihat core/grow.ts).
       investments: wallets
         .filter((w) => w.category === 'grow')

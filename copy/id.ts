@@ -121,6 +121,23 @@ export const id: Dictionary = {
     weeklyGate: 'Selesaikan minggu ini untuk memakai permatamu',
   },
 
+  kidJobs: {
+    title: 'Kerjaan dari rumah',
+    empty: 'Belum ada kerjaan. Tanya orang tuamu.',
+    markDone: 'Sudah kukerjakan',
+    waiting: 'Menunggu orang tua',
+    paidInGems: '{amount} permata',
+    paidInMoney: '{amount} — mendarat di Uang Baru',
+    prizesTitle: 'Hadiah',
+    prizesEmpty: 'Belum ada hadiah. Minta orang tuamu menambahkannya.',
+    redeem: 'Tukar {cost} permata',
+    yourGems: 'Permatamu {gems}',
+    tooExpensive: 'Permatamu belum cukup',
+    bigPrizeLocked: 'Selesaikan Bab {n} untuk hadiah besar',
+    weeklyLocked: 'Selesaikan minggu ini untuk memakai permatamu',
+    failed: 'Belum berhasil. Tidak ada yang berubah.',
+  },
+
   chapter: {
     money_is_choice: 'Uang itu pilihan',
     four_jobs: 'Uang punya empat tugas',

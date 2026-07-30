@@ -44,6 +44,8 @@ bukan konfigurasi yang salah.
 | `migrations/0011_harvest_destination.sql` | tujuan + pilihan deposito saat Harvest punya tempat | ✅ jalan |
 | `migrations/0012_create_child.sql` | tambah anak = satu transaksi (anak + wallet + aturan + ekonomi) | ✅ jalan |
 | `migrations/0013_settings_tables.sql` | uang saku (per anak) · bunga bank (per keluarga) · harga harian (global) | ✅ jalan |
+| `migrations/0014_deposit_terms.sql` | tenor + rate + tanggal mulai deposito, dibekukan saat approve | ✅ jalan |
+| `migrations/0015_jobs_prizes_gems.sql` | `jobs` · `prizes` · **`gem_entries` append-only** + view saldo | ✅ jalan |
 | `functions/child-login/` | Edge Function: kode keluarga + PIN → JWT ber-claim | ✅ **v4, ACTIVE** |
 | `seed.sql` | data uji kanonik (cermin `packages/core/src/seed.ts`) — jalankan **setelah** migrasi | ✅ jalan (`NUMMI1`) |
 
@@ -167,6 +169,22 @@ begin;
   select count(*) from wallet_balances;   -- harus HANYA milik anak itu
 rollback;
 ```
+
+## Dua ledger, dua alasan
+
+Uang **dan** 💎 sama-sama append-only, dan itu bukan simetri demi kerapian:
+
+| | Tabel | Saldo | Kenapa append-only |
+|---|---|---|---|
+| Uang | `ledger_entries` | view `wallet_balances` | ADR-0014 — sejarah uang tidak boleh bisa diedit |
+| 💎 | `gem_entries` | view `gem_balances` | ditukar jadi **hadiah dunia nyata**; "💎-ku ke mana?" harus terjawab |
+| ⭐ | `child_economy` (penghitung) | — | hanya membeli kosmetik in-app; tidak menyentuh dunia nyata |
+
+Keduanya punya trigger kembar: `no_ledger_*`/`no_gem_*` (menolak UPDATE & DELETE) dan
+`no_overdraft`/`no_gem_overdraft` (mengunci dulu, baru menghitung — write skew tidak bisa
+diselesaikan dengan `raise exception` saja).
+
+Pembedaan ⭐ vs 💎 langsung mengikuti ADR-0004: yang menyentuh dunia nyata dijaga lebih ketat.
 
 Advisor akan tetap melaporkan bahwa `authenticated` boleh memanggil kedua helper definer itu.
 Disengaja — policy dievaluasi sebagai role pemanggil, jadi mencabutnya justru mematikan RLS.

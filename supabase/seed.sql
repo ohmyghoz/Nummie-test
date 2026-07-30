@@ -94,9 +94,14 @@ begin
     jsonb_build_object('spend', w_snacks::text, 'save', w_free::text, 'give', w_give::text)
   );
 
-  -- ── ekonomi ⭐/💎 (ADR-0004: lifetime terpisah dari saldo) ───────────────────
-  insert into child_economy (child_id, stars_balance, stars_lifetime, gems)
-  values (v_child, 120, 120, 12);
+  -- ── ekonomi ⭐ (ADR-0004: lifetime terpisah dari saldo) ──────────────────────
+  -- ⭐ penghitung; 💎 TIDAK di sini — ia punya ledger sendiri (0015), karena ia ditukar jadi
+  -- hadiah dunia nyata dan "💎-ku ke mana?" harus selalu terjawab.
+  insert into child_economy (child_id, stars_balance, stars_lifetime)
+  values (v_child, 120, 120);
+
+  -- Saldo 💎 pembuka sebagai satu baris ledger, bukan kolom.
+  insert into gem_entries (child_id, delta, reason) values (v_child, 12, 'adjust');
 
   -- ── Settings (migrasi 0013) ─────────────────────────────────────────────────
   -- Uang saku PER ANAK. Angka kanonik handoff: Rp50.000 mingguan tiap Senin.

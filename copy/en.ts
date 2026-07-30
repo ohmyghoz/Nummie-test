@@ -125,6 +125,23 @@ export const en: Dictionary = {
     weeklyGate: 'Finish this week to spend your gems',
   },
 
+  kidJobs: {
+    title: 'Jobs from home',
+    empty: 'No jobs right now. Ask your grown-up.',
+    markDone: 'I did it',
+    waiting: 'Waiting for a grown-up',
+    paidInGems: '{amount} gems',
+    paidInMoney: '{amount} — lands in Unsorted',
+    prizesTitle: 'Prizes',
+    prizesEmpty: 'No prizes yet. Ask your grown-up to add one.',
+    redeem: 'Swap {cost} gems',
+    yourGems: 'You have {gems} gems',
+    tooExpensive: 'Not enough gems yet',
+    bigPrizeLocked: 'Finish Chapter {n} for the big prizes',
+    weeklyLocked: 'Finish this week to spend your gems',
+    failed: 'That did not work. Nothing changed.',
+  },
+
   chapter: {
     money_is_choice: 'Money is a choice',
     four_jobs: 'Money has four jobs',

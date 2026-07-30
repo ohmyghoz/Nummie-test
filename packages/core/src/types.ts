@@ -91,6 +91,14 @@ export interface MoneyRequest {
   /** wajib sebelum request Give bisa ditutup (ADR-0006) */
   fulfilmentStory?: string;
   decidedByParentId?: string;
+
+  /**
+   * Job / hadiah yang dirujuk (migrasi 0015). Jumlah 💎 TIDAK disimpan di `amount` — kolom itu
+   * rupiah — melainkan diturunkan dari `jobs.amount` / `prizes.gemCost` lewat id ini. Satu kolom
+   * dengan dua arti adalah cara keputusan mati diam-diam (peringatan K14).
+   */
+  jobId?: string;
+  prizeId?: string;
 }
 
 export type RuleMode = 'flexible' | 'strict';

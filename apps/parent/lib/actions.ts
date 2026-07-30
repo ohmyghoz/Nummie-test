@@ -32,8 +32,9 @@ import {
   CATEGORIES,
   approve, decline, markDone, postsLedgerOn, talkAboutIt, tdHarvestOutcome, tenorRate,
   STARTER_WALLETS, nextAllowanceDates, validateAllowance, validateAutoSplit, validateBankRates,
-  validateChild, validateSend, validateTake,
-  type AllowanceFrequency, type AllowanceSchedule, type Prices, type Tenor,
+  validateChild, validateJob, validatePrize, validateSend, validateTake,
+  type AllowanceFrequency, type AllowanceSchedule, type JobKind, type Prices,
+  type RewardKind, type Tenor,
   type Category, type MoneyRequest, type MoneyRules, type RuleMode, type SendSource,
   type Tier,
 } from '@nummi/core';
@@ -53,6 +54,9 @@ interface Found {
     destination_wallet_id: string | null;
     harvest_choice: string | null;
     grow_tenor_months: number | null;
+    /** jumlah & jenis reward job — 💎-nya diturunkan dari sini, bukan dari `requests.amount` */
+    job_amount: number | null;
+    job_reward: string | null;
   };
 }
 
@@ -66,7 +70,7 @@ async function findRequest(requestId: string): Promise<Found | null> {
       // soal skema). Diambil terpisah, tetap lewat service role SETELAH kepemilikan terbukti.
       const { data: raw } = await serviceClient()
         .from('requests')
-        .select('destination_wallet_id, harvest_choice, grow_tenor_months')
+        .select('destination_wallet_id, harvest_choice, grow_tenor_months, jobs(amount, reward)')
         .eq('id', requestId)
         .maybeSingle();
       return {
@@ -76,11 +80,37 @@ async function findRequest(requestId: string): Promise<Found | null> {
         child,
         prices: data.prices,
         today: data.today,
-        raw: raw ?? { destination_wallet_id: null, harvest_choice: null, grow_tenor_months: null },
+        raw: {
+          destination_wallet_id: raw?.destination_wallet_id ?? null,
+          harvest_choice: raw?.harvest_choice ?? null,
+          grow_tenor_months: raw?.grow_tenor_months ?? null,
+          // PostgREST mengembalikan relasi tersemat sebagai array; dinormalkan di sini supaya
+          // sisa berkas ini tidak perlu tahu-menahu soal bentuknya.
+          job_amount: embeddedJob(raw?.jobs)?.amount ?? null,
+          job_reward: embeddedJob(raw?.jobs)?.reward ?? null,
+        },
       };
     }
   }
   return null;
+}
+
+/** Relasi tersemat PostgREST bisa datang sebagai objek atau array satu elemen. */
+function embeddedJob(value: unknown): { amount: number; reward: string } | null {
+  const row = Array.isArray(value) ? value[0] : value;
+  if (!row || typeof row !== 'object') return null;
+  const r = row as { amount?: unknown; reward?: unknown };
+  return { amount: Number(r.amount ?? 0), reward: String(r.reward ?? '') };
+}
+
+/**
+ * Jumlah 💎 yang didapat dari klaim job. Nol kalau rewardnya uang.
+ *
+ * Diturunkan dari `jobs.amount`, TIDAK dari `requests.amount` — kolom itu rupiah. Satu kolom
+ * dengan dua arti adalah cara keputusan mati diam-diam (peringatan K14).
+ */
+function gemRewardAmount(found: Found): number {
+  return found.raw.job_reward === 'gems' ? (found.raw.job_amount ?? 0) : 0;
 }
 
 /** Baris ledger untuk sebuah request yang sudah boleh menggerakkan uang. */
@@ -148,9 +178,35 @@ function ledgerRowFor(found: Found): Record<string, unknown> | null {
       };
     }
 
+    /*
+     * Klaim job. Hanya menghasilkan baris ledger kalau rewardnya UANG — dan uang reward mendarat
+     * di Unsorted, konsisten dengan Send money: anak yang menentukan tugasnya (ADR-0004).
+     *
+     * Job ber-💎 tidak menyentuh ledger sama sekali; 💎 punya ledger sendiri (0015).
+     */
+    case 'mission_claim': {
+      if (r.amount <= 0) return null;          // reward 💎 → bukan uang
+      const landing = found.child.unsortedWallet;
+      if (!landing) return null;
+      return {
+        child_id: childId,
+        from_wallet_id: null,                  // uang dari kantong ortu, dari luar app
+        to_wallet_id: landing.id,
+        amount: r.amount,
+        reason: 'reward_money',
+        request_id: r.id,
+      };
+    }
+
+    /*
+     * Penukaran hadiah TIDAK menyentuh ledger uang sama sekali — yang berpindah 💎, dan itu sudah
+     * dipotong saat anak mengajukan (0015). Yang tersisa untuk ortu adalah tugas dunia nyata:
+     * benar-benar memberikan hadiahnya. Karena itu `prize` jalur TO-DO, bukan instan.
+     */
+    case 'prize':
+      return null;
+
     default:
-      // prize & mission_claim: belum ada jalurnya di app anak (U-13), jadi belum ada request-nya
-      // yang bisa disetujui. Sengaja tidak diarang-arang sekarang.
       return null;
   }
 }
@@ -179,8 +235,15 @@ export async function approveRequest(formData: FormData): Promise<void> {
      * disetujui, status berubah, uang tidak bergerak, tidak ada galat. Sekarang ketiadaan baris
      * harus punya nama.
      */
+    /*
+     * Jalur instan yang SAH tidak menghasilkan baris ledger ada dua:
+     *   harvest `roll_over`  → nol rupiah pindah, uangnya lanjut bekerja
+     *   mission_claim ber-💎 → yang bertambah 💎, dan itu ledger yang berbeda
+     * Selain keduanya, ketiadaan baris berarti ada jenis yang belum ditangani.
+     */
     const rollOver = found.request.kind === 'harvest' && found.raw.harvest_choice === 'roll_over';
-    if (!row && !rollOver) {
+    const gemReward = found.request.kind === 'mission_claim' && found.request.amount <= 0;
+    if (!row && !rollOver && !gemReward) {
       console.error(`approve: jalur instan '${found.request.kind}' tidak menghasilkan baris ledger`);
       redirect(`/requests?child=${found.childId}&e=failed`);
     }
@@ -200,6 +263,25 @@ export async function approveRequest(formData: FormData): Promise<void> {
      * `bank_rates` **saat ini**, lalu disimpan ke wallet. Ortu yang mengubah bunga besok tidak
      * mengubah deposito ini — dan itu seluruh gunanya.
      */
+    /*
+     * 💎 masuk SAAT DISETUJUI, bukan saat diklaim — kebalikan dari penukaran hadiah, yang
+     * memotong saat diajukan. Asimetris, dan sengaja: 💎 yang belum disetujui belum menjadi milik
+     * anak, sementara 💎 yang dipakai menukar harus segera keluar supaya tidak bisa dipakai dua
+     * kali. Keduanya punya jejak di ledger 💎.
+     */
+    if (found.request.kind === 'mission_claim' && found.request.jobId && gemRewardAmount(found)) {
+      const { error: gemError } = await db.from('gem_entries').insert({
+        child_id: found.childId,
+        delta: gemRewardAmount(found),
+        reason: 'mission_claim',
+        request_id: found.request.id,
+      });
+      if (gemError) {
+        console.error('approve: 💎 gagal ditambahkan:', gemError.message);
+        redirect(`/requests?child=${found.childId}&e=failed`);
+      }
+    }
+
     if (found.request.kind === 'grow_in' && found.raw.grow_tenor_months) {
       const tenor = found.raw.grow_tenor_months as Tenor;
       const { error: termsError } = await db.from('wallets')
@@ -625,4 +707,77 @@ export async function saveBankRates(formData: FormData): Promise<void> {
   revalidatePath('/settings');
   revalidateAll();
   redirect(`${back}&saved=1`);
+}
+
+/**
+ * Membuat job. Sampai 30 Juli 2026 layar `/jobs` seluruhnya pratinjau: kedua form-nya
+ * `method="get"`, dan tidak ada satu pun tombol yang menyimpan.
+ *
+ * `frequency` selalu `'once'` untuk sekarang — kolomnya ada di database (0015) tapi UI belum
+ * menawarkan mingguan, karena reset mingguan adalah scheduler yang definisinya masih terbuka
+ * (backlog T: awal minggu, zona waktu, klaim retroaktif).
+ */
+export async function createJob(formData: FormData): Promise<void> {
+  const childId = String(formData.get('child') ?? '');
+  const kind = String(formData.get('kind') ?? 'family_contribution') as JobKind;
+  const title = String(formData.get('title') ?? '').trim();
+  const reward = String(formData.get('reward') ?? 'gems') as RewardKind;
+  const amount = Number(formData.get('amount') ?? 0);
+
+  const data = await getParentData();
+  const child = data.children.find((c) => c.id === childId);
+  if (!child) redirect('/');
+
+  const q = new URLSearchParams({ child: childId, kind, title, reward, amount: String(amount) });
+  const back = `/jobs?${q.toString()}`;
+
+  // `validateJob` yang menegakkan ADR-0004: kontribusi keluarga tidak boleh dibayar uang.
+  // Diperiksa ulang di sini, bukan cuma dipakai merender form.
+  const check = validateJob({ kind, title, reward, amount });
+  if (!check.ok) redirect(`${back}&e=${check.errorKey ?? 'failed'}`);
+
+  const { error } = await serviceClient().from('jobs').insert({
+    child_id: childId,
+    kind, title, reward, amount,
+    frequency: 'once',
+    created_by: data.parentId,
+  });
+
+  if (error) {
+    console.error('createJob gagal:', error.message);
+    redirect(`${back}&e=failed`);
+  }
+
+  revalidatePath('/jobs');
+  revalidateAll();
+  redirect(`/jobs?child=${childId}&saved=1`);
+}
+
+/** Membuat hadiah. Biayanya SELALU 💎 — hadiah tidak pernah dibeli dengan rupiah (ADR-0004). */
+export async function createPrize(formData: FormData): Promise<void> {
+  const childId = String(formData.get('child') ?? '');
+  const title = String(formData.get('title') ?? '').trim();
+  const gemCost = Number(formData.get('cost') ?? 0);
+
+  const data = await getParentData();
+  const child = data.children.find((c) => c.id === childId);
+  if (!child) redirect('/');
+
+  const q = new URLSearchParams({ child: childId, prize: title, cost: String(gemCost) });
+  const back = `/jobs?${q.toString()}`;
+
+  const check = validatePrize({ title, gemCost });
+  if (!check.ok) redirect(`${back}&e=${check.errorKey ?? 'failed'}`);
+
+  const { error } = await serviceClient().from('prizes')
+    .insert({ child_id: childId, title, gem_cost: gemCost });
+
+  if (error) {
+    console.error('createPrize gagal:', error.message);
+    redirect(`${back}&e=failed`);
+  }
+
+  revalidatePath('/jobs');
+  revalidateAll();
+  redirect(`/jobs?child=${childId}&saved=1`);
 }

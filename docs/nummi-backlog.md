@@ -200,9 +200,20 @@ Database berdiri, terisi seed kanonik, isolasi RLS diuji per-role, dan login ana
   tapi sumbernya sudah database — feed nanti cuma menambah baris.
   Ikut tertutup: **jadwal uang saku yang diwarisi diam-diam** (satu objek `SEED_ALLOWANCE`
   dipakai semua anak) dan **biweekly tanpa anchor** (handoff §232).
-- **U-13 · Jobs & Prizes belum punya tabel.** Builder di sisi ortu memvalidasi lewat core dan
-  layarnya berdiri, tapi tidak ada `jobs`/`prizes` untuk menyimpannya — dan sisi anak belum punya
-  layarnya sama sekali. **Butuh keputusan skema.**
+- ~~**U-13 · Jobs & Prizes belum punya tabel.**~~ ✅ **selesai 30 Juli 2026 (migrasi 0015).**
+  `jobs` · `prizes` · **`gem_entries` append-only** + view `gem_balances`. Job **sekali-saja**
+  dulu (kolom `frequency` sudah ada, UI belum menawarkan mingguan). Sisi anak akhirnya punya
+  layarnya: "Jobs from home" di Missions, penukaran hadiah di Me.
+  💎 pakai ledger, ⭐ tetap penghitung — ⭐ hanya membeli kosmetik, 💎 menyentuh dunia nyata
+  (ADR-0004). Jumlah 💎 **tidak** disimpan di `requests.amount` (kolom itu rupiah); diturunkan
+  lewat `job_id`/`prize_id` — menghindari peringatan K14.
+- **U-15 · Definisi minggu masih terbuka, dan gerbang 3 menunggunya.** `weeklyMaterialDone`
+  tidak punya sumber karena kurikulum belum punya tabel. `canRedeemGems` sekarang memperlakukan
+  `undefined` sebagai **"belum ada materi mingguan"**, bukan "belum selesai" — kalau tidak,
+  gerbang itu tertutup selamanya dan seluruh ekonomi 💎 jadi hiasan. ⚠️ **Ini pembacaan yang
+  perlu dikonfirmasi**: ADR-0004 mengunci gerbangnya, dan yang berubah hanya cara membaca
+  "tidak ada data". Begitu kurikulum punya tabel + definisi minggu diputuskan (backlog T: awal
+  minggu · zona waktu · klaim retroaktif), gerbangnya menutup sendiri tanpa perubahan kode.
 - ~~**U-11 · Sesi ortu tidak diperbarui.**~~ ✅ **selesai 30 Juli 2026.** `apps/parent/middleware.ts`
   menukar refresh token 2 menit sebelum access token mati. Diuji dengan menanam access token
   kedaluwarsa + refresh token asli: dashboard tetap terbuka dan token baru dipasang. "Keluar"

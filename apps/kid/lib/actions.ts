@@ -29,7 +29,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import {
-  GIVE_CAUSES, canHarvestTo, canOpenSort, growInPlan, movePlan, validateGive,
+  GIVE_CAUSES, canHarvestTo, canOpenSort, growInPlan, movePlan, redeemGems, validateGive,
   type GiveCause, type HarvestChoice, type Tenor,
 } from '@nummi/core';
 import { getKidData } from './data';
@@ -283,5 +283,116 @@ export async function submitGrowIn(formData: FormData): Promise<void> {
   revalidatePath('/grow');
   revalidatePath('/requests');
   revalidatePath('/');
+  redirect('/requests');
+}
+
+/**
+ * Anak menandai job selesai → request `mission_claim` → ortu.
+ *
+ * Anak yang menandai, bukan ortu (handoff §129). Alasannya bukan kemudahan: pekerjaan yang harus
+ * "dilaporkan" ke ortu untuk diakui mengajari anak bahwa yang penting pengawasan, bukan
+ * pekerjaannya. Ortu tetap memutuskan — tapi anak yang mengangkat tangan.
+ *
+ * Jalur INSTAN: menyetujui = selesai, karena rewardnya cuma angka (💎 atau rupiah ke Unsorted),
+ * tidak ada tugas dunia nyata yang tersisa (requests.ts:19).
+ */
+export async function claimJob(formData: FormData): Promise<void> {
+  const jobId = String(formData.get('job') ?? '');
+
+  const data = await getKidData();
+  // Job dicari di daftar yang SUDAH tergerbang (`availableJobs` di data.ts). Job yang terkunci
+  // gerbang tidak akan ketemu di sini — jadi gerbangnya bukan cuma soal apa yang tampil.
+  const job = data.jobs.find((j) => j.id === jobId);
+  if (!job) redirect('/missions');
+
+  // Sudah pernah diklaim dan masih menunggu? Jangan biarkan dua klaim untuk satu pekerjaan.
+  const pending = data.requests.some(
+    (r) => r.kind === 'mission_claim' && r.status === 'needs_ok' && r.jobId === job.id,
+  );
+  if (pending) redirect('/requests');
+
+  const { error } = await serviceClient().from('requests').insert({
+    child_id: data.child.id,
+    kind: 'mission_claim',
+    // `amount` kolom RUPIAH. Untuk job ber-💎 ia tidak dipakai — jumlah 💎 diturunkan dari
+    // `jobs.amount` lewat job_id (0015). Satu kolom dua arti adalah cara keputusan mati.
+    amount: job.reward === 'money' ? job.amount : null,
+    job_id: job.id,
+    status: 'needs_ok',
+    fulfilment: 'not_applicable',
+  });
+
+  if (error) {
+    console.error('claimJob gagal:', error.message);
+    redirect('/missions?e=failed');
+  }
+
+  revalidatePath('/missions');
+  revalidatePath('/requests');
+  revalidatePath('/me');
+  redirect('/requests');
+}
+
+/**
+ * Anak menukar 💎 jadi hadiah nyata → request `prize` → ortu.
+ *
+ * Jalur TO-DO, bukan instan (ADR-0002): menyetujui belum berarti selesai, karena ortu harus
+ * BENAR-BENAR memberikan 1 jam main itu. Janji yang tidak ditepati merusak kepercayaan pada
+ * seluruh sistem — dan itu sebabnya `prize` tidak pernah masuk INSTANT_KINDS.
+ *
+ * Tiga gerbang diperiksa `redeemGems()` di core: materi mingguan, hadiah besar (≥25 💎), lalu
+ * saldo. Diperiksa ULANG di sini, bukan cuma dipakai merender daftar.
+ */
+export async function redeemPrize(formData: FormData): Promise<void> {
+  const prizeId = String(formData.get('prize') ?? '');
+
+  const data = await getKidData();
+  const prize = data.prizes.find((p) => p.id === prizeId);
+  if (!prize) redirect('/me');
+
+  const check = redeemGems(data.economy, prize.gemCost);
+  if (!check.ok) redirect(`/me?e=${check.errorKey ?? 'failed'}`);
+
+  /*
+   * 💎 dipotong di sini, saat DIAJUKAN — bukan saat ortu menyetujui.
+   *
+   * Alasannya sama dengan U-10 (request tidak memesan saldo uang): tanpa memotong sekarang, anak
+   * bisa mengajukan tiga hadiah dengan 💎 yang cukup untuk satu, dan ortu yang menemukan
+   * kegagalannya. Kalau ortu menolak, baris pembalik yang mengembalikan 💎-nya — dan ledger
+   * membuat pengembalian itu punya jejak, bukan diam-diam.
+   */
+  const db = serviceClient();
+  const { data: req, error } = await db.from('requests')
+    .insert({
+      child_id: data.child.id,
+      kind: 'prize',
+      prize_id: prize.id,
+      status: 'needs_ok',
+      // TO-DO: ortu masih harus benar-benar memberikannya (ADR-0002).
+      fulfilment: 'todo',
+    })
+    .select('id')
+    .single();
+
+  if (error || !req) {
+    console.error('redeemPrize gagal:', error?.message);
+    redirect('/me?e=failed');
+  }
+
+  const { error: gemError } = await db.from('gem_entries').insert({
+    child_id: data.child.id,
+    delta: -prize.gemCost,
+    reason: 'prize',
+    request_id: req.id,
+  });
+
+  if (gemError) {
+    // Trigger `no_gem_overdraft` (0015) menangkap balapan yang lolos pemeriksaan di atas.
+    console.error('redeemPrize: 💎 gagal dipotong:', gemError.message);
+    redirect('/me?e=gems.insufficient');
+  }
+
+  revalidatePath('/me');
+  revalidatePath('/requests');
   redirect('/requests');
 }

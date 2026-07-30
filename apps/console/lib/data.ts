@@ -148,7 +148,7 @@ export async function getConsoleData(): Promise<ConsoleData> {
       .select('id, child_id, from_wallet_id, to_wallet_id, amount, reason, created_at')
       .order('created_at'),
     db.from('requests')
-      .select('id, child_id, kind, amount, source_wallet_id, reason, status, fulfilment, fulfilment_story')
+      .select('id, child_id, kind, amount, source_wallet_id, reason, status, fulfilment, fulfilment_story, job_id, prize_id')
       .order('created_at', { ascending: false }),
     db.from('wallet_balances').select('child_id, balance'),
   ]);
@@ -200,6 +200,8 @@ export async function getConsoleData(): Promise<ConsoleData> {
     status: r.status,
     fulfilment: r.fulfilment,
     fulfilmentStory: r.fulfilment_story ?? undefined,
+    jobId: r.job_id ?? undefined,
+    prizeId: r.prize_id ?? undefined,
   }));
 
   // Total per anak MENURUT DATABASE — sisi kedua dari pemeriksaan silang.

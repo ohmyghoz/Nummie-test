@@ -1,10 +1,11 @@
 import {
   AVATAR_ITEMS, BIG_PRIZE_CHAPTER, CHORES_GATE_LIFETIME_STARS, THEMES,
-  bigPrizesUnlocked, canAfford, choresUnlocked, ownsItem,
+  bigPrizesUnlocked, canAfford, choresUnlocked, ownsItem, redeemGems,
 } from '@nummi/core';
 import { getKidData } from '../../lib/data';
 import { dict, fill } from '../../lib/copy';
 import { Brand, Nav } from '../../components/ui';
+import { redeemPrize } from '../../lib/actions';
 
 const THEME_COLOR: Record<string, string> = {
   violet: '#6c4ce0', sun: '#ffb020', coral: '#ff7a4d', sky: '#2ca6e0', mint: '#2fc078',
@@ -87,7 +88,54 @@ export default async function MePage() {
               <span key={t} className="swatch" style={{ background: THEME_COLOR[t] }} />
             ))}
           </div>
-          {/* Warna kategori TIDAK ikut tema — ia alat belajar yang dikunci. */}
+          {/*
+          PRIZES — tempat 💎 akhirnya berguna. Ini sisi lain dari ADR-0004: ⭐ membeli tampilan di
+          app, 💎 membeli sesuatu di dunia nyata. Kalau layar ini tidak ada, 💎 cuma angka.
+
+          Penukaran masuk jalur TO-DO, bukan instan: ortu masih harus benar-benar memberikannya.
+          Janji yang tidak ditepati merusak kepercayaan pada seluruh sistem (ADR-0002).
+        */}
+        {data.prizes.length > 0 && (
+          <div className="card">
+            <h2>🎁 {dict.kidJobs.prizesTitle}</h2>
+            <p className="muted" style={{ marginTop: -6, marginBottom: 10 }}>
+              {fill(dict.kidJobs.yourGems, { gems: e.gems })}
+            </p>
+
+            {data.prizes.map((prize) => {
+              const check = redeemGems(data.economy, prize.gemCost);
+              const reason = check.ok ? undefined
+                : check.errorKey === 'gems.bigPrizeLocked'
+                  ? fill(dict.kidJobs.bigPrizeLocked, { n: BIG_PRIZE_CHAPTER })
+                  : check.errorKey === 'gems.weeklyMaterialUnfinished'
+                    ? dict.kidJobs.weeklyLocked
+                    : dict.kidJobs.tooExpensive;
+
+              return (
+                <div className="slot" key={prize.id}>
+                  <div>
+                    <div className="nm">{prize.title}</div>
+                    {/* Alasan terkunci DITULIS, bukan cuma tombol yang mati — anak harus tahu
+                        apa yang harus dilakukan, bukan cuma bahwa ia tidak bisa. */}
+                    {reason && <div className="pct">{reason}</div>}
+                  </div>
+                  {check.ok && (
+                    <form action={redeemPrize} style={{ marginLeft: 'auto' }}>
+                      <input type="hidden" name="prize" value={prize.id} />
+                      <button className="pill" type="submit"
+                        style={{ border: 'none', font: 'inherit', cursor: 'pointer' }}>
+                        {fill(dict.kidJobs.redeem, { cost: prize.gemCost })}
+                      </button>
+                    </form>
+                  )}
+                  {!check.ok && <span className="pill">💎 {prize.gemCost}</span>}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Warna kategori TIDAK ikut tema — ia alat belajar yang dikunci. */}
           <p className="muted" style={{ marginTop: 10 }}>{dict.me.categoryColoursNeverChange}</p>
         </div>
 
